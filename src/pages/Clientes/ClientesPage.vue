@@ -1,300 +1,267 @@
 <template>
-  <q-page class="q-pa-md bg-grey-3">
-    <div class="row q-col-gutter-md">
-      <div class="col-12">
-        <q-table
-          title="Catálogo de Clientes - La Nacional"
-          :rows="rows"
-          :columns="columns"
-          row-key="id"
-          :loading="loading"
-          class="shadow-5"
-          :filter="filter"
-        >
-          <template v-slot:top-right>
-            <q-input borderless dense debounce="300" v-model="filter" placeholder="Buscar cliente...">
+  <q-page class="q-pa-md bg-grey-2">
+    <q-card class="shadow-15 no-border-radius">
+
+      <q-table
+        :rows="rows"
+        :columns="columns"
+        row-key="id"
+        :loading="loading"
+        flat
+        bordered
+        class="my-sticky-header-table"
+        :filter="filter"
+      >
+        <template v-slot:top>
+          <div class="col-12 row items-center q-gutter-md">
+            <div class="text-h5 text-primary text-bold q-pr-md">
+              <q-icon name="group" size="md" class="q-mr-sm" />
+              Gestión de Clientes
+            </div>
+
+            <q-input
+              v-model="filter"
+              placeholder="Buscar por razón social, RFC..."
+              outlined
+              dense
+              debounce="300"
+              class="col-grow"
+              bg-color="white"
+            >
               <template v-slot:append>
                 <q-icon name="search" />
               </template>
             </q-input>
+
             <q-btn
               color="primary"
-              icon="add"
+              icon="person_add"
               label="Nuevo Cliente"
-              class="q-ml-md"
-              @click="openAddDialog"
+              class="q-px-lg shadow-2"
+              @click="openCreate"
             />
-          </template>
-
-          <template v-slot:body-cell-numero_global="props">
-            <q-td :props="props">
-              <q-badge color="secondary" class="text-bold">
-                {{ props.value }}
-              </q-badge>
-            </q-td>
-          </template>
-
-          <template v-slot:body-cell-saldo_actual="props">
-            <q-td :props="props" :class="props.value > 0 ? 'text-negative text-bold' : 'text-positive'">
-              $ {{ props.value.toLocaleString() }}
-            </q-td>
-          </template>
-        </q-table>
-      </div>
-    </div>
-
-    <q-dialog v-model="showDialog" persistent max-width="850px" @show="setFocus">
-      <q-card style="width: 750px; max-width: 95vw;">
-        <q-card-section class="bg-primary text-white row items-center">
-          <div class="text-h6 text-uppercase">
-            <q-icon name="person_add" class="q-mr-sm" />
-            Registrar Cliente
           </div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
+        </template>
 
-        <q-tabs
-          v-model="activeTab"
-          class="text-primary"
-          active-color="primary"
-          indicator-color="primary"
-          align="justify"
-          narrow-indicator
-        >
-          <q-tab name="general" icon="account_circle" label="Generales" />
-          <q-tab name="billing" icon="description" label="Facturación" />
-          <q-tab name="address" icon="place" label="Dirección" />
-          <q-tab name="finance" icon="account_balance_wallet" label="Finanzas" />
-        </q-tabs>
+        <template v-slot:body-cell-numero_global="props">
+          <q-td :props="props">
+            <q-chip
+              color="grey-8"
+              text-color="white"
+              icon="tag"
+              size="sm"
+              class="text-bold"
+            >
+              {{ props.value }}
+            </q-chip>
+          </q-td>
+        </template>
 
-        <q-separator />
+        <template v-slot:body-cell-rfc="props">
+          <q-td :props="props">
+            <div class="text-weight-medium text-mono">{{ props.value || 'N/A' }}</div>
+          </q-td>
+        </template>
 
-        <q-form @submit="onSubmit">
-          <q-tab-panels v-model="activeTab" animated class="q-pa-none">
+        <template v-slot:body-cell-telefono="props">
+          <q-td :props="props">
+            <div v-if="props.value" class="row items-center">
+              <q-icon name="phone" color="grey-6" size="xs" class="q-mr-xs" />
+              {{ props.value }}
+            </div>
+            <span v-else class="text-grey-5">Sin teléfono</span>
+          </q-td>
+        </template>
 
-            <q-tab-panel name="general" class="q-gutter-sm">
-              <div class="row q-col-gutter-sm">
-                <q-input v-bind="inputProps" ref="refGeneral" v-model="form.nombre_comercial" label="Nombre *" class="col-12" filled :rules="[val => !!val || 'El nombre es obligatorio']" />
-                <q-input v-bind="inputProps" v-model="form.email" label="Correo Electrónico *" class="col-md-6 col-xs-12" filled :rules="[val => /.+@.+\..+/.test(val) || 'Email inválido']" />
-                <q-input v-bind="inputProps" v-model="form.contacto" label="Persona de Contacto" class="col-md-6 col-xs-12" filled />
-                <q-input v-bind="inputProps" v-model="form.telefono" label="Teléfono 1" class="col-md-6 col-xs-12" filled mask="(###) ### - ####" unmasked-value />
-                <q-input v-bind="inputProps" v-model="form.telefono2" label="Teléfono 2 (Opcional)" class="col-md-6 col-xs-12" filled mask="(###) ### - ####" unmasked-value />
-              </div>
-            </q-tab-panel>
+        <template v-slot:body-cell-tipo_pago="props">
+          <q-td :props="props">
+            <q-badge
+              :color="getTipoPagoColor(props.value)"
+              class="text-bold q-px-md q-py-xs shadow-1"
+              style="font-size: 0.75rem; border-radius: 4px;"
+            >
+              <q-icon :name="getTipoPagoIcon(props.value)" size="14px" class="q-mr-xs" />
+              {{ getTipoPagoLabel(props.value) }}
+            </q-badge>
+          </q-td>
+        </template>
 
-            <q-tab-panel name="billing" class="q-gutter-sm">
-              <div class="row q-col-gutter-sm">
-                <div class="col-12 text-caption text-grey-8 q-mb-xs">
-                  Asegúrate de que los datos coincidan exactamente con la Constancia de Situación Fiscal.
-                </div>
-                <q-input ref="refBilling" v-model="form.razon_social" label="Razón Social *" class="col-12" filled :rules="[val => !!val || 'Requerido para facturación']" />
-                <q-input v-model="form.rfc" label="RFC *" class="col-md-6 col-xs-12" filled mask="AAAA######XXX" unmasked-value :rules="[val => !!val || 'RFC Requerido']" />
-                <q-input v-model="form.codigo_postal" label="C.P. Fiscal *" class="col-md-6 col-xs-12" filled mask="#####" :rules="[val => !!val || 'C.P. Requerido']" />
+        <template v-slot:body-cell-limite_credito="props">
+          <q-td :props="props" class="text-bold text-blue-9">
+            $ {{ formatCurrency(props.value) }}
+          </q-td>
+        </template>
 
-                <q-select
-                  v-model="form.tax_regime_id"
-                  :options="taxRegimeOptions"
-                  option-value="id"
-                  option-label="label"
-                  emit-value
-                  map-options
-                  label="Régimen Fiscal *"
-                  class="col-12"
-                  filled
-                  :rules="[val => !!val || 'Selecciona un régimen']"
-                >
-                  <template v-slot:option="scope">
-                    <q-item v-bind="scope.itemProps">
-                      <q-item-section>
-                        <q-item-label>{{ scope.opt.label }}</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                  </template>
-                </q-select>
-              </div>
-            </q-tab-panel>
+        <template v-slot:body-cell-saldo_actual="props">
+          <q-td :props="props">
+            <q-badge
+              :color="props.value > 0 ? 'red-2' : 'green-2'"
+              :text-color="props.value > 0 ? 'red-9' : 'green-9'"
+              class="q-px-md q-py-xs text-bold"
+              style="font-size: 0.9rem"
+            >
+              $ {{ formatCurrency(props.value) }}
+            </q-badge>
+          </q-td>
+        </template>
 
-            <q-tab-panel name="address" class="q-gutter-sm">
-              <div class="row q-col-gutter-sm">
-                <q-input ref="refAddress" v-model="form.calle" label="Calle" class="col-md-8 col-xs-12" filled />
-                <q-input v-model="form.no_exterior" label="No. Ext" class="col-md-2 col-xs-6" filled />
-                <q-input v-model="form.no_interior" label="No. Int" class="col-md-2 col-xs-6" filled />
-                <q-input v-model="form.colonia" label="Colonia" class="col-md-6 col-xs-12" filled />
-                <q-input v-model="form.ciudad" label="Ciudad / Municipio" class="col-md-6 col-xs-12" filled />
-                <q-input v-model="form.estado" label="Estado" class="col-md-6 col-xs-12" filled />
-                <q-input v-model="form.pais" label="País" class="col-md-6 col-xs-12" filled />
-              </div>
-            </q-tab-panel>
+        <template v-slot:body-cell-actions="props">
+          <q-td :props="props" class="q-gutter-sm">
+            <q-btn
+              flat round
+              color="indigo"
+              icon="edit"
+              size="sm"
+              @click="openEdit(props.row)"
+            >
+              <q-tooltip>Editar Cliente</q-tooltip>
+            </q-btn>
+            <q-btn
+              flat round
+              color="negative"
+              icon="delete"
+              size="sm"
+              @click="confirmDelete(props.row)"
+            >
+              <q-tooltip>Eliminar Cliente</q-tooltip>
+            </q-btn>
+          </q-td>
+        </template>
 
-            <q-tab-panel name="finance" class="q-gutter-sm">
-              <div class="row q-col-gutter-sm">
-                <q-input ref="refFinance" v-model.number="form.limite_credito" type="number" label="Límite de Crédito" class="col-md-6 col-xs-12" filled prefix="$" />
-                <q-input v-model.number="form.saldo_actual" type="number" label="Saldo Inicial" class="col-md-6 col-xs-12" filled prefix="$" />
-                <q-input v-model="form.obs" type="textarea" label="Observaciones internas" class="col-12" filled rows="4" />
-              </div>
-            </q-tab-panel>
+      </q-table>
+    </q-card>
 
-          </q-tab-panels>
-
-          <q-separator />
-
-          <q-card-actions align="right" class="q-pa-md bg-grey-2">
-            <q-btn label="Cancelar" color="grey-7" v-close-popup flat />
-            <q-btn label="Guardar Cliente" color="primary" type="submit" :loading="saving" icon="save" />
-          </q-card-actions>
-        </q-form>
-      </q-card>
-    </q-dialog>
+    <ClientesForm
+      v-model="showDialog"
+      :editData="selectedCustomer"
+      :taxRegimes="taxRegimes"
+      @saved="loadCustomers"
+    />
   </q-page>
 </template>
 
 <script setup>
-  import { ref, onMounted, reactive, nextTick, watch } from 'vue'
+  import { ref, onMounted } from 'vue'
   import { api } from 'boot/axios'
   import { useQuasar } from 'quasar'
+  import ClientesForm from 'components/Clientes/ClientesForm.vue'
 
   const $q = useQuasar()
-
-  // --- REFS PARA LOS INPUTS ---
-  const refGeneral = ref(null)
-  const refBilling = ref(null)
-  const refAddress = ref(null)
-  const refFinance = ref(null)
-
-  // --- ESTADO ---
   const rows = ref([])
-  const taxRegimeOptions = ref([])
+  const taxRegimes = ref([])
   const loading = ref(true)
-  const saving = ref(false)
   const showDialog = ref(false)
-  const activeTab = ref('general')
+  const selectedCustomer = ref(null)
   const filter = ref('')
 
-  const inputProps = {
-    outlined: true,       // Marco definido
-    dense: true,          // Altura optimizada
-    'stack-label': true,  // La etiqueta siempre arriba para que no "brinque"
-    'standout': 'bg-red-1', // Al enfocar, resalta en rojo con letras blancas
-    class: 'q-mb-none'    // Quitamos márgenes de abajo para controlarlos nosotros
-  }
-
-  // Formulario Inicial
-  const initialForm = {
-    nombre_comercial: '',
-    razon_social: '',
-    rfc: '',
-    email: '',
-    telefono: '',
-    telefono2: '',
-    contacto: '',
-    calle: '',
-    no_exterior: '',
-    no_interior: '',
-    colonia: '',
-    codigo_postal: '',
-    ciudad: '',
-    estado: '',
-    pais: 'México',
-    tax_regime_id: null,
-    limite_credito: 0,
-    saldo_actual: 0,
-    obs: ''
-  }
-
-  const form = reactive({ ...initialForm })
-
-  // --- COLUMNAS DE LA TABLA ---
+  // Definición de columnas profesional
   const columns = [
-    { name: 'numero_global', label: 'No. Global', field: 'numero_global', align: 'left', sortable: true },
-    { name: 'nombre_comercial', label: 'Cliente', field: 'nombre_comercial', align: 'left', sortable: true },
+    { name: 'numero_global', label: 'No. CLIENTE', field: 'numero_global', align: 'left', sortable: true },
+    { name: 'razon_social', label: 'RAZÓN SOCIAL', field: 'razon_social', align: 'left', sortable: true },
     { name: 'rfc', label: 'RFC', field: 'rfc', align: 'left' },
-    { name: 'telefono', label: 'Teléfono', field: 'telefono', align: 'left' },
-    { name: 'saldo_actual', label: 'Saldo Deudor', field: 'saldo_actual', align: 'right', sortable: true }
+    { name: 'telefono', label: 'TELÉFONO', field: 'telefono', align: 'left' },
+    { name: 'tipo_pago', label: 'MODO PAGO', field: 'tipo_pago', align: 'center', sortable: true },
+    { name: 'limite_credito', label: 'LÍMITE CRÉDITO', field: 'limite_credito', align: 'right', sortable: true },
+    { name: 'saldo_actual', label: 'SALDO ACTUAL', field: 'saldo_actual', align: 'right', sortable: true },
+    { name: 'actions', label: 'ACCIONES', align: 'center' }
   ]
 
-  // --- MÉTODOS ---
+  const openCreate = () => {
+    selectedCustomer.value = null
+    showDialog.value = true
+  }
 
-  // Cargar Clientes
+  const openEdit = (customer) => {
+    selectedCustomer.value = { ...customer }
+    showDialog.value = true
+  }
+
+  const confirmDelete = (customer) => {
+    $q.dialog({
+      title: 'Eliminar Cliente',
+      message: `¿Estás seguro de eliminar a "${customer.razon_social}"? Esta acción no se puede deshacer.`,
+      ok: { label: 'Eliminar', color: 'negative', flat: true },
+      cancel: { label: 'Cancelar', color: 'grey-8', flat: true },
+      persistent: true
+    }).onOk(async () => {
+      try {
+        await api.delete(`/api/clientes/${customer.id}`)
+        $q.notify({ color: 'positive', message: 'Cliente eliminado', icon: 'check', position: 'bottom-right' })
+        loadCustomers()
+      } catch (e) {
+        $q.notify({ color: 'negative', message: 'Error al eliminar', icon: 'error' })
+      }
+    })
+  }
+
   const loadCustomers = async () => {
     loading.value = true
     try {
-      const response = await api.get('/api/clientes')
-      rows.value = response.data
-    } catch (error) {
-      $q.notify({ color: 'negative', message: 'Error al cargar los clientes', icon: 'error' })
+      const res = await api.get('/api/clientes')
+      rows.value = res.data
     } finally {
       loading.value = false
     }
   }
 
-  // Cargar Regímenes Fiscales para el select
-  const loadTaxRegimes = async () => {
-    try {
-      const response = await api.get('/api/tax-regimes')
-      taxRegimeOptions.value = response.data.map(r => ({
-        id: r.id,
-        label: `${r.code} - ${r.name}`
-      }))
-    } catch (error) {
-      console.error('Error cargando catálogos fiscales', error)
+  // Retorna el texto legible según el valor numérico
+  const getTipoPagoLabel = (val) => {
+    const labels = {
+      0: 'DESHABILITADO',
+      1: 'SOLO CONTADO',
+      2: 'SOLO CRÉDITO',
+      3: 'CONTADO / CRÉDITO'
     }
+    return labels[val] || 'DESCONOCIDO'
   }
 
-  // Abrir diálogo y resetear form
-  const openAddDialog = () => {
-    Object.assign(form, initialForm)
-    activeTab.value = 'general'
-    showDialog.value = true
-  }
-
-  // Guardar Cliente
-  const onSubmit = async () => {
-    saving.value = true
-    try {
-      await api.post('/api/clientes', form)
-      $q.notify({
-        color: 'positive',
-        message: '¡Cliente registrado con éxito!',
-        icon: 'check_circle'
-      })
-      showDialog.value = false
-      loadCustomers()
-    } catch (error) {
-      const errorMsg = error.response?.data?.message || 'Error al procesar la solicitud'
-      $q.notify({ color: 'negative', message: errorMsg, icon: 'report_problem' })
-    } finally {
-      saving.value = false
+  // Retorna el color semántico (Estilo robusto de La Nacional)
+  const getTipoPagoColor = (val) => {
+    const colors = {
+      0: 'pink-6',     // Peligro / Bloqueado
+      1: 'green-8',   // Seguro / Efectivo
+      2: 'cyan-9',  // Advertencia / Cuentas por cobrar
+      3: 'indigo-9'   // Preferencial / Flexible
     }
+    return colors[val] || 'grey-7'
   }
 
-  // --- CICLO DE VIDA ---
-  onMounted(() => {
+  // Retorna un icono representativo
+  const getTipoPagoIcon = (val) => {
+    const icons = {
+      0: 'block',
+      1: 'payments',
+      2: 'credit_card',
+      3: 'dynamic_feed'
+    }
+    return icons[val] || 'help'
+  }
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('es-MX', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value || 0)
+  }
+
+  onMounted(async () => {
     loadCustomers()
-    loadTaxRegimes()
+    const resTax = await api.get('/api/tax-regimes')
+    taxRegimes.value = resTax.data.map(r => ({ label: `${r.code} - ${r.name}`, value: r.id }))
   })
-
-  // Función para poner el foco
-  const setFocus = () => {
-    // Esperamos a que Quasar termine de renderizar el panel de la pestaña
-    nextTick(() => {
-      if (activeTab.value === 'general') refGeneral.value?.focus()
-      if (activeTab.value === 'billing') refBilling.value?.focus()
-      if (activeTab.value === 'address') refAddress.value?.focus()
-      if (activeTab.value === 'finance') refFinance.value?.focus()
-    })
-  }
-
-  // Observar cuando cambia la pestaña activa
-  watch(activeTab, () => {
-    setFocus()
-  })
-
-
 </script>
 
-  <style scoped>
-  .q-table__card {
-    border-radius: 8px;
-  }
+<style lang="sass">
+.my-sticky-header-table
+  /* Estilo para que el encabezado sea de color */
+  thead tr th
+    background-color: #f5f5f5 // Un gris muy claro profesional
+    color: #1d1d1d
+    font-weight: bold
+    font-size: 0.85rem
+    border-bottom: 2px solid $primary !important
+
+  .text-mono
+    font-family: 'Courier New', Courier, monospace
+    letter-spacing: 1px
 </style>

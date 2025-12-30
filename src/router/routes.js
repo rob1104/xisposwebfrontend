@@ -7,6 +7,9 @@ const routes = [
       { path: '', redirect: '/dashboard' },
       { path: 'dashboard', component: () => import('pages/IndexPage.vue'), name: 'dashboard' },
       { path: 'clientes', component: () => import('pages/Clientes/ClientesPage.vue'), name: 'clientes' },
+      { path: 'usuarios', component: () => import('pages/Usuarios/UsuariosPage.vue'), name: 'usuarios' },
+      { path: 'roles', component: () => import('pages/Usuarios/RolesPage.vue'), name: 'roles' },
+      { path: 'sucursales', component: () => import('pages/Sucursales/SucursalPage.vue'), name: 'sucursales' },
     ]
   },
   {

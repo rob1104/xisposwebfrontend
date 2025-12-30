@@ -3,54 +3,63 @@ import { api } from 'src/boot/axios'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: null,
+    user: JSON.parse(localStorage.getItem('user')) || null,
     roles: [],
+    token: localStorage.getItem('token') || null,
     sucursales: [],
     sucursalSeleccionada: null,
-    isLoggedIn: false,
+    isLoggedIn: !!localStorage.getItem('token'),
   }),
   getters: {
-    isAdmin: (state) => state.roles.includes('Administrador'),
-    currentBranchName: (state) => state.sucursalSeleccionada ? state.sucursalSeleccionada.nombre: 'Administración global'
+    isAdmin: (state) => state.user?.role === 'Administrador',
+    currentBranchName: (state) => state.sucursalSeleccionada ? state.sucursalSeleccionada.nombre: 'Administración global',
   },
   actions: {
     async login(credentials) {
       try {
-        // 1. Obtener la "Cookie de CSRF" (Requerido por Sanctum)
-        await api.get('/sanctum/csrf-cookie');
-        // 2. Enviar credenciales al endpoint de Breeze
-        const response = await api.post('/login', credentials);
-        // 3. Guardar la información en el estado
-        this.user = response.data.user;
-        this.roles = response.data.user.roles;
-        this.sucursales = response.data.sucursales;
-        this.isLoggedIn = true;
-        // 4. Lógica automática de sucursal:
-        // Si solo tiene una sucursal, seleccionarla por defecto
-        if(this.sucursales.length === 1) {
-          this.sucursalSeleccionada = this.sucursales[0];
-        }
-        return response.data;
-      }
-      catch (error) {
-        throw error;
+        // Obligatorio para Sanctum: Obtener cookie CSRF
+        await api.get('/sanctum/csrf-cookie')
+
+        const response = await api.post('/login', credentials)
+
+        // 1. Asignar datos al state (Ahora this.token sí existe)
+        this.token = response.data.token
+        this.user = response.data.user
+        this.sucursales = response.data.sucursales || []
+        this.roles = response.data.user.roles || []
+        this.isLoggedIn = true
+
+        // 2. Persistir manualmente para asegurar que el interceptor lo lea
+        localStorage.setItem('token', this.token)
+        localStorage.setItem('user', JSON.stringify(this.user))
+
+        // 3. Configurar Axios para las siguientes peticiones inmediatamente
+        api.defaults.headers.common['Authorization'] = `Bearer ${this.token}`
+
+        return response
+      } catch (error) {
+
+        throw error
       }
     },
 
     async logout() {
       try {
-        await api.post('/logout');
-        this.$reset();
-      }
-      catch (error) {
-        console.error('Error al cerrar sesión:', error);
+        await api.post('/logout')
+      } finally {
+        // Limpiamos todo sin importar si la petición falló
+        this.user = null
+        this.token = null
+        this.isLoggedIn = false
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        delete api.defaults.headers.common['Authorization']
       }
     },
 
     setSucursal(sucursal) {
-      this.sucursalSeleccionada = sucursal;
+      this.sucursalSeleccionada = sucursal
     }
-
   },
   persist: true
 })
