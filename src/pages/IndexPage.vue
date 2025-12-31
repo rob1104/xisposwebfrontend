@@ -4,7 +4,7 @@
 
       <div class="col-12">
         <div class="text-h4 text-bold text-secondary q-mb-md text-uppercase">
-          Consola de Usuario - <span class="text-primary">La Nacional</span>
+          <span class="text-primary">panel principal</span>
         </div>
         <q-separator color="primary" size="3px" class="q-mb-lg" style="width: 100px" />
       </div>

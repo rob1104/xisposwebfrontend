@@ -57,6 +57,41 @@
                   label="Asignar Rol *" />
               </div>
               <div class="col-12">
+
+<div class="text-subtitle2 text-grey-8 q-mb-none q-mt-md">
+    <q-icon name="apartment" color="primary" class="q-mr-xs" />
+    Acceso a Sucursales
+  </div>
+
+  <q-select
+    v-model="form.sucursales"
+            :options="listaSucursales"
+            label="Seleccionar tiendas permitidas"
+            multiple
+            use-chips
+            outlined
+            dense
+            emit-value
+            map-options
+            class="q-mb-md"
+            :rules="[val => (val && val.length > 0) || 'Debe asignar al menos una sucursal']"
+          >
+            <template v-slot:selected-item="scope">
+              <q-chip
+                removable
+                @remove="scope.removeAtIndex(scope.index)"
+                :tabindex="scope.tabindex"
+                color="primary"
+                text-color="white"
+                size="sm"
+              >
+                {{ scope.opt.label }}
+              </q-chip>
+            </template>
+          </q-select>
+
+              </div>
+              <div class="col-12">
                 <q-input
                   outlined dense v-model="form.password"
                   :label="isEdit ? 'Nueva Contraseña (Opcional)' : 'Contraseña *'"
@@ -90,6 +125,8 @@
   const inputName = ref(null)
   const inputRole = ref(null)
 
+  const listaSucursales = ref([])
+
   const $q = useQuasar()
   const show = computed({
     get: () => props.modelValue,
@@ -107,15 +144,29 @@
     return isEdit.value && props.editData.id === auth.user.id
   })
 
-  const onDialogOpen = () => {
+  const onDialogOpen = async () => {
     activeTab.value = 'general'
+    try {
+      const response = await api.get('/api/sucursales')
+      listaSucursales.value = response.data.map(s => ({
+        label: s.nombre,
+        value: s.id
+      }))
+    } catch (e) {
+      console.error("Error al cargar sucursales")
+    }
+
     if (isEdit.value) {
-      const data = { ...props.editData, password: '' }
+      const sucursalesUsuario = props.editData.sucursales || []
+      const sucursalIds = sucursalesUsuario.map(s => s.id)
+      const sucursalesFormateadas = listaSucursales.value.filter(opt =>
+        sucursalIds.includes(opt.value)
+      )
+      const data = { ...props.editData, password: '', sucursales: sucursalesFormateadas }
       data.status = parseInt(data.status)
       Object.assign(form, data)
     } else {
-      // Valores por defecto para nuevo usuario
-      Object.assign(form, { name: '', email: '', role: 'Cajero', status: 1, password: '' })
+      Object.assign(form, { name: '', email: '', role: null, status: 1, password: '', sucursales: [] } )
     }
     setFocus()
   }
@@ -125,9 +176,13 @@
     loading.value = true
     try {
       const url = isEdit.value ? `/api/users/${props.editData.id}` : '/api/users'
-      const method = isEdit.value ? 'put' : 'post'
 
-      const response = await api[method](url, form)
+      const dataToSend = { ...form , sucursales: form.sucursales.map(s => typeof s === 'object' ? s.value : s) }
+
+
+
+      const method = isEdit.value ? 'put' : 'post'
+      const response = await api[method](url, dataToSend)
 
       // Notificación de Éxito
       $q.notify({

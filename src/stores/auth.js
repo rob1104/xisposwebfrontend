@@ -22,6 +22,8 @@ export const useAuthStore = defineStore('auth', {
 
         const response = await api.post('/login', credentials)
 
+        console.log('Respuesta login:', response.data)
+
         // 1. Asignar datos al state (Ahora this.token sí existe)
         this.token = response.data.token
         this.user = response.data.user
@@ -45,20 +47,33 @@ export const useAuthStore = defineStore('auth', {
 
     async logout() {
       try {
-        await api.post('/logout')
-      } finally {
-        // Limpiamos todo sin importar si la petición falló
-        this.user = null
-        this.token = null
-        this.isLoggedIn = false
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        delete api.defaults.headers.common['Authorization']
+        if(this.token) {
+          await api.post('/logout')
+        }
+      } catch(error) {
+        //console.error('Error durante logouut:', error)
+      }
+      finally {
+        this.clearLocalAuth()
       }
     },
 
     setSucursal(sucursal) {
       this.sucursalSeleccionada = sucursal
+    },
+    clearLocalAuth() {
+      this.user = null
+      this.token = null
+      this.roles = []
+      this.sucursales = []
+      this.sucursalSeleccionada = null
+      this.isLoggedIn = false
+
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+
+      // Eliminamos el header para futuras peticiones
+      delete api.defaults.headers.common['Authorization']
     }
   },
   persist: true

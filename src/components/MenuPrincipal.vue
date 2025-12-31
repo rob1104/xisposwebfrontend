@@ -1,83 +1,78 @@
 <template>
-  <q-list padding class="menu-list">
-    <q-item-label header class="text-weight-bolder text-grey-8">OPERACIONES</q-item-label>
+  <q-list padding class="menu-list q-px-md">
+    <q-item-label header class="text-overline text-grey-6 q-mt-md">Operaciones</q-item-label>
 
-    <q-item clickable v-ripple to="/dashboard" active-class="my-menu-link">
-      <q-item-section avatar><q-icon name="dashboard" /></q-item-section>
-      <q-item-section>Dashboard</q-item-section>
+    <q-item clickable v-ripple to="/dashboard" active-class="custom-active-link" class="menu-item">
+      <q-item-section avatar><q-icon name="dashboard_customize" /></q-item-section>
+      <q-item-section class="text-weight-medium">Panel Principal</q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/ventas" active-class="my-menu-link">
-      <q-item-section avatar><q-icon name="shopping_cart" /></q-item-section>
-      <q-item-section>Punto de Venta</q-item-section>
+    <q-item clickable v-ripple to="/ventas" active-class="custom-active-link" class="menu-item">
+      <q-item-section avatar><q-icon name="point_of_sale" /></q-item-section>
+      <q-item-section class="text-weight-medium">Venta de Productos</q-item-section>
     </q-item>
 
-    <q-separator class="q-my-md" />
+    <q-separator class="q-my-lg" />
 
     <q-expansion-item
       v-model="catalogoExpanded"
-      icon="inventory"
-      label="CATÁLOGOS"
-      header-class="text-weight-bolder text-grey-8"
-      :content-inset-level="0.5"
+      icon="auto_stories"
+      label="Catálogos"
+      header-class="text-weight-bold text-grey-8 custom-expansion"
       expand-separator
     >
-      <q-item clickable v-ripple to="/clientes" active-class="my-menu-link">
-        <q-item-section avatar><q-icon name="people" /></q-item-section>
-        <q-item-section>Clientes</q-item-section>
+      <q-item clickable v-ripple to="/clientes" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="group" /></q-item-section>
+        <q-item-section>Cartera de Clientes</q-item-section>
       </q-item>
 
-      <q-item clickable v-ripple to="/proveedores" active-class="my-menu-link">
+      <q-item clickable v-ripple to="/proveedores" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="local_shipping" /></q-item-section>
         <q-item-section>Proveedores</q-item-section>
       </q-item>
 
-      <q-item clickable v-ripple to="/productos" active-class="my-menu-link">
-        <q-item-section avatar><q-icon name="restaurant" /></q-item-section>
-        <q-item-section>Productos</q-item-section>
+      <q-item clickable v-ripple to="/productos" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="inventory_2" /></q-item-section>
+        <q-item-section>Inventario / Productos</q-item-section>
       </q-item>
     </q-expansion-item>
-
-    <q-separator class="q-my-md" />
-
 
     <q-expansion-item
       v-model="seguridadExpanded"
-      icon="security"
-      label="SEGURIDAD"
-      header-class="text-weight-bolder text-grey-8"
-      :content-inset-level="0.5"
-      expand-separator
+      icon="admin_panel_settings"
+      label="Seguridad"
+      header-class="text-weight-bold text-grey-8 custom-expansion"
+      class="q-mt-sm"
     >
-      <q-item clickable v-ripple to="/usuarios" active-class="my-menu-link">
-        <q-item-section avatar><q-icon name="manage_accounts" /></q-item-section>
-        <q-item-section>Usuarios</q-item-section>
+      <q-item clickable v-ripple to="/usuarios" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="person_search" /></q-item-section>
+        <q-item-section>Control de Usuarios</q-item-section>
       </q-item>
 
-      <q-item clickable v-ripple to="/roles" active-class="my-menu-link">
-        <q-item-section avatar><q-icon name="admin_panel_settings" /></q-item-section>
-        <q-item-section>Roles y Permisos</q-item-section>
+      <q-item clickable v-ripple to="/roles" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="policy" /></q-item-section>
+        <q-item-section>Permisos del Sistema</q-item-section>
       </q-item>
     </q-expansion-item>
 
-    <q-separator class="q-my-md" />
-     <q-item-label header class="text-weight-bolder text-grey-8">ADMINISTRACIÓN</q-item-label>
+    <q-separator class="q-my-lg" />
 
-     <q-item clickable v-ripple to="/sucursales" active-class="my-menu-link">
-      <q-item-section avatar><q-icon name="store" /></q-item-section>
-      <q-item-section>Sucursales</q-item-section>
+    <q-item-label header class="text-overline text-grey-6">Administración</q-item-label>
+
+    <q-item clickable v-ripple to="/sucursales" active-class="custom-active-link" class="menu-item">
+      <q-item-section avatar><q-icon name="storefront" /></q-item-section>
+      <q-item-section class="text-weight-medium">Sucursales</q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/auditoria" active-class="my-menu-link">
-      <q-item-section avatar><q-icon name="history" /></q-item-section>
-      <q-item-section>Auditoría de Logs</q-item-section>
+    <q-item clickable v-ripple to="/auditoria" active-class="custom-active-link" class="menu-item">
+      <q-item-section avatar><q-icon name="manage_history" /></q-item-section>
+      <q-item-section class="text-weight-medium">Logs de Auditoría</q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/configuracion" active-class="my-menu-link">
-      <q-item-section avatar><q-icon name="settings" /></q-item-section>
-      <q-item-section>Configuración</q-item-section>
+    <q-item clickable v-ripple to="/configuracion" active-class="custom-active-link" class="menu-item">
+      <q-item-section avatar><q-icon name="tune" /></q-item-section>
+      <q-item-section class="text-weight-medium">Configuración</q-item-section>
     </q-item>
-
   </q-list>
 </template>
 
@@ -114,25 +109,28 @@
 </script>
 
 <style lang="scss" scoped>
-  .my-menu-link {
-    color: white !important;
-    background: $primary;
-    border-radius: 0 25px 25px 0;
-    margin-right: 12px;
-    font-weight: bold;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+.menu-item {
+  border-radius: 12px;
+  margin-bottom: 4px;
+  color: #555;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  &:hover { background: rgba(142, 0, 0, 0.05); color: $primary; }
+}
 
-    .q-item__section--avatar {
-      color: white;
-    }
-  }
+.menu-item-sub {
+  border-radius: 10px;
+  margin-bottom: 2px;
+  font-size: 0.9em;
+  padding-left: 20px;
+}
 
-  .q-item__section--avatar {
-    min-width: 44px;
-  }
+.custom-active-link {
+  background: $primary !important;
+  color: white !important;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(142, 0, 0, 0.3);
+  .q-icon { color: white !important; }
+}
 
-  .q-expansion-item--expanded {
-    background: rgba(0, 0, 0, 0.03);
-    transition: background 0.3s ease;
-  }
+.custom-expansion { border-radius: 12px; }
 </style>
