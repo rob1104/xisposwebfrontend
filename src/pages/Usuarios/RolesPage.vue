@@ -1,46 +1,100 @@
 <template>
-  <q-page class="q-pa-md bg-grey-2">
-    <q-card class="shadow-15 no-border-radius">
+  <q-page class="q-pa-lg bg-grey-2">
+    <div class="row q-col-gutter-md q-mb-lg">
+      <div class="col-12 col-md-4">
+        <q-card class="stats-card bg-white shadow-2">
+          <q-card-section class="row items-center no-wrap">
+            <q-avatar icon="admin_panel_settings" color="primary" text-color="white" shadow-5 />
+            <div class="q-ml-md">
+              <div class="text-h6 text-bold">{{ rows.length }}</div>
+              <div class="text-caption text-grey-7">Roles Definidos</div>
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <q-card class="stats-card bg-white shadow-2 border-left-purple">
+          <q-card-section class="row items-center no-wrap">
+            <q-avatar icon="verified_user" color="purple-9" text-color="white" shadow-5 />
+            <div class="q-ml-md">
+              <div class="text-h6 text-bold text-purple-9">{{ totalPermisos }}</div>
+              <div class="text-caption text-grey-7">Permisos Totales Asignados</div>
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
+
+      <div class="col-12 col-md-4 text-right self-center">
+        <q-btn
+          color="primary"
+          icon="add"
+          label="Nuevo Rol"
+          size="lg"
+          class="shadow-5 custom-btn-radius"
+          unelevated
+          @click="openCreate"
+        />
+      </div>
+    </div>
+
+    <q-card class="shadow-10 overflow-hidden border-radius-15">
       <q-table
         :rows="rows"
         :columns="columns"
         row-key="id"
         :loading="loading"
-        flat bordered
-        class="my-sticky-header-table"
+        :filter="filter"
+        flat
+        class="main-table"
       >
-        <template v-slot:top>
-          <div class="col-12 row items-center q-gutter-md">
-            <div class="text-h5 text-primary text-bold">
-              <q-icon name="admin_panel_settings" size="md" class="q-mr-sm" />
-              Roles y Perfiles
-            </div>
-            <q-space />
-            <q-btn color="primary" icon="add" label="Nuevo Rol" @click="openCreate" />
-          </div>
+        <template v-slot:top-left>
+          <div class="text-h6 text-bold text-primary">Configuración de Niveles de Acceso</div>
         </template>
 
-        <template v-slot:body-cell-name="props">
-          <q-td :props="props">
-            <q-chip color="purple-6" text-color="white" class="text-bold" icon="verified">
-              {{ props.value }}
-            </q-chip>
-          </q-td>
+        <template v-slot:top-right>
+          <q-input
+            v-model="filter"
+            placeholder="Buscar por nombre de rol..."
+            outlined
+            dense
+            class="search-input"
+            bg-color="white"
+          >
+            <template v-slot:append><q-icon name="search" /></template>
+          </q-input>
         </template>
 
-        <template v-slot:body-cell-permissions_count="props">
-          <q-td :props="props" class="text-center">
-            <q-badge color="grey-8" class="q-px-md text-bold">
-              {{ props.value }} Permisos asignados
-            </q-badge>
-          </q-td>
-        </template>
+        <template v-slot:body="props">
+          <q-tr :props="props" class="hover-row">
 
-        <template v-slot:body-cell-actions="props">
-          <q-td :props="props" class="text-center">
-            <q-btn flat round color="indigo" icon="edit" size="sm" @click="openEdit(props.row)" />
-            <q-btn flat round color="negative" icon="delete" size="sm" @click="confirmDelete(props.row)" />
-          </q-td>
+            <q-td key="name" :props="props">
+              <q-chip
+                color="purple-1"
+                text-color="purple-9"
+                class="text-bold q-px-md"
+                icon="shield"
+              >
+                {{ props.row.name }}
+              </q-chip>
+            </q-td>
+
+            <q-td key="permissions_count" :props="props" class="text-center">
+              <q-badge color="grey-3" text-color="grey-9" class="q-px-md q-py-xs text-bold shadow-1">
+                <q-icon name="list_alt" size="xs" class="q-mr-xs" />
+                {{ props.row.permissions_count }} Permisos asignados
+              </q-badge>
+            </q-td>
+
+            <q-td key="actions" :props="props" class="text-center">
+              <q-btn flat round color="indigo" icon="edit" @click="openEdit(props.row)">
+                <q-tooltip>Editar Permisos</q-tooltip>
+              </q-btn>
+              <q-btn flat round color="negative" icon="delete" @click="confirmDelete(props.row)">
+                <q-tooltip>Eliminar Rol</q-tooltip>
+              </q-btn>
+            </q-td>
+          </q-tr>
         </template>
       </q-table>
     </q-card>
@@ -54,7 +108,7 @@
 </template>
 
 <script setup>
-  import { ref, onMounted } from 'vue'
+  import { ref, computed, onMounted } from 'vue'
   import { api } from 'boot/axios'
   import { useQuasar } from 'quasar'
   import RolesForm from 'components/Usuarios/RolesForm.vue'
@@ -62,14 +116,18 @@
   const $q = useQuasar()
   const rows = ref([])
   const loading = ref(true)
+  const filter = ref('')
   const showDialog = ref(false)
   const selectedRole = ref(null)
 
   const columns = [
     { name: 'name', label: 'NOMBRE DEL ROL', field: 'name', align: 'left', sortable: true },
-    { name: 'permissions_count', label: 'CANTIDAD DE PERMISOS', field: 'permissions_count', align: 'center' },
+    { name: 'permissions_count', label: 'CANTIDAD DE PERMISOS', field: 'permissions_count', align: 'center', sortable: true },
     { name: 'actions', label: 'ACCIONES', align: 'center' }
   ]
+
+  // Cálculo de estadísticas
+  const totalPermisos = computed(() => rows.value.reduce((acc, curr) => acc + (curr.permissions_count || 0), 0))
 
   const loadRoles = async () => {
     loading.value = true
@@ -81,42 +139,20 @@
 
   const confirmDelete = (role) => {
     $q.dialog({
-      title: 'Confirmar Eliminación',
-      message: `¿Estás seguro de eliminar el rol "${role.name}"? Esta acción no se puede deshacer.`,
-      ok: {
-        label: 'Eliminar',
-        color: 'negative',
-        flat: true
-      },
-      cancel: {
-        label: 'Cancelar',
-        color: 'grey-8',
-        flat: true
-      },
+      title: '<div class="text-negative"><q-icon name="warning" /> Eliminar Perfil</div>',
+      message: `¿Estás seguro de eliminar el rol <b>"${role.name}"</b>? Esta acción no se puede deshacer.`,
+      html: true,
+      ok: { label: 'Eliminar', color: 'negative', unelevated: true },
+      cancel: { label: 'Cancelar', flat: true, color: 'grey-8' },
       persistent: true
     }).onOk(async () => {
       try {
         const response = await api.delete(`/api/roles/${role.id}`);
-
-        $q.notify({
-          color: 'positive',
-          message: response.data.message,
-          icon: 'check',
-          position: 'bottom-right'
-        });
-
-        loadRoles(); // Recargar la tabla
+        $q.notify({ color: 'positive', message: response.data.message, icon: 'check' });
+        loadRoles();
       } catch (e) {
-        // Capturamos el error 422 (usuarios asignados) o 403 (Rol Admin)
         const errorMsg = e.response?.data?.message || 'Error al intentar eliminar el rol';
-
-        $q.notify({
-          color: 'negative',
-          message: errorMsg,
-          icon: 'report_problem',
-          position: 'bottom',
-          timeout: 5000 // Damos más tiempo para leer el motivo del bloqueo
-        });
+        $q.notify({ color: 'negative', message: errorMsg, icon: 'report_problem', position: 'bottom' });
       }
     });
   };
@@ -126,3 +162,42 @@
 
   onMounted(loadRoles)
 </script>
+
+<style lang="scss" scoped>
+  .stats-card {
+    border-radius: 12px;
+    border-bottom: 4px solid #eee;
+    transition: transform 0.3s;
+    &:hover { transform: translateY(-5px); }
+  }
+
+  .border-left-purple { border-left: 5px solid $purple-9; }
+  .border-radius-15 { border-radius: 15px; }
+
+  .main-table {
+    background: white;
+    ::v-deep thead th {
+      font-weight: bold;
+      text-transform: uppercase;
+      color: #555;
+      background: #f9f9f9;
+      border-bottom: 2px solid $primary;
+    }
+  }
+
+  .search-input {
+    width: 350px;
+    transition: all 0.3s;
+    &:focus-within { width: 450px; }
+  }
+
+  .hover-row {
+    transition: background 0.2s;
+    &:hover { background: #f3e5f5 !important; }
+  }
+
+  .custom-btn-radius {
+    border-radius: 10px;
+    font-weight: bold;
+  }
+</style>

@@ -1,65 +1,113 @@
 <template>
-  <div class="fullscreen bg-grey-1 flex flex-center">
-    <div class="text-center q-pa-lg">
-      <div class="relative-position q-mb-xl">
-        <q-icon name="search_off" color="grey-4" size="250px" class="absolute-center" />
-        <div class="text-h1 text-weight-bolder text-primary relative-position" style="font-size: 12rem; opacity: 0.9;">
-          404
+  <div class="fullscreen bg-auth flex flex-center q-pa-md">
+    <q-card class="error-card shadow-24 text-center overflow-hidden">
+      <div class="top-accent"></div>
+
+      <q-card-section class="q-pt-xl q-pb-none">
+        <div class="relative-position q-mb-xl">
+          <q-icon name="explore_off" color="primary" size="200px" class="absolute-center opacity-1" />
+
+          <div class="text-h1 text-weight-bolder text-primary text-404">
+            404
+          </div>
         </div>
-      </div>
+      </q-card-section>
 
-      <div class="text-h4 text-weight-bold text-grey-9 q-mt-lg">
-        Página no encontrada
-      </div>
+      <q-card-section class="q-px-xl">
+        <div class="text-h4 text-bold text-grey-9 q-mb-sm ls-1">PÁGINA NO ENCONTRADA</div>
+        <div class="text-subtitle1 text-grey-7 q-mb-lg lh-lg">
+          Lo sentimos, la ruta solicitada no se encuentra disponible <br>
+          o ha sido restringida por el sistema de seguridad.
+        </div>
+      </q-card-section>
 
-      <div class="text-subtitle1 text-grey-7 q-mt-sm q-mb-xl">
-        Lo sentimos, la ruta a la que intentas acceder no existe o ha sido movida.
-      </div>
-
-      <div class="row justify-center q-gutter-md">
+      <q-card-actions align="center" class="q-pb-xl q-gutter-md">
         <q-btn
           outline
           color="primary"
           icon="arrow_back"
           label="Regresar"
           @click="$router.back()"
-          class="q-px-lg"
+          class="q-px-lg custom-btn"
         />
         <q-btn
           unelevated
           color="primary"
           icon="dashboard"
           to="/dashboard"
-          label="Ir al Dashboard"
-          class="q-px-lg shadow-2"
+          label="Ir al Inicio"
+          class="q-px-lg shadow-5 custom-btn text-bold"
         />
-      </div>
+      </q-card-actions>
 
-      <div class="fixed-bottom q-mb-md">
-        <div class="text-caption text-grey-5 text-uppercase ls-2">
-          La Nacional - Sistema de Gestión Global
+      <div class="bg-grey-2 q-pa-sm">
+        <div class="text-caption text-grey-6 text-uppercase ls-2">
+          La Nacional - Gestión de Punto de Venta
         </div>
       </div>
-    </div>
+    </q-card>
   </div>
 </template>
 
 <script setup>
-// No se requiere lógica adicional, solo navegación estándar
+// Lógica mínima para una página de error profesional
 </script>
 
 <style lang="scss" scoped>
-  .ls-2 {
-    letter-spacing: 2px;
+  // Fondo con degradado institucional (combinando con el Login)
+  .bg-auth {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   }
 
-  // Animación sutil para el icono de fondo
-  .q-icon {
-    transition: transform 0.3s ease;
+  .error-card {
+    width: 100%;
+    max-width: 600px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .top-accent {
+    height: 6px;
+    background: var(--q-primary);
+  }
+
+  .text-404 {
+    font-size: 10rem;
+    line-height: 1;
+    letter-spacing: -5px;
+    text-shadow: 4px 4px 0px rgba(0, 0, 0, 0.05);
+    z-index: 1;
+  }
+
+  .opacity-1 {
+    opacity: 0.08;
+  }
+
+  .ls-1 { letter-spacing: 1px; }
+  .ls-2 { letter-spacing: 2px; }
+  .lh-lg { line-height: 1.6; }
+
+  .custom-btn {
+    border-radius: 12px;
+    padding: 12px 24px;
+    transition: all 0.3s ease;
 
     &:hover {
-      transform: scale(1.05) rotate(-5deg);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
   }
-</style>
 
+  // Animación sutil para el 404
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+  }
+
+  .text-404 {
+    animation: float 4s ease-in-out infinite;
+  }
+</style>

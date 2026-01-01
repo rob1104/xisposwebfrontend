@@ -9,7 +9,7 @@
 
     <q-item clickable v-ripple to="/ventas" active-class="custom-active-link" class="menu-item">
       <q-item-section avatar><q-icon name="point_of_sale" /></q-item-section>
-      <q-item-section class="text-weight-medium">Venta de Productos</q-item-section>
+      <q-item-section class="text-weight-medium">Punto de Venta</q-item-section>
     </q-item>
 
     <q-separator class="q-my-lg" />
@@ -23,7 +23,7 @@
     >
       <q-item clickable v-ripple to="/clientes" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="group" /></q-item-section>
-        <q-item-section>Cartera de Clientes</q-item-section>
+        <q-item-section>Clientes</q-item-section>
       </q-item>
 
       <q-item clickable v-ripple to="/proveedores" active-class="custom-active-link" class="menu-item-sub">
@@ -33,7 +33,7 @@
 
       <q-item clickable v-ripple to="/productos" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="inventory_2" /></q-item-section>
-        <q-item-section>Inventario / Productos</q-item-section>
+        <q-item-section>Productos</q-item-section>
       </q-item>
     </q-expansion-item>
 

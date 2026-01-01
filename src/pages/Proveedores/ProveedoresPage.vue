@@ -4,22 +4,22 @@
       <div class="col-12 col-md-4">
         <q-card class="stats-card bg-white shadow-2">
           <q-card-section class="row items-center no-wrap">
-            <q-avatar icon="storefront" color="primary" text-color="white" shadow-5 />
+            <q-avatar icon="local_shipping" color="primary" text-color="white" shadow-5 />
             <div class="q-ml-md">
               <div class="text-h6 text-bold">{{ rows.length }}</div>
-              <div class="text-caption text-grey-7">Sucursales Totales</div>
+              <div class="text-caption text-grey-7">Proveedores Registrados</div>
             </div>
           </q-card-section>
         </q-card>
       </div>
 
       <div class="col-12 col-md-4">
-        <q-card class="stats-card bg-white shadow-2 border-left-green">
+        <q-card class="stats-card bg-white shadow-2 border-left-red">
           <q-card-section class="row items-center no-wrap">
-            <q-avatar icon="check_circle" color="positive" text-color="white" shadow-5 />
+            <q-avatar icon="account_balance_wallet" color="negative" text-color="white" shadow-5 />
             <div class="q-ml-md">
-              <div class="text-h6 text-bold text-positive">{{ sucursalesActivas }}</div>
-              <div class="text-caption text-grey-7">Sedes Operativas</div>
+              <div class="text-h6 text-bold text-negative">${{ totalDeuda.toLocaleString() }}</div>
+              <div class="text-caption text-grey-7">Saldo Total Pendiente</div>
             </div>
           </q-card-section>
         </q-card>
@@ -29,7 +29,7 @@
         <q-btn
           color="primary"
           icon="add"
-          label="Nueva Sucursal"
+          label="Nuevo Proveedor"
           size="lg"
           class="shadow-5 custom-btn-radius"
           unelevated
@@ -49,13 +49,13 @@
         class="main-table"
       >
         <template v-slot:top-left>
-          <div class="text-h6 text-bold text-primary">Control de Puntos de Venta</div>
+          <div class="text-h6 text-bold text-primary">Listado de Proveedores</div>
         </template>
 
         <template v-slot:top-right>
           <q-input
             v-model="filter"
-            placeholder="Buscar sucursal..."
+            placeholder="Buscar por nombre, RFC o ID..."
             outlined
             dense
             class="search-input"
@@ -67,42 +67,45 @@
 
         <template v-slot:body="props">
           <q-tr :props="props" class="hover-row">
-
-            <q-td key="nombre" :props="props">
-              <div class="row items-center no-wrap">
-                <q-icon name="location_on" color="primary" size="sm" class="q-mr-sm" />
-                <div>
-                  <div class="text-bold text-subtitle2">{{ props.row.nombre }}</div>
-                  <div class="text-caption text-grey-7">{{ props.row.direccion || 'Dirección no especificada' }}</div>
-                </div>
-              </div>
-            </q-td>
-
-            <q-td key="telefono" :props="props" class="text-center">
-              <div v-if="props.row.telefono" class="row items-center justify-center no-wrap">
-                <q-icon name="phone" size="xs" color="grey-7" class="q-mr-xs" />
-                <span class="text-weight-medium">{{ props.row.telefono }}</span>
-              </div>
-              <span v-else class="text-caption text-grey-5">Sin teléfono</span>
-            </q-td>
-
-            <q-td key="status" :props="props" class="text-center">
-              <q-badge
-                :color="props.row.status === 1 ? 'positive' : 'negative'"
-                class="text-bold q-px-md q-py-xs shadow-1"
-                rounded
-              >
-                <q-icon :name="1 === 1 ? 'check' : 'close'" size="xs" class="q-mr-xs" />
-                {{ 1 === 1 ? 'ACTIVA' : 'INACTIVA' }}
+            <q-td key="numero_global" :props="props">
+              <q-badge color="grey-3" text-color="primary" class="text-bold q-pa-xs">
+                {{ props.row.numero_global }}
               </q-badge>
             </q-td>
 
+            <q-td key="nombre_comercial" :props="props">
+              <div class="text-bold">{{ props.row.nombre_comercial }}</div>
+              <div class="text-caption text-grey-6">{{ props.row.rfc || 'Sin RFC' }}</div>
+            </q-td>
+
+            <q-td key="email" :props="props">
+              <div class="row items-center no-wrap">
+                <q-icon name="mail_outline" size="xs" color="grey-7" class="q-mr-xs" />
+                {{ props.row.email }}
+              </div>
+              <div class="row items-center no-wrap text-caption text-grey-6">
+                <q-icon name="phone" size="xs" color="grey-7" class="q-mr-xs" />
+                {{ props.row.telefono || 'N/A' }}
+              </div>
+            </q-td>
+
+            <q-td key="saldo_actual" :props="props" class="text-right">
+              <div :class="props.row.saldo_actual > 0 ? 'text-negative text-bold' : 'text-positive'">
+                ${{ props.row.saldo_actual.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+              </div>
+              <q-linear-progress
+                :value="getProgresoCredito(props.row)"
+                :color="props.row.saldo_actual > 0 ? 'negative' : 'positive'"
+                class="q-mt-xs"
+              />
+            </q-td>
+
             <q-td key="actions" :props="props" class="text-center">
-              <q-btn flat round color="indigo" icon="edit" @click="openEdit(props.row)">
-                <q-tooltip>Editar Sucursal</q-tooltip>
+              <q-btn flat round color="primary" icon="edit" @click="openEdit(props.row)">
+                <q-tooltip>Editar Proveedor</q-tooltip>
               </q-btn>
               <q-btn flat round color="negative" icon="delete" @click="confirmDelete(props.row)">
-                <q-tooltip>Eliminar Sucursal</q-tooltip>
+                <q-tooltip>Eliminar Proveedor</q-tooltip>
               </q-btn>
             </q-td>
           </q-tr>
@@ -110,7 +113,7 @@
       </q-table>
     </q-card>
 
-    <SucursalForm v-model="showDialog" :editData="selectedItem" @saved="loadData" />
+    <ProveedorForm v-model="showDialog" :editData="selectedItem" @saved="loadData" />
   </q-page>
 </template>
 
@@ -118,7 +121,7 @@
   import { ref, computed, onMounted } from 'vue'
   import { api } from 'boot/axios'
   import { useQuasar } from 'quasar'
-  import SucursalForm from 'components/Sucursales/SucursalesForm.vue'
+  import ProveedorForm from 'components/Proveedores/ProveedoresForm.vue'
 
   const $q = useQuasar()
   const rows = ref([])
@@ -128,19 +131,24 @@
   const selectedItem = ref(null)
 
   const columns = [
-    { name: 'nombre', label: 'SUCURSAL / UBICACIÓN', field: 'nombre', align: 'left', sortable: true },
-    { name: 'telefono', label: 'TELÉFONO DE CONTACTO', field: 'telefono', align: 'center' },
-    { name: 'status', label: 'ESTADO ACTUAL', field: 'status', align: 'center', sortable: true },
+    { name: 'numero_global', label: 'ID', field: 'numero_global', align: 'left', sortable: true },
+    { name: 'nombre_comercial', label: 'RAZON SOCIAL / RFC', field: 'nombre_comercial', align: 'left', sortable: true },
+    { name: 'email', label: 'CONTACTO', align: 'left' },
+    { name: 'saldo_actual', label: 'ESTADO DE CUENTA', field: 'saldo_actual', align: 'right', sortable: true },
     { name: 'actions', label: 'ACCIONES', align: 'center' }
   ]
 
-  // Estadísticas para los KPIs superiores
-  const sucursalesActivas = computed(() => rows.value.length)
+  const totalDeuda = computed(() => rows.value.reduce((acc, curr) => acc + curr.saldo_actual, 0))
+
+  const getProgresoCredito = (row) => {
+    if (!row.limite_credito || row.limite_credito === 0) return 0
+    return Math.min(row.saldo_actual / row.limite_credito, 1)
+  }
 
   const loadData = async () => {
     loading.value = true
     try {
-      const res = await api.get('/api/sucursales')
+      const res = await api.get('/api/providers')
       rows.value = res.data
     } catch (e) {
       console.error(e)
@@ -152,19 +160,19 @@
 
   const confirmDelete = (row) => {
     $q.dialog({
-      title: '<div class="text-negative"><q-icon name="warning" /> Confirmar Cierre</div>',
-      message: `¿Deseas eliminar permanentemente la sucursal <b>${row.nombre}</b>?`,
+      title: '<div class="text-negative"><q-icon name="warning" /> Confirmar Eliminación</div>',
+      message: `¿Desea eliminar definitivamente a <b>${row.nombre_comercial}</b>?`,
       html: true,
       ok: { label: 'Eliminar', color: 'negative', unelevated: true },
       cancel: { label: 'Cancelar', flat: true, color: 'grey-7' },
       persistent: true
     }).onOk(async () => {
       try {
-        const res = await api.delete(`/api/sucursales/${row.id}`)
-        $q.notify({ color: 'positive', message: res.data.message, icon: 'done' })
+        await api.delete(`/api/proveedores/${row.id}`)
+        $q.notify({ color: 'positive', message: 'Proveedor eliminado correctamente', icon: 'done' })
         loadData()
       } catch (e) {
-        $q.notify({ color: 'negative', message: e.response?.data?.message || 'Error', icon: 'report_problem' })
+        $q.notify({ color: 'negative', message: 'Error al eliminar', icon: 'error' })
       }
     })
   }
@@ -180,7 +188,7 @@
     &:hover { transform: translateY(-5px); }
   }
 
-  .border-left-green { border-left: 5px solid $positive; }
+  .border-left-red { border-left: 5px solid $negative; }
   .border-radius-15 { border-radius: 15px; }
 
   .main-table {
@@ -190,7 +198,6 @@
       text-transform: uppercase;
       color: #555;
       background: #f9f9f9;
-      border-bottom: 2px solid $primary;
     }
   }
 

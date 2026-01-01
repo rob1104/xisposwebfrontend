@@ -1,133 +1,130 @@
 <template>
-  <q-page class="q-pa-md bg-grey-2">
-    <q-card class="shadow-15 no-border-radius">
+  <q-page class="q-pa-lg bg-grey-2">
+    <div class="row q-col-gutter-md q-mb-lg">
+      <div class="col-12 col-md-4">
+        <q-card class="stats-card bg-white shadow-2">
+          <q-card-section class="row items-center no-wrap">
+            <q-avatar icon="group" color="primary" text-color="white" shadow-5 />
+            <div class="q-ml-md">
+              <div class="text-h6 text-bold">{{ rows.length }}</div>
+              <div class="text-caption text-grey-7">Clientes Registrados</div>
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
 
+      <div class="col-12 col-md-4">
+        <q-card class="stats-card bg-white shadow-2 border-left-red">
+          <q-card-section class="row items-center no-wrap">
+            <q-avatar icon="request_quote" color="negative" text-color="white" shadow-5 />
+            <div class="q-ml-md">
+              <div class="text-h6 text-bold text-negative">$ {{ formatCurrency(totalDeuda) }}</div>
+              <div class="text-caption text-grey-7">Deuda Total de Clientes</div>
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
+
+      <div class="col-12 col-md-4 text-right self-center">
+        <q-btn
+          color="primary"
+          icon="person_add"
+          label="Nuevo Cliente"
+          size="lg"
+          class="shadow-5 custom-btn-radius"
+          unelevated
+          @click="openCreate"
+        />
+      </div>
+    </div>
+
+    <q-card class="shadow-10 overflow-hidden border-radius-15">
       <q-table
         :rows="rows"
         :columns="columns"
         row-key="id"
         :loading="loading"
-        flat
-        bordered
-        class="my-sticky-header-table"
         :filter="filter"
+        flat
+        class="main-table"
       >
-        <template v-slot:top>
-          <div class="col-12 row items-center q-gutter-md">
-            <div class="text-h5 text-primary text-bold q-pr-md">
-              <q-icon name="group" size="md" class="q-mr-sm" />
-              Gestión de Clientes
-            </div>
-
-            <q-input
-              v-model="filter"
-              placeholder="Buscar por razón social, RFC..."
-              outlined
-              dense
-              debounce="300"
-              class="col-grow"
-              bg-color="white"
-            >
-              <template v-slot:append>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-
-            <q-btn
-              color="primary"
-              icon="person_add"
-              label="Nuevo Cliente"
-              class="q-px-lg shadow-2"
-              @click="openCreate"
-            />
-          </div>
+        <template v-slot:top-left>
+          <div class="text-h6 text-bold text-primary">Listado de Clientes</div>
         </template>
 
-        <template v-slot:body-cell-numero_global="props">
-          <q-td :props="props">
-            <q-chip
-              color="grey-8"
-              text-color="white"
-              icon="tag"
-              size="sm"
-              class="text-bold"
-            >
-              {{ props.value }}
-            </q-chip>
-          </q-td>
+        <template v-slot:top-right>
+          <q-input
+            v-model="filter"
+            placeholder="Buscar por nombre, RFC o ID..."
+            outlined
+            dense
+            class="search-input"
+            bg-color="white"
+          >
+            <template v-slot:append><q-icon name="search" /></template>
+          </q-input>
         </template>
 
-        <template v-slot:body-cell-rfc="props">
-          <q-td :props="props">
-            <div class="text-weight-medium text-mono">{{ props.value || 'N/A' }}</div>
-          </q-td>
-        </template>
+        <template v-slot:body="props">
+          <q-tr :props="props" class="hover-row">
+            <q-td key="numero_global" :props="props">
+              <q-badge color="grey-3" text-color="primary" class="text-bold q-pa-xs">
+                #{{ props.row.numero_global }}
+              </q-badge>
+               <div class="text-bold">{{ props.row.nombre_comercial || 'Sin Nombre Comercial' }}</div>
+            </q-td>
 
-        <template v-slot:body-cell-telefono="props">
-          <q-td :props="props">
-            <div v-if="props.value" class="row items-center">
-              <q-icon name="phone" color="grey-6" size="xs" class="q-mr-xs" />
-              {{ props.value }}
-            </div>
-            <span v-else class="text-grey-5">Sin teléfono</span>
-          </q-td>
-        </template>
+            <q-td key="razon_social" :props="props">
+              <div class="text-bold">{{ props.row.razon_social }}</div>
+              <div class="text-caption text-grey-6 text-mono">{{ props.row.rfc || 'Sin RFC' }}</div>
+            </q-td>
 
-        <template v-slot:body-cell-tipo_pago="props">
-          <q-td :props="props">
-            <q-badge
-              :color="getTipoPagoColor(props.value)"
-              class="text-bold q-px-md q-py-xs shadow-1"
-              style="font-size: 0.75rem; border-radius: 4px;"
-            >
-              <q-icon :name="getTipoPagoIcon(props.value)" size="14px" class="q-mr-xs" />
-              {{ getTipoPagoLabel(props.value) }}
-            </q-badge>
-          </q-td>
-        </template>
+            <q-td key="email" :props="props">
+              <div class="row items-center no-wrap">
+                <q-icon name="mail_outline" size="xs" color="grey-7" class="q-mr-xs" />
+                <span class="text-caption">{{ props.row.email }}</span>
+              </div>
+              <div class="row items-center no-wrap text-caption text-grey-6">
+                <q-icon name="phone" size="xs" color="grey-7" class="q-mr-xs" />
+                {{ props.row.telefono || 'N/A' }}
+              </div>
+            </q-td>
 
-        <template v-slot:body-cell-limite_credito="props">
-          <q-td :props="props" class="text-bold text-blue-9">
-            $ {{ formatCurrency(props.value) }}
-          </q-td>
-        </template>
+            <q-td key="tipo_pago" :props="props" class="text-center">
+              <q-badge
+                :color="getTipoPagoColor(props.row.tipo_pago)"
+                class="text-bold q-px-sm q-py-xs shadow-1"
+                style="font-size: 0.7rem; border-radius: 4px;"
+              >
+                <q-icon :name="getTipoPagoIcon(props.row.tipo_pago)" size="12px" class="q-mr-xs" />
+                {{ getTipoPagoLabel(props.row.tipo_pago) }}
+              </q-badge>
+            </q-td>
 
-        <template v-slot:body-cell-saldo_actual="props">
-          <q-td :props="props">
-            <q-badge
-              :color="props.value > 0 ? 'red-2' : 'green-2'"
-              :text-color="props.value > 0 ? 'red-9' : 'green-9'"
-              class="q-px-md q-py-xs text-bold"
-              style="font-size: 0.9rem"
-            >
-              $ {{ formatCurrency(props.value) }}
-            </q-badge>
-          </q-td>
-        </template>
+            <q-td key="saldo_actual" :props="props" class="text-right">
+              <div :class="props.row.saldo_actual > 0 ? 'text-negative text-bold' : 'text-positive text-bold'">
+                $ {{ formatCurrency(props.row.saldo_actual) }}
+              </div>
+              <q-linear-progress
+                v-if="props.row.limite_credito > 0"
+                :value="getProgresoCredito(props.row)"
+                :color="props.row.saldo_actual > props.row.limite_credito ? 'red-9' : 'primary'"
+                class="q-mt-xs"
+                size="4px"
+                rounded
+              />
+            </q-td>
 
-        <template v-slot:body-cell-actions="props">
-          <q-td :props="props" class="q-gutter-sm">
-            <q-btn
-              flat round
-              color="indigo"
-              icon="edit"
-              size="sm"
-              @click="openEdit(props.row)"
-            >
-              <q-tooltip>Editar Cliente</q-tooltip>
-            </q-btn>
-            <q-btn
-              flat round
-              color="negative"
-              icon="delete"
-              size="sm"
-              @click="confirmDelete(props.row)"
-            >
-              <q-tooltip>Eliminar Cliente</q-tooltip>
-            </q-btn>
-          </q-td>
+            <q-td key="actions" :props="props" class="text-center">
+              <q-btn flat round color="indigo" icon="edit" @click="openEdit(props.row)">
+                <q-tooltip>Editar Cliente</q-tooltip>
+              </q-btn>
+              <q-btn flat round color="negative" icon="delete" @click="confirmDelete(props.row)">
+                <q-tooltip>Eliminar Cliente</q-tooltip>
+              </q-btn>
+            </q-td>
+          </q-tr>
         </template>
-
       </q-table>
     </q-card>
 
@@ -141,7 +138,7 @@
 </template>
 
 <script setup>
-  import { ref, onMounted } from 'vue'
+  import { ref, computed, onMounted } from 'vue'
   import { api } from 'boot/axios'
   import { useQuasar } from 'quasar'
   import ClientesForm from 'components/Clientes/ClientesForm.vue'
@@ -150,48 +147,24 @@
   const rows = ref([])
   const taxRegimes = ref([])
   const loading = ref(true)
+  const filter = ref('')
   const showDialog = ref(false)
   const selectedCustomer = ref(null)
-  const filter = ref('')
 
-  // Definición de columnas profesional
   const columns = [
-    { name: 'numero_global', label: 'No. CLIENTE', field: 'numero_global', align: 'left', sortable: true },
-    { name: 'razon_social', label: 'RAZÓN SOCIAL', field: 'razon_social', align: 'left', sortable: true },
-    { name: 'rfc', label: 'RFC', field: 'rfc', align: 'left' },
-    { name: 'telefono', label: 'TELÉFONO', field: 'telefono', align: 'left' },
-    { name: 'tipo_pago', label: 'MODO PAGO', field: 'tipo_pago', align: 'center', sortable: true },
-    { name: 'limite_credito', label: 'LÍMITE CRÉDITO', field: 'limite_credito', align: 'right', sortable: true },
-    { name: 'saldo_actual', label: 'SALDO ACTUAL', field: 'saldo_actual', align: 'right', sortable: true },
+    { name: 'numero_global', label: 'GLOBAL / NOMBRE COMERCIAL', field: 'numero_global', align: 'left', sortable: true },
+    { name: 'razon_social', label: 'RAZON SOCIAL / RFC', field: 'razon_social', align: 'left', sortable: true },
+    { name: 'email', label: 'CONTACTO', align: 'left' },
+    { name: 'tipo_pago', label: 'MÉTODO PAGO', align: 'center', sortable: true },
+    { name: 'saldo_actual', label: 'ESTADO DE CUENTA', field: 'saldo_actual', align: 'right', sortable: true },
     { name: 'actions', label: 'ACCIONES', align: 'center' }
   ]
 
-  const openCreate = () => {
-    selectedCustomer.value = null
-    showDialog.value = true
-  }
+  const totalDeuda = computed(() => rows.value.reduce((acc, curr) => acc + (curr.saldo_actual || 0), 0))
 
-  const openEdit = (customer) => {
-    selectedCustomer.value = { ...customer }
-    showDialog.value = true
-  }
-
-  const confirmDelete = (customer) => {
-    $q.dialog({
-      title: 'Eliminar Cliente',
-      message: `¿Estás seguro de eliminar a "${customer.razon_social}"? Esta acción no se puede deshacer.`,
-      ok: { label: 'Eliminar', color: 'negative', flat: true },
-      cancel: { label: 'Cancelar', color: 'grey-8', flat: true },
-      persistent: true
-    }).onOk(async () => {
-      try {
-        await api.delete(`/api/clientes/${customer.id}`)
-        $q.notify({ color: 'positive', message: 'Cliente eliminado', icon: 'check', position: 'bottom-right' })
-        loadCustomers()
-      } catch (e) {
-        $q.notify({ color: 'negative', message: 'Error al eliminar', icon: 'error' })
-      }
-    })
+  const getProgresoCredito = (row) => {
+    if (!row.limite_credito || row.limite_credito === 0) return 0
+    return Math.min((row.saldo_actual || 0) / row.limite_credito, 1)
   }
 
   const loadCustomers = async () => {
@@ -204,44 +177,46 @@
     }
   }
 
-  // Retorna el texto legible según el valor numérico
-  const getTipoPagoLabel = (val) => {
-    const labels = {
-      0: 'DESHABILITADO',
-      1: 'SOLO CONTADO',
-      2: 'SOLO CRÉDITO',
-      3: 'CONTADO / CRÉDITO'
-    }
-    return labels[val] || 'DESCONOCIDO'
+  const openCreate = () => { selectedCustomer.value = null; showDialog.value = true }
+  const openEdit = (customer) => { selectedCustomer.value = { ...customer }; showDialog.value = true }
+
+  const confirmDelete = (customer) => {
+    $q.dialog({
+      title: '<div class="text-negative"><q-icon name="warning" /> Eliminar Cliente</div>',
+      message: `¿Estás seguro de eliminar a <b>${customer.razon_social}</b>?`,
+      html: true,
+      ok: { label: 'Eliminar', color: 'negative', unelevated: true },
+      cancel: { label: 'Cancelar', flat: true, color: 'grey-8' },
+      persistent: true
+    }).onOk(async () => {
+      try {
+        await api.delete(`/api/clientes/${customer.id}`)
+        $q.notify({ color: 'positive', message: 'Cliente eliminado', icon: 'check' })
+        loadCustomers()
+      } catch (e) {
+        $q.notify({ color: 'negative', message: 'Error al eliminar', icon: 'error' })
+      }
+    })
   }
 
-  // Retorna el color semántico (Estilo robusto de La Nacional)
+  // Helpers visuales (Tus lógicas originales conservadas)
+  const getTipoPagoLabel = (val) => {
+    const labels = { 0: 'DESHABILITADO', 1: 'CONTADO', 2: 'CRÉDITO', 3: 'MIXTO' }
+    return labels[val] || 'N/A'
+  }
+
   const getTipoPagoColor = (val) => {
-    const colors = {
-      0: 'pink-6',     // Peligro / Bloqueado
-      1: 'green-8',   // Seguro / Efectivo
-      2: 'cyan-9',  // Advertencia / Cuentas por cobrar
-      3: 'indigo-9'   // Preferencial / Flexible
-    }
+    const colors = { 0: 'pink-6', 1: 'green-8', 2: 'cyan-9', 3: 'indigo-9' }
     return colors[val] || 'grey-7'
   }
 
-  // Retorna un icono representativo
   const getTipoPagoIcon = (val) => {
-    const icons = {
-      0: 'block',
-      1: 'payments',
-      2: 'credit_card',
-      3: 'dynamic_feed'
-    }
+    const icons = { 0: 'block', 1: 'payments', 2: 'credit_card', 3: 'add_card' }
     return icons[val] || 'help'
   }
 
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('es-MX', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value || 0)
+    return new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value || 0)
   }
 
   onMounted(async () => {
@@ -251,17 +226,46 @@
   })
 </script>
 
-<style lang="sass">
-.my-sticky-header-table
-  /* Estilo para que el encabezado sea de color */
-  thead tr th
-    background-color: #f5f5f5 // Un gris muy claro profesional
-    color: #1d1d1d
-    font-weight: bold
-    font-size: 0.85rem
-    border-bottom: 2px solid $primary !important
+<style lang="scss" scoped>
+  .stats-card {
+    border-radius: 12px;
+    border-bottom: 4px solid #eee;
+    transition: transform 0.3s;
+    &:hover { transform: translateY(-5px); }
+  }
 
-  .text-mono
-    font-family: 'Courier New', Courier, monospace
-    letter-spacing: 1px
+  .border-left-red { border-left: 5px solid $negative; }
+  .border-radius-15 { border-radius: 15px; }
+
+  .main-table {
+    background: white;
+    ::v-deep thead th {
+      font-weight: bold;
+      text-transform: uppercase;
+      color: #555;
+      background: #f9f9f9;
+      border-bottom: 2px solid $primary;
+    }
+  }
+
+  .search-input {
+    width: 350px;
+    transition: all 0.3s;
+    &:focus-within { width: 450px; }
+  }
+
+  .hover-row {
+    transition: background 0.2s;
+    &:hover { background: #f1f5f9 !important; }
+  }
+
+  .custom-btn-radius {
+    border-radius: 10px;
+    font-weight: bold;
+  }
+
+  .text-mono {
+    font-family: 'Courier New', Courier, monospace;
+    letter-spacing: 0.5px;
+  }
 </style>
