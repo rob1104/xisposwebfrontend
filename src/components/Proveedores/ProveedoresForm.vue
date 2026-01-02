@@ -3,7 +3,7 @@
     <q-card style="width: 850px; max-width: 95vw;" class="menu-radius shadow-24">
       <q-card-section class="bg-primary text-white row items-center q-py-md">
         <q-icon name="local_shipping" size="sm" class="q-mr-md" />
-        <div class="text-h6 text-bold">{{ isEdit ? 'Actualizar Proveedor' : 'Registro de Nuevo Proveedor' }}</div>
+        <div class="text-h6 text-bold">{{ isEdit ? 'Editar Proveedor: ' + form.nombre_comercial : 'Nuevo Proveedor' }}</div>
         <q-space />
         <q-btn icon="close" flat round dense v-close-popup />
       </q-card-section>

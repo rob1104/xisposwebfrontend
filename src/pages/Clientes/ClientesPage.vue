@@ -152,7 +152,7 @@
   const selectedCustomer = ref(null)
 
   const columns = [
-    { name: 'numero_global', label: 'GLOBAL / NOMBRE COMERCIAL', field: 'numero_global', align: 'left', sortable: true },
+    { name: 'numero_global', label: 'GLOBAL / NOMBRE COMERCIAL', field: row => `${row.numero_global} ${row.nombre_comercial || ''} ${row.razon_social} ${row.rfc || ''} ${row.email || ''}`, align: 'left', sortable: true, sort: (a, b) => parseInt(a) - parseInt(b) },
     { name: 'razon_social', label: 'RAZON SOCIAL / RFC', field: 'razon_social', align: 'left', sortable: true },
     { name: 'email', label: 'CONTACTO', align: 'left' },
     { name: 'tipo_pago', label: 'MÉTODO PAGO', align: 'center', sortable: true },
@@ -239,7 +239,7 @@
 
   .main-table {
     background: white;
-    ::v-deep thead th {
+    :deep(thead th) {
       font-weight: bold;
       text-transform: uppercase;
       color: #555;

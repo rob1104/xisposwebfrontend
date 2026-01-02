@@ -131,7 +131,7 @@
   const selectedItem = ref(null)
 
   const columns = [
-    { name: 'numero_global', label: 'ID', field: 'numero_global', align: 'left', sortable: true },
+    { name: 'numero_global', label: 'ID', field: row => `${row.numero_global} ${row.nombre_comercial || ''} ${row.razon_social} ${row.rfc || ''} ${row.email || ''}`, align: 'left', sortable: true, sort: (a, b) => parseInt(a) - parseInt(b) },
     { name: 'nombre_comercial', label: 'RAZON SOCIAL / RFC', field: 'nombre_comercial', align: 'left', sortable: true },
     { name: 'email', label: 'CONTACTO', align: 'left' },
     { name: 'saldo_actual', label: 'ESTADO DE CUENTA', field: 'saldo_actual', align: 'right', sortable: true },
@@ -193,7 +193,7 @@
 
   .main-table {
     background: white;
-    ::v-deep thead th {
+    :deep(thead th) {
       font-weight: bold;
       text-transform: uppercase;
       color: #555;

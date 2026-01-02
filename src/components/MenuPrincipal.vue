@@ -109,28 +109,28 @@
 </script>
 
 <style lang="scss" scoped>
-.menu-item {
-  border-radius: 12px;
-  margin-bottom: 4px;
-  color: #555;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  &:hover { background: rgba(142, 0, 0, 0.05); color: $primary; }
-}
+  .menu-item {
+    border-radius: 12px;
+    margin-bottom: 4px;
+    color: #555;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    &:hover { background: rgba(142, 0, 0, 0.05); color: $primary; }
+  }
 
-.menu-item-sub {
-  border-radius: 10px;
-  margin-bottom: 2px;
-  font-size: 0.9em;
-  padding-left: 20px;
-}
+  .menu-item-sub {
+    border-radius: 10px;
+    margin-bottom: 2px;
+    font-size: 0.9em;
+    padding-left: 20px;
+  }
 
-.custom-active-link {
-  background: $primary !important;
-  color: white !important;
-  font-weight: bold;
-  box-shadow: 0 4px 12px rgba(142, 0, 0, 0.3);
-  .q-icon { color: white !important; }
-}
+  .custom-active-link {
+    background: $primary !important;
+    color: white !important;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(142, 0, 0, 0.3);
+    .q-icon { color: white !important; }
+  }
 
-.custom-expansion { border-radius: 12px; }
+  .custom-expansion { border-radius: 12px; }
 </style>

@@ -4,7 +4,7 @@
       <q-card-section class="bg-primary text-white row items-center">
         <div class="text-h6 text-uppercase">
           <q-icon :name="isEdit ? 'edit' : 'person_add'" class="q-mr-sm" />
-          {{ isEdit ? 'Editar Cliente' : 'Registrar Cliente' }}
+          {{ isEdit ? 'Editar Cliente:' + form.nombre_comercial : 'Registrar Cliente' }}
         </div>
         <q-space />
         <q-btn icon="close" flat round dense v-close-popup />

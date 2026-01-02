@@ -4,7 +4,7 @@
       <q-card-section class="bg-primary text-white row items-center">
         <div class="text-h6 text-uppercase ls-1">
           <q-icon name="security" class="q-mr-sm" />
-          {{ isEdit ? 'Editar Privilegios del Rol' : 'Nuevo Rol de Seguridad' }}
+          {{ isEdit ? 'Editar Privilegios del Rol: ' + form.name : 'Nuevo Rol de Seguridad' }}
         </div>
         <q-space />
         <q-btn icon="close" flat round dense v-close-popup />

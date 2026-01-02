@@ -2,7 +2,7 @@
   <q-dialog v-model="show" @show="onDialogOpen" persistent>
     <q-card style="width: 500px; max-width: 90vw;">
       <q-card-section class="bg-primary text-white row items-center">
-        <div class="text-h6">{{ isEdit ? 'Editar Sucursal' : 'Nueva Sucursal' }}</div>
+        <div class="text-h6">{{ isEdit ? 'Editar Sucursal: ' + form.nombre : 'Nueva Sucursal' }}</div>
         <q-space />
         <q-btn icon="close" flat round dense v-close-popup />
       </q-card-section>
