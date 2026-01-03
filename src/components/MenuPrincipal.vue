@@ -12,7 +12,11 @@
       <q-item-section class="text-weight-medium">Punto de Venta</q-item-section>
     </q-item>
 
-    <q-separator class="q-my-lg" />
+    <q-item clickable v-ripple to="/compras" active-class="custom-active-link" class="menu-item">
+      <q-item-section avatar><q-icon name="shopping_basket" /></q-item-section>
+      <q-item-section class="text-weight-medium">Compras</q-item-section>
+    </q-item>
+
 
     <q-expansion-item
       v-model="catalogoExpanded"
@@ -38,6 +42,30 @@
     </q-expansion-item>
 
     <q-expansion-item
+      v-model="inventarioExpanded"
+      icon="storage"
+      label="Inventario"
+      header-class="text-weight-bold text-grey-8 custom-expansion"
+      class="q-mt-sm"
+    >
+      <q-item clickable v-ripple to="/movimientosinventario" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="swap_vert" /></q-item-section>
+        <q-item-section>Movimientos</q-item-section>
+      </q-item>
+
+      <q-item clickable v-ripple to="/inventarioglobal" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="assignment" /></q-item-section>
+        <q-item-section>Inventario Global</q-item-section>
+      </q-item>
+
+      <q-item clickable v-ripple to="/inventariogxsucursal" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="assignment" /></q-item-section>
+        <q-item-section>Inventario Por Sucursal</q-item-section>
+      </q-item>
+
+    </q-expansion-item>
+
+    <q-expansion-item
       v-model="seguridadExpanded"
       icon="admin_panel_settings"
       label="Seguridad"
@@ -58,6 +86,11 @@
     <q-separator class="q-my-lg" />
 
     <q-item-label header class="text-overline text-grey-6">Administración</q-item-label>
+
+    <q-item clickable v-ripple to="/catalogos" active-class="custom-active-link" class="menu-item">
+      <q-item-section avatar><q-icon name="collections" /></q-item-section>
+      <q-item-section class="text-weight-medium">Conceptos</q-item-section>
+    </q-item>
 
     <q-item clickable v-ripple to="/sucursales" active-class="custom-active-link" class="menu-item">
       <q-item-section avatar><q-icon name="storefront" /></q-item-section>
@@ -82,6 +115,7 @@
 
   const route = useRoute()
   const catalogoExpanded = ref(false)
+  const inventarioExpanded = ref(false)
   const seguridadExpanded = ref(false)
 
   // Función para verificar si la ruta actual pertenece a Catálogos
@@ -89,6 +123,11 @@
     const catalogosPaths = ['/clientes', '/proveedores', '/productos']
     if (catalogosPaths.some(path => route.path.includes(path))) {
       catalogoExpanded.value = true
+    }
+
+    const inventarioPaths = ['/movimientosinventario', '/inventarioglobal']
+    if (inventarioPaths.some(path => route.path.includes(path))) {
+      inventarioExpanded.value = true
     }
 
     const seguridadPaths = ['/usuarios', '/roles']
@@ -121,7 +160,13 @@
     border-radius: 10px;
     margin-bottom: 2px;
     font-size: 0.9em;
-    padding-left: 20px;
+    margin-left: 24px;
+    padding-left: 16px;
+    transition: all 0.2s ease;
+    &:hover {
+      border-left: 2px solid;
+      background: rgba(142, 0, 0, 0.05);
+    }
   }
 
   .custom-active-link {

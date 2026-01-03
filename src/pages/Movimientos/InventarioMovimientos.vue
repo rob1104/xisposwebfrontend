@@ -69,7 +69,7 @@
       <template v-slot:top>
         <div class="text-h6 text-primary flex items-center">
           <q-icon name="inventory_2" class="q-mr-sm" />
-          Historial de Inventario
+          Movimientos al Inventario
         </div>
         <q-space />
         <q-btn

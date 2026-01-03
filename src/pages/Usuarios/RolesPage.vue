@@ -176,7 +176,7 @@
 
   .main-table {
     background: white;
-    ::v-deep thead th {
+    :deep(thead th) {
       font-weight: bold;
       text-transform: uppercase;
       color: #555;

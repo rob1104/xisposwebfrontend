@@ -103,7 +103,7 @@
       columns.value = [...baseCols, ...sucCols, { name: 'total', label: 'STOCK TOTAL', align: 'right', field: 'total', sortable: true }]
 
       // 4. Cargamos el reporte consolidado del backend
-      const resStock = await api.get('/api/inventarios/reporte-consolidado')
+      const resStock = await api.get('/api/inventario/reporte-consolidado')
       rows.value = resStock.data
     } finally {
       loading.value = false

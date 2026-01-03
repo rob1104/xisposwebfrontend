@@ -202,7 +202,7 @@
   .stats-card { border-radius: 12px; transition: transform 0.3s; &:hover { transform: translateY(-5px); } }
   .border-left-blue { border-left: 5px solid $primary; }
   .border-radius-15 { border-radius: 15px; }
-  .main-table { ::v-deep thead th { font-weight: bold; background: #f9f9f9; border-bottom: 2px solid $primary; } }
+  .main-table { :deep(thead th) { font-weight: bold; background: #f9f9f9; border-bottom: 2px solid $primary; } }
   .hover-row:hover { background: #f1f5f9 !important; }
   .custom-btn-radius { border-radius: 10px; font-weight: bold; }
 </style>

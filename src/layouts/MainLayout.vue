@@ -57,12 +57,12 @@
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-white drawer-shadow">
       <q-scroll-area class="fit">
-        <div class="q-pa-lg text-center drawer-header bg-black">
+        <div class="q-pa-lg text-center drawer-header bg-white">
           <q-avatar size="100px" class="q-mb-md shadow-10 bg-white p-2">
              <q-img src="~assets/logo-nacional.png" />
           </q-avatar>
-          <div class="text-h5 text-bold text-primary text-white ls-2">XisPOS</div>
-          <div class="text-caption text-white text-weight-medium">Punto de venta</div>
+          <div class="text-h5 text-bold text-primary text-black ls-2">XisPOS</div>
+          <div class="text-caption text-black text-weight-medium">Punto de venta</div>
         </div>
         <q-separator />
 
