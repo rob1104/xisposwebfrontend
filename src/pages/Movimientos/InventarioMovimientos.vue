@@ -135,22 +135,40 @@
         </q-card-section>
 
         <q-card-section class="q-gutter-md">
-          <q-select
-            v-model="form.sucursal_id"
-            :options="sucursales"
-            option-label="nombre"
-            option-value="id"
-            emit-value
-            map-options
-            label="Sucursal *"
-            outlined
-            @update:model-value="consultarStock"
-          />
+          <div v-if="auth.isAdmin" class="q-mb-md">
+            <q-select
+              v-model="form.sucursal_id"
+              :options="sucursales"
+              option-label="nombre"
+              option-value="id"
+              emit-value
+              map-options
+              label="Sucursal *"
+              outlined
+              @update:model-value="consultarStock"
+            >
+              <template v-slot:prepend>
+                <q-icon name="storefront" color="primary" />
+              </template>
+            </q-select>
+          </div>
+          <div v-else>
+             <q-field color="grey-3" outlined label="Sucursal" stack-label>
+                <template v-slot:prepend>
+                  <q-icon name="storefront" color="primary" />
+                </template>
+                <template v-slot:control>
+                  <div class="self-center full-width no-outline" tabindex="0">{{ auth.sucursalSeleccionada.nombre }}</div>
+                </template>
+              </q-field>
+
+          </div>
 
           <q-select
               v-model="productoSeleccionado"
               use-input
               outlined
+              autofocus
               label="Buscar Producto (Nombre o Código) *"
               :options="opcionesProductos"
               @filter="filtrarProductos"
@@ -254,6 +272,8 @@
     observaciones: ''
   })
 
+  console.log(auth.isAdmin)
+
   // KPIs Computados (Calculados localmente para velocidad)
   const totalEntradas = computed(() => movimientos.value.filter(m => m.tipo_movimiento.includes('ENTRADA')).length)
   const totalSalidas = computed(() => movimientos.value.filter(m => m.tipo_movimiento.includes('SALIDA')).length)
@@ -284,7 +304,8 @@
     { name: 'tipo_movimiento', label: 'Tipo', field: 'tipo_movimiento', align: 'center' },
     { name: 'observaciones', label: 'Concepto', field: 'observaciones', align: 'center' },
     { name: 'cantidad', label: 'Movimiento', field: 'cantidad', align: 'right' },
-    { name: 'stock_nuevo', label: 'Stock Final', field: 'stock_nuevo', align: 'right' }
+    { name: 'stock_nuevo', label: 'Stock Final', field: 'stock_nuevo', align: 'right' },
+    { name: 'user', label: 'Realizado por', field: row => row.user?.name, align: 'right' }
   ]
 
   const cargarMovimientos = async () => {

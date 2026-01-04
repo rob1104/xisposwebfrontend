@@ -1,6 +1,6 @@
 <template>
   <q-layout view="lHh Lpr lFf" class="bg-grey-2">
-    <q-header elevated class="bg-primary text-white header-shadow">
+    <q-header v-if="!$route.meta.hideLayout" elevated class="bg-primary text-white header-shadow">
       <q-toolbar class="q-py-md q-px-lg">
         <q-btn flat dense round icon="menu" @click="toggleLeftDrawer" class="q-mr-sm" />
 
@@ -19,7 +19,9 @@
           <div class="row items-center no-wrap">
             <div class="column items-start q-ml-md gt-xs">
               <div class="text-subtitle2 text-bold lh-1">{{ auth.user?.name }}</div>
-              <q-badge color="white" text-color="primary" label="ADMIN" class="text-bold" size="sm" />
+              <q-badge color="white" text-color="primary" class="text-bold" size="sm">
+                {{ auth.roles[0] }}
+                </q-badge>
             </div>
             <q-icon name="keyboard_arrow_down" size="sm" class="q-ml-sm" />
           </div>
@@ -55,7 +57,7 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-white drawer-shadow">
+    <q-drawer v-if="!$route.meta.hideLayout" v-model="leftDrawerOpen" show-if-above bordered class="bg-white drawer-shadow">
       <q-scroll-area class="fit">
         <div class="q-pa-lg text-center drawer-header bg-white">
           <q-avatar size="100px" class="q-mb-md shadow-10 bg-white p-2">

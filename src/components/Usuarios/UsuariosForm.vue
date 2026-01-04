@@ -58,37 +58,67 @@
               </div>
               <div class="col-12">
 
-<div class="text-subtitle2 text-grey-8 q-mb-none q-mt-md">
-    <q-icon name="apartment" color="primary" class="q-mr-xs" />
-    Acceso a Sucursales
-  </div>
+                <div class="text-subtitle2 text-grey-8 q-mb-none q-mt-md">
+                    <q-icon name="apartment" color="primary" class="q-mr-xs" />
+                    Acceso a Sucursales
+                  </div>
 
-  <q-select
-    v-model="form.sucursales"
-            :options="listaSucursales"
-            label="Seleccionar tiendas permitidas"
-            multiple
-            use-chips
-            outlined
-            dense
-            emit-value
-            map-options
-            class="q-mb-md"
-            :rules="[val => (val && val.length > 0) || 'Debe asignar al menos una sucursal']"
-          >
-            <template v-slot:selected-item="scope">
-              <q-chip
-                removable
-                @remove="scope.removeAtIndex(scope.index)"
-                :tabindex="scope.tabindex"
-                color="primary"
-                text-color="white"
-                size="sm"
-              >
-                {{ scope.opt.label }}
-              </q-chip>
-            </template>
-          </q-select>
+                  <q-select
+                    v-model="form.sucursales"
+                    :options="listaSucursales"
+                    label="Seleccionar tiendas permitidas"
+                    multiple
+                    use-chips
+                    outlined
+                    dense
+                    emit-value
+                    map-options
+                    class="q-mb-md"
+                    :rules="[val => (val && val.length > 0) || 'Debe asignar al menos una sucursal']"
+                    >
+                    <template v-slot:selected-item="scope">
+                      <q-chip
+                        removable
+                        @remove="scope.removeAtIndex(scope.index)"
+                        :tabindex="scope.tabindex"
+                        color="primary"
+                        text-color="white"
+                        size="sm">
+                           {{ scope.opt.label }}
+                      </q-chip>
+                    </template>
+                  </q-select>
+
+                  <div v-if="isEdit" class="q-pa-md bg-blue-grey-1 rounded-borders shadow-1 animate__animated animate__fadeIn">
+                    <div class="text-subtitle2 text-bold text-blue-grey-9 q-mb-sm">
+                      <q-icon name="stars" color="orange-8" class="q-mr-xs" />
+                      Sucursal Predeterminada (Activa)
+                    </div>
+
+                    <q-select
+                      v-model="form.sucursal_activa_id"
+                      :options="opcionesSucursalActiva"
+                      label="Sucursal de inicio de sesión"
+                      outlined
+                      dense
+                      emit-value
+                      map-options
+                      bg-color="white"
+                      :disable="opcionesSucursalActiva.length === 0"
+                    >
+                      <template v-slot:prepend>
+                        <q-icon name="location_on" color="primary" />
+                      </template>
+                      <template v-slot:no-option>
+                        <q-item>
+                          <q-item-section class="text-grey italic">Asigne sucursales arriba primero</q-item-section>
+                        </q-item>
+                      </template>
+                    </q-select>
+                    <div class="text-caption text-grey-7 q-mt-xs italic">
+                      * Esta será la sucursal que el usuario tendrá seleccionada al entrar al sistema.
+                    </div>
+                  </div>
 
               </div>
               <div class="col-12">
@@ -138,10 +168,19 @@
   const isEdit = computed(() => !!props.editData)
 
   // Ajustamos el estado inicial a 1 (Activo) como definimos anteriormente
-  const form = reactive({ name: '', email: '', role: '', status: 1, password: '' })
+  const form = reactive({ name: '', email: '', role: '', status: 1, password: '',sucursal_activa_id: null, sucursales: []})
 
   const isCurrentUser = computed(() => {
     return isEdit.value && props.editData.id === auth.user.id
+  })
+
+  const opcionesSucursalActiva = computed(() => {
+    if (!form.sucursales || form.sucursales.length === 0) return []
+
+    // Como form.sucursales puede tener objetos o IDs dependiendo del momento, normalizamos
+    const idsSeleccionados = form.sucursales.map(s => typeof s === 'object' ? s.value : s)
+
+    return listaSucursales.value.filter(opt => idsSeleccionados.includes(opt.value))
   })
 
   const onDialogOpen = async () => {
@@ -162,11 +201,11 @@
       const sucursalesFormateadas = listaSucursales.value.filter(opt =>
         sucursalIds.includes(opt.value)
       )
-      const data = { ...props.editData, password: '', sucursales: sucursalesFormateadas }
+      const data = { ...props.editData, password: '', sucursales: sucursalesFormateadas, sucursal_activa_id: props.editData.sucursal_activa_id }
       data.status = parseInt(data.status)
       Object.assign(form, data)
     } else {
-      Object.assign(form, { name: '', email: '', role: null, status: 1, password: '', sucursales: [] } )
+      Object.assign(form, { name: '', email: '', role: null, status: 1, password: '', sucursales: [], sucursal_activa_id: null } )
     }
     setFocus()
   }
@@ -177,7 +216,7 @@
     try {
       const url = isEdit.value ? `/api/users/${props.editData.id}` : '/api/users'
 
-      const dataToSend = { ...form , sucursales: form.sucursales.map(s => typeof s === 'object' ? s.value : s) }
+      const dataToSend = { ...form , sucursales: form.sucursales.map(s => typeof s === 'object' ? s.value : s), sucursal_activa_id: form.sucursal_activa_id }
 
 
 
@@ -236,6 +275,13 @@
     setFocus()
   })
 
-
+  watch(() => form.sucursales, (newVal) => {
+    if (isEdit.value && form.sucursal_activa_id) {
+      const ids = newVal.map(s => typeof s === 'object' ? s.value : s)
+      if (!ids.includes(form.sucursal_activa_id)) {
+        form.sucursal_activa_id = null // Reset si se quita el acceso a la sucursal activa
+      }
+    }
+  }, { deep: true })
 
 </script>

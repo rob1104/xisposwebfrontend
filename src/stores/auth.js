@@ -11,7 +11,7 @@ export const useAuthStore = defineStore('auth', {
     isLoggedIn: !!localStorage.getItem('token'),
   }),
   getters: {
-    isAdmin: (state) => state.user?.role === 'Administrador',
+    isAdmin: (state) => state.user.roles[0] === 'Administrador',
     currentBranchName: (state) => state.sucursalSeleccionada ? state.sucursalSeleccionada.nombre: 'Administración global',
   },
   actions: {
@@ -30,6 +30,22 @@ export const useAuthStore = defineStore('auth', {
         this.sucursales = response.data.sucursales || []
         this.roles = response.data.user.roles || []
         this.isLoggedIn = true
+
+        // --- NUEVA LÓGICA: ASIGNAR SUCURSAL ACTIVA ---
+        if (this.user.sucursal_activa_id && this.sucursales.length > 0) {
+          // Buscamos el objeto completo de la sucursal que coincida con el ID activo
+          const sucursalDefault = this.sucursales.find(s => s.id === this.user.sucursal_activa_id)
+
+          if (sucursalDefault) {
+            this.setSucursal(sucursalDefault) // Establecemos el objeto completo
+
+            // Opcional: Persistir el ID en localStorage para el interceptor de axios.js
+            localStorage.setItem('sucursalSeleccionada', sucursalDefault.id)
+          }
+        }
+        // --------------------------------------------
+
+
 
         // 2. Persistir manualmente para asegurar que el interceptor lo lea
         localStorage.setItem('token', this.token)

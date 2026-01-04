@@ -224,6 +224,10 @@
   import { date } from 'quasar'
   import { useQuasar } from 'quasar'
   import CompraForm from 'src/components/Compras/CompraForm.vue'
+  import { useAuthStore } from 'src/stores/auth'
+
+  const authStore = useAuthStore()
+
 
   const $q = useQuasar()
   const compras = ref([])
@@ -334,6 +338,7 @@
   }
 
   onMounted(cargarCompras)
+
 </script>
 
 <style lang="scss">

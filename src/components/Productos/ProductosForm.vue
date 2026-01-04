@@ -79,7 +79,38 @@
 
               <div class="col-12 text-subtitle2 text-grey-7 q-mt-sm">Datos Fiscales CFDI 4.0</div>
               <q-input v-bind="inputProps" v-model="form.clave_prod_serv" label="Clave Prod/Serv (SAT) *" mask="########" class="col-12 col-md-4" :rules="[val => val?.length === 8 || '8 dígitos']" />
-              <q-input v-bind="inputProps" v-model="form.clave_unidad" label="Clave Unidad (SAT) *" class="col-12 col-md-4" />
+              <q-select
+                v-bind="inputProps"
+                v-model="form.clave_unidad"
+                :options="filteredUnidades"
+                label="Clave Unidad (SAT) *"
+                class="col-12 col-md-4"
+                option-label="nombre"
+                option-value="c_ClaveUnidad"
+                emit-value
+                map-options
+                use-input
+                @filter="filterUnidades"
+                :rules="[val => !!val || 'La unidad de medida es requerida']">
+                  <template v-slot:option="scope">
+                    <q-item v-bind="scope.itemProps">
+                      <q-item-section>
+                        <q-item-label>{{ scope.opt.nombre }}</q-item-label>
+                        <q-item-label caption class="text-primary text-bold">
+                          Clave SAT: {{ scope.opt.c_ClaveUnidad }}
+                        </q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </template>
+
+                  <template v-slot:no-option>
+                    <q-item>
+                      <q-item-section class="text-grey italic">
+                        No se encontró la unidad. Verifique el catálogo.
+                      </q-item-section>
+                    </q-item>
+                  </template>
+              </q-select>
               <q-select v-bind="inputProps" v-model="form.tipo_producto" :options="['Inventariable', 'Compuesto', 'Servicio']" label="Tipo de Producto" class="col-12 col-md-4" />
             </div>
           </q-tab-panel>
@@ -358,6 +389,9 @@
 
   const impuestosOptions = ref([])
 
+  const unidadesOptions = ref([])
+  const filteredUnidades = ref([])
+
 
   const isEdit = computed(() => !!props.editData)
 
@@ -385,7 +419,7 @@
 
   const loadImpuestos = async () => {
     try {
-      const res = await api.get('/api/impuestos')
+      const res = await api.get('/api/catalogos/impuestos')
       impuestosOptions.value = res.data.map(i => ({
         label: `${i.nombre} (${i.porcentaje}%)`,
         value: i.id,
@@ -398,7 +432,7 @@
 
   const loadCategorias = async () => {
     try {
-      const res = await api.get('/api/categorias')
+      const res = await api.get('/api/catalogos/categorias')
       categorias.value = res.data.map(c => ({
         label: c.nombre,
         value: c.id
@@ -408,6 +442,26 @@
       console.error("Error al cargar categorías:", e)
       $q.notify({ color: 'negative', message: 'No se pudieron cargar las categorías' })
     }
+  }
+
+  const loadUnidades = async () => {
+    try {
+      const res = await api.get('/api/catalogos/medidas')
+      unidadesOptions.value = res.data
+      filteredUnidades.value = res.data
+    } catch (e) {
+      console.error("Error al cargar unidades:", e)
+    }
+  }
+
+  const filterUnidades = (val, update) => {
+    update(() => {
+      const needle = val.toLowerCase()
+      filteredUnidades.value = unidadesOptions.value.filter(
+        v => v.nombre.toLowerCase().indexOf(needle) > -1 ||
+            v.c_ClaveUnidad.toLowerCase().indexOf(needle) > -1
+      )
+    })
   }
 
   const onDialogOpen = async() => {
@@ -444,7 +498,6 @@
         $q.notify({ color: 'negative', message: 'Error al cargar estructura del kit' })
         console.error(e)
       } finally {
-        console.log(form.componentes)
         loading.value = false
       }
     } else {
@@ -564,7 +617,7 @@
 
     catLoading.value = true
     try {
-      const res = await api.post('/api/categorias', {
+      const res = await api.post('/api/catalogos/categorias', {
         nombre: quickCatName.value.toUpperCase()
       })
 
@@ -617,6 +670,7 @@
   onMounted( async() => {
     await loadCategorias()
     await loadImpuestos()
+    await loadUnidades()
   })
 
 </script>
