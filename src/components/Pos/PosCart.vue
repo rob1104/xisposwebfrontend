@@ -47,8 +47,8 @@
     </template>
 
     <template v-slot:body-cell-total="props">
-      <q-td :props="props" class="text-h6 text-bold text-green" style="font-size: 20px;">
-        $ {{ (props.row.precio_venda * props.row.cantidad).toFixed(2) }}
+      <q-td :props="props" class="text-h6 text-bold text-pink-3" style="font-size: 20px;">
+        $ {{ (props.row.precio * props.row.cantidad).toFixed(2) }}
       </q-td>
     </template>
   </q-table>
@@ -61,7 +61,7 @@
   const columns = [
     { name: 'index', label: '#', align: 'left', field: 'id' },
     { name: 'nombre', label: 'DESCRIPCIÓN', field: 'nombre', align: 'left' },
-    { name: 'precio', label: 'PRECIO', field: 'precio_venda', align: 'right' },
+    { name: 'precio', label: 'PRECIO', field: 'precio', align: 'right' },
     { name: 'cantidad', label: 'CANT.', field: 'cantidad', align: 'center' },
     { name: 'total', label: 'TOTAL', align: 'right' }
   ]

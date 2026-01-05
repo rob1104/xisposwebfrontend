@@ -10,7 +10,7 @@
         bg-color="white"
         color="primary"
         @keyup.enter="handleEnter"
-        class="text-h5 barcode-input-light"
+        class="text-h5 barcode-input-light foco-escaner"
         autofocus
       >
         <template v-slot:prepend>
@@ -30,6 +30,9 @@
         </div>
         <div class="text-caption text-weight-bold">
           CAJERO: <span class="text-cyan text-uppercase">{{ auth.user?.name || 'Invitado' }}</span>
+        </div>
+        <div class="text-caption text-weight-bold">
+          No. TURNO: <span class="text-cyan text-uppercase">{{ posStore.turno?.id || 'No hay turno' }}</span>
         </div>
       </div>
 
@@ -69,11 +72,14 @@
 <script setup>
   import { ref, onMounted } from 'vue'
   import { useAuthStore } from 'src/stores/auth'
+  import { usePosStore } from 'src/stores/pos'
 
   // Emitimos los eventos hacia el padre (PosPage.vue)
   const emit = defineEmits(['scan', 'open-search', 'open-cash', 'close-turn'])
 
   const auth = useAuthStore()
+  const posStore = usePosStore()
+
   const barcode = ref('')
   const scannerInput = ref(null)
 

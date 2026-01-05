@@ -20,6 +20,8 @@ const routes = [
       { path: 'inventarioglobal', component: () => import('pages/Inventario/InventarioGlobal.vue'), name: 'inventarioglobal' },
       { path: 'inventariogxsucursal', component: () => import('pages/Reportes/StockReport.vue'), name: 'inventarioglobalreporte' },
       { path: 'compras', component: () => import('pages/Compras/ComprasPage.vue'), name: 'compras' },
+      { path: 'compras', component: () => import('pages/Compras/ComprasPage.vue'), name: 'compras' },
+      { path: 'ventas', component: () => import('pages/Ventas/VentasPage.vue'), name: 'ventas' },
       { path: 'catalogos', component: () => import('pages/CatalogosPage.vue'), name: 'catalogos' },
       { path: 'pos', component: () => import('pages/Pos/PosPage.vue'), name: 'pos', meta: { hideLayout: true } }
     ]

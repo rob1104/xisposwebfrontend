@@ -207,6 +207,7 @@
                 stack-label
                 emit-value
                 map-options
+                :rules="[ val => (val && val.length > 0) || 'Debe seleccionar un impuesto' ]"
                 class="bg-white"
               >
 
@@ -261,6 +262,7 @@
                   type="number"
                   step="0.000001"
                   class="col-5"
+                  :disable="form.impuestos.length === 0"
                 >
                   <template v-slot:prepend><q-icon name="attach_money" color="green" /></template>
                 </q-input>
@@ -645,27 +647,30 @@
   }
 
   const validateUniquePriceName = (val, index) => {
-    if (!val) return 'El nombre es requerido';
+    if (!val) return 'El nombre es requerido'
 
     const isDuplicate = form.precios.some((p, i) =>
       i !== index && p.nombre_lista?.toUpperCase() === val.toUpperCase()
-    );
+    )
 
-    return isDuplicate ? 'Este nombre de lista ya está en uso' : true;
-  };
+    return isDuplicate ? 'Este nombre de lista ya está en uso' : true
+  }
 
   const removePriceList = (index) => {
-    const precio = form.precios[index];
+    const precio = form.precios[index]
     if (precio.nombre_lista === 'PRECIO PUBLICO') {
       $q.notify({
         message: 'El PRECIO PUBLICO es obligatorio y no puede eliminarse',
         color: 'negative',
         icon: 'warning'
-      });
-      return;
+      })
+      return
     }
-    form.precios.splice(index, 1);
-  };
+    form.precios.splice(index, 1)
+  }
+
+
+
 
   onMounted( async() => {
     await loadCategorias()

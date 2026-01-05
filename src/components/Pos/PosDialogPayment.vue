@@ -123,7 +123,7 @@
         <div class="col-12 col-md-5 bg-blue-grey-9 q-pa-lg q-pa-md-xl relative-position">
           <div class="text-right q-mb-xl">
             <div class="text-h5 text-md-h4 text-grey-5 uppercase">Total a Pagar</div>
-            <div class="text-h3 text-md-h2 text-bold text-yellow glow-text q-mt-sm">$ {{ total.toFixed(2) }}</div>
+            <div class="text-h3 text-md-h2 text-bold text-yellow glow-text q-mt-sm">$ {{ resumen.total.toFixed(2) }}</div>
           </div>
 
           <div class="column no-wrap" style="height: 100%; min-height: 300px;">
@@ -198,7 +198,7 @@
   import { usePosStore } from 'src/stores/pos'
   import { useQuasar } from 'quasar'
 
-  const props = defineProps(['modelValue', 'total', 'items'])
+  const props = defineProps(['modelValue', 'resumen', 'items'])
   const emit = defineEmits(['update:modelValue', 'success'])
 
   const $q = useQuasar()
@@ -218,13 +218,13 @@
 
   // --- CÁLCULOS DINÁMICOS ---
   const totalPagado = computed(() => listaPagos.value.reduce((acc, p) => acc + p.monto, 0))
-  const saldoPendiente = computed(() => Math.max(0, props.total - totalPagado.value))
-  const cambio = computed(() => Math.max(0, totalPagado.value - props.total))
-  const porcentajePagado = computed(() => totalPagado.value / props.total)
+  const saldoPendiente = computed(() => Math.max(0, props.resumen.total - totalPagado.value))
+  const cambio = computed(() => Math.max(0, totalPagado.value - props.resumen.total))
+  const porcentajePagado = computed(() => totalPagado.value / props.resumen.total)
 
   const focoPago = () => {
     listaPagos.value = []
-    pagoActual.value = { metodo: 'efectivo', monto: props.total, ultimos4: '', referencia: '' }
+    pagoActual.value = { metodo: 'efectivo', monto: props.resumen.total, ultimos4: '', referencia: '' }
     nextTick(() => { inputMonto.value?.select() })
   }
 
@@ -249,7 +249,7 @@
     listaPagos.value.push({ ...pagoActual.value })
 
     // Resetear para el siguiente abono sugiriendo el resto
-    const pendiente = props.total - totalPagado.value
+    const pendiente = props.resumen.total - totalPagado.value
     pagoActual.value = {
       metodo: 'efectivo',
       monto: pendiente > 0 ? pendiente : 0,
@@ -272,25 +272,32 @@
   }
 
   const procesarVenta = async () => {
-    procesando.value = true
-    try {
-      const payload = {
-        items: props.items,
-        total: props.total,
-        pagos: listaPagos.value, // Soporta múltiples abonos
-        total_pagado: totalPagado.value,
-        cambio: cambio.value,
-        sucursal_id: auth.sucursalSeleccionada?.id,
-        caja_turno_id: posStore.turno?.id
-      }
-      const res = await api.post('/api/pos/finalizar-venta', payload)
-      emit('success', res.data)
-    } catch (e) {
-      $q.notify({ color: 'negative', message: 'Error al procesar la venta' })
-    } finally {
-      procesando.value = false
+    // Verificación de seguridad: No permitir guardar si no se ha cubierto el total
+    if (saldoPendiente.value > 0) {
+      $q.notify({ message: 'El saldo no ha sido cubierto en su totalidad', color: 'warning' })
+      return
     }
-  }
+    if (saldoPendiente.value > 0) {
+      $q.notify({ message: 'El saldo no ha sido cubierto', color: 'warning' })
+      return
+    }
+
+    // Preparamos los datos de pago para la página padre
+    const datosParaEnviar = {
+      pagos: listaPagos.value.map(p => ({
+        metodo: p.metodo.charAt(0).toUpperCase() + p.metodo.slice(1), // 'efectivo' -> 'Efectivo'
+        monto: p.monto,
+        referencia: p.referencia || null,
+        tarjeta: p.ultimos4 || null,
+        efectivo_recibido: p.metodo === 'efectivo' ? (p.monto + cambio.value) : null,
+        cambio_entregado: p.metodo === 'efectivo' ? cambio.value : null
+      }))
+    }
+
+    // Emitimos el éxito para que PosPage.vue haga el guardado real
+    emit('success', datosParaEnviar)
+    internalValue.value = false // Cerramos el diálogo
+    }
 </script>
 
 <style lang="scss" scoped>

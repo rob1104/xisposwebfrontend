@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { api } from 'boot/axios'
+import { useAuthStore } from './auth'
 
 export const usePosStore = defineStore('pos', {
   state: () => ({
@@ -23,8 +24,21 @@ export const usePosStore = defineStore('pos', {
       }
     },
     async abrirTurno(datos) {
-      const res = await api.post('/api/pos/abrir-turno', datos)
-      this.turno = res.data.turno
+      console.log("Abriendo turno con datos:", datos);
+      const authStore = useAuthStore()
+      const payload = {
+        ...datos,
+        sucursal_id: authStore.sucursalSeleccionada?.id,
+      }
+      console.log("Hola desde el store POS, datos para abrir turno:", payload);
+      try {
+        const res = await api.post('/api/pos/abrir-turno', payload)
+        this.turno = res.data.turno
+        return res.data
+      } catch (error) {
+        console.error('Error al abrir el turno:', error)
+        throw error
+      }
     },
     async cerrarTurno(datosCorte) {
       try {

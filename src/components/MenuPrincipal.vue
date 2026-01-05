@@ -1,13 +1,13 @@
 <template>
   <q-list padding class="menu-list q-px-md">
-    <q-item-label header class="text-overline text-grey-6 q-mt-md">Operaciones</q-item-label>
+    <q-item-label header class="text-overline text-red-9 text-bold text-uppercase" style="font-size: 18px;">Operaciones</q-item-label>
 
     <q-item clickable v-ripple to="/dashboard" active-class="custom-active-link" class="menu-item">
       <q-item-section avatar><q-icon name="dashboard_customize" /></q-item-section>
       <q-item-section class="text-weight-medium">Panel Principal</q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/ventas" active-class="custom-active-link" class="menu-item">
+    <q-item clickable v-ripple to="/pos" active-class="custom-active-link" class="menu-item">
       <q-item-section avatar><q-icon name="point_of_sale" /></q-item-section>
       <q-item-section class="text-weight-medium">Punto de Venta</q-item-section>
     </q-item>
@@ -15,6 +15,11 @@
     <q-item clickable v-ripple to="/compras" active-class="custom-active-link" class="menu-item">
       <q-item-section avatar><q-icon name="shopping_basket" /></q-item-section>
       <q-item-section class="text-weight-medium">Compras</q-item-section>
+    </q-item>
+
+    <q-item clickable v-ripple to="/ventas" active-class="custom-active-link" class="menu-item">
+      <q-item-section avatar><q-icon name="money" /></q-item-section>
+      <q-item-section class="text-weight-medium">Ventas</q-item-section>
     </q-item>
 
 
@@ -85,7 +90,7 @@
 
     <q-separator class="q-my-lg" />
 
-    <q-item-label header class="text-overline text-grey-6">Administración</q-item-label>
+    <q-item-label header class="text-overline text-red-9 text-bold text-uppercase" style="font-size: 18px;">Administración</q-item-label>
 
     <q-item clickable v-ripple to="/catalogos" active-class="custom-active-link" class="menu-item">
       <q-item-section avatar><q-icon name="collections" /></q-item-section>

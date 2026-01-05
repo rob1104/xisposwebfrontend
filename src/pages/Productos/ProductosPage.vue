@@ -56,7 +56,7 @@
 
         <template v-slot:body="props">
           <q-tr :props="props" class="hover-row">
-            <q-td key="nombre" :props="props">
+            <q-td key="nombre" :props="props" style="font-size: 16px;">
               <div class="text-bold text-primary">{{ props.row.nombre }}</div>
               <div class="row items-center text-caption text-grey-7">
                 <q-badge color="grey-3" text-color="grey-9" class="q-mr-xs text-bold">
@@ -66,7 +66,27 @@
               </div>
             </q-td>
 
-            <q-td key="categoria" :props="props" class="text-center">
+             <q-td key="status" :props="props" class="text-center">
+              <q-icon
+                v-if="props.row.status"
+                name="check_circle"
+                color="positive"
+                size="sm"
+              >
+                <q-tooltip>Producto Activo</q-tooltip>
+              </q-icon>
+
+              <q-icon
+                v-else
+                name="block"
+                color="negative"
+                size="sm"
+              >
+                <q-tooltip>Producto Inactivo / Bloqueado</q-tooltip>
+              </q-icon>
+            </q-td>
+
+            <q-td key="categoria" :props="props" class="text-center" style="font-size: 14px;">
                 <span class="text-blue-10 text-bold">
                 {{ props.row.categoria?.nombre || 'General' }}
                 </span>
@@ -94,7 +114,7 @@
               <div v-else class="text-caption text-grey-5 italic">Sin impuestos</div>
             </q-td>
 
-            <q-td key="precio" :props="props" class="text-right text-bold text-green-9">
+            <q-td key="precio" :props="props" class="text-right text-bold text-green-9" style="font-size: 20px;">
               $ {{ formatNumber(props.row.precios?.[0]?.precio) }}
             </q-td>
 
@@ -115,7 +135,10 @@
   import { ref, onMounted } from 'vue'
   import { api } from 'boot/axios'
   import ProductForm from 'components/Productos/ProductosForm.vue'
+  import { useQuasar } from 'quasar'
 
+
+  const $q = useQuasar()
   const rows = ref([])
   const loading = ref(false)
   const filter = ref('')
@@ -131,6 +154,7 @@
       sort: (a, b) => a.localeCompare(b),
       sortable: true
     },
+    { name: 'status', label: 'ACTIVO', field: 'status', align: 'center' },
     { name: 'categoria', label: 'CATEGORÍA', align: 'center' },
     { name: 'tipo_producto', label: 'TIPO', field: 'tipo_producto', align: 'center' },
     { name: 'impuestos', label: 'IMPUESTOS', align: 'left' },
@@ -166,6 +190,46 @@
     if (upperName.includes('ISAN')) return 'pink-8' // Púrpura para otros
 
     return 'blue-grey-6' // Color por defecto
+  }
+
+   const confirmDelete = (producto) => {
+    $q.dialog({
+      title: '<span class="text-negative text-bold">Eliminar Producto</span>',
+      message: `¿Estás seguro de que deseas eliminar <b>${producto.nombre}</b>? Esta acción no se puede deshacer.`,
+      html: true,
+      persistent: true,
+      ok: {
+        label: 'Sí, Eliminar',
+        color: 'negative',
+        unelevated: true
+      },
+      cancel: {
+        label: 'Cancelar',
+        flat: true,
+        color: 'grey-7'
+      }
+    }).onOk(async () => {
+      try {
+        $q.loading.show({ message: 'Eliminando...' })
+
+        // Petición al backend
+        await api.delete(`/api/productos/${producto.id}`)
+
+        $q.notify({
+          color: 'positive',
+          message: 'Producto eliminado correctamente',
+          icon: 'delete'
+        })
+
+        // Recargar la lista de productos
+        loadData()
+
+      } catch (e) {
+        $q.notify({ color: 'negative', message: e.response?.data?.message })
+      } finally {
+        $q.loading.hide()
+      }
+    })
   }
 
   onMounted(loadData)

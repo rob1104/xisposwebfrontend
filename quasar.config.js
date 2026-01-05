@@ -90,6 +90,7 @@ export default defineConfig((/* ctx */) => {
       plugins: [
         'AppFullscreen',
         'Dialog',
+        'Loading',
         'Notify'
       ]
     },

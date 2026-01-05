@@ -57,20 +57,47 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-if="!$route.meta.hideLayout" v-model="leftDrawerOpen" show-if-above bordered class="bg-white drawer-shadow">
-      <q-scroll-area class="fit">
-        <div class="q-pa-lg text-center drawer-header bg-white">
-          <q-avatar size="100px" class="q-mb-md shadow-10 bg-white p-2">
-             <q-img src="~assets/logo-nacional.png" />
-          </q-avatar>
-          <div class="text-h5 text-bold text-primary text-black ls-2">XisPOS</div>
-          <div class="text-caption text-black text-weight-medium">Punto de venta</div>
-        </div>
-        <q-separator />
+    <q-drawer
+        v-if="!$route.meta.hideLayout"
+        v-model="leftDrawerOpen"
+        show-if-above
+        bordered
+        class="bg-white drawer-shadow"
+        :width="280"
+      >
+        <q-scroll-area class="fit">
+          <div class="brand-section q-pa-xl text-center">
+            <div class="logo-container q-mx-auto q-mb-lg shadow-2">
+              <q-img
+                src="~assets/logo-nacional.png"
+                spinner-color="primary"
+                style="max-width: 80px"
+                fit="contain"
+              />
+            </div>
 
-        <MenuPrincipal />
-      </q-scroll-area>
-    </q-drawer>
+            <div class="brand-title">
+              <span class="text-h4 text-bold text-blue-grey-10">Xis</span>
+              <span class="text-h4 text-weight-light text-primary">POS</span>
+            </div>
+
+            <div class="row items-center justify-center q-gutter-x-xs q-mt-xs">
+              <q-badge style="font-size: 18px;" color="blue-grey-1" text-color="blue-grey-7" label="PUNTO DE VENTA" class="text-bold" />
+              <div class="text-caption text-grey-9">v0.1</div>
+            </div>
+          </div>
+
+          <q-separator inset class="q-mx-md q-mb-lg opacity-50" />
+
+          <MenuPrincipal />
+
+          <div class="absolute-bottom q-pa-md text-center gt-sm">
+            <div class="text-caption text-grey-4 font-mono" style="font-size: 10px;">
+              LA NACIONAL ERP &copy; 2026
+            </div>
+          </div>
+        </q-scroll-area>
+      </q-drawer>
 
     <q-page-container>
       <router-view v-slot="{ Component }">
@@ -126,6 +153,45 @@
   .fade-slide-enter-active,
   .fade-slide-leave-active {
     transition: all 0.3s ease-out;
+  }
+
+  .brand-section {
+    position: relative;
+    background: linear-gradient(to bottom, #ffffff 0%, #fafafa 100%);
+  }
+
+  .logo-container {
+    width: 100px;
+    height: 100px;
+    background: white;
+    border-radius: 24px; // Bordes tipo app moderna
+    border: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: rotate(-3deg) scale(1.05);
+    }
+  }
+
+  .brand-title {
+    letter-spacing: -1.5px; // Interletrado apretado para look premium
+    line-height: 1;
+  }
+
+  .drawer-shadow {
+    box-shadow: 10px 0 30px rgba(0,0,0,0.02) !important;
+  }
+
+  .font-mono {
+    font-family: 'Roboto Mono', monospace;
+  }
+
+  // Suavizar la opacidad de los separadores
+  .opacity-50 {
+    opacity: 0.5;
   }
 
 
