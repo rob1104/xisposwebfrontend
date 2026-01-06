@@ -6,7 +6,7 @@ const routes = [
     children: [
       { path: '', redirect: '/dashboard' },
       { path: 'dashboard', component: () => import('pages/IndexPage.vue'), name: 'dashboard' },
-      { path: 'clientes', component: () => import('pages/Clientes/ClientesPage.vue'), name: 'clientes' },
+      { path: 'clientes', component: () => import('pages/Clientes/ClientesPage.vue'), name: 'clientes', meta: { permission: 'clientes.ver' } },
       { path: 'proveedores', component: () => import('pages/Proveedores/ProveedoresPage.vue'), name: 'proveedores' },
       { path: 'auditoria', component: () => import('pages/LogsPage.vue'), name: 'auditoria' },
       { path: 'productos', component: () => import('pages/Productos/ProductosPage.vue'), name: 'productos' },
@@ -23,13 +23,17 @@ const routes = [
       { path: 'compras', component: () => import('pages/Compras/ComprasPage.vue'), name: 'compras' },
       { path: 'ventas', component: () => import('pages/Ventas/VentasPage.vue'), name: 'ventas' },
       { path: 'catalogos', component: () => import('pages/CatalogosPage.vue'), name: 'catalogos' },
-      { path: 'pos', component: () => import('pages/Pos/PosPage.vue'), name: 'pos', meta: { hideLayout: true } }
+      { path: 'pos', component: () => import('pages/Pos/PosPage.vue'), name: 'pos', meta: { hideLayout: true } },
+      { path: 'configuracion', component: () => import('pages/Configuracion/ConfiguracionPage.vue'), name: 'configuracion' },
+      { path: 'perfil', component: () => import('pages/Usuarios/ProfilePage.vue'), name: 'perfil' },
     ]
   },
   {
     path: '/login',
     component: () => import('pages/LoginPage.vue')
   },
+
+  { path: '/403', name: 'Forbidden', component: () => import('pages/ErrorNotAuthorized.vue'), meta: { auth: true } },
 
 
   // Always leave this as last one,

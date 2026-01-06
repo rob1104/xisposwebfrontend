@@ -4,15 +4,23 @@ import { api } from 'src/boot/axios'
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: JSON.parse(localStorage.getItem('user')) || null,
-    roles: [],
+    roles: localStorage.getItem('roles') || null,
     token: localStorage.getItem('token') || null,
     sucursales: [],
     sucursalSeleccionada: null,
     isLoggedIn: !!localStorage.getItem('token'),
+    permissions: JSON.parse(localStorage.getItem('permissions')) || []
   }),
   getters: {
-    isAdmin: (state) => state.user.roles[0] === 'Administrador',
+    isAdmin: (state) => state.roles[0] === 'Administrador',
     currentBranchName: (state) => state.sucursalSeleccionada ? state.sucursalSeleccionada.nombre: 'Administración global',
+    can: (state) => (permissionName) => {
+      // 1. SI ES ADMIN, SIEMPRE TRUE
+      if (state.roles[0].includes('Administrador')) return true;
+
+        // 2. Si no, verificamos el permiso específico
+        return state.permissions?.includes(permissionName) || false;
+      }
   },
   actions: {
     async login(credentials) {
@@ -22,7 +30,7 @@ export const useAuthStore = defineStore('auth', {
 
         const response = await api.post('/login', credentials)
 
-        console.log('Respuesta login:', response.data)
+
 
         // 1. Asignar datos al state (Ahora this.token sí existe)
         this.token = response.data.token
@@ -45,11 +53,14 @@ export const useAuthStore = defineStore('auth', {
         }
         // --------------------------------------------
 
-
+        if (response.data.user?.permissions) {
+          this.permissions = response.data.user.permissions.map(p => p.name)
+        }
 
         // 2. Persistir manualmente para asegurar que el interceptor lo lea
         localStorage.setItem('token', this.token)
         localStorage.setItem('user', JSON.stringify(this.user))
+        localStorage.setItem('permissions', JSON.stringify(this.permissions))
 
         // 3. Configurar Axios para las siguientes peticiones inmediatamente
         api.defaults.headers.common['Authorization'] = `Bearer ${this.token}`
@@ -57,6 +68,7 @@ export const useAuthStore = defineStore('auth', {
         return response
       } catch (error) {
 
+        console.log('Error durante login:', error.message)
         throw error
       }
     },
@@ -74,9 +86,24 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    async fetchUser() {
+      try {
+        const { data } = await api.get('/api/user')
+        this.user = data.user
+        this.roles = data.roles ? data.roles.map(r => r.name || r) : []
+        this.permissions = data.permissions ? data.permissions.map(p => p.name) : []
+        localStorage.setItem('user', JSON.stringify(this.user))
+        localStorage.setItem('permissions', JSON.stringify(this.permissions))
+        console.log("User:" + data)
+      } catch (e) {
+        this.clearLocalAuth()
+      }
+    },
+
     setSucursal(sucursal) {
       this.sucursalSeleccionada = sucursal
     },
+
     clearLocalAuth() {
       this.user = null
       this.token = null

@@ -179,6 +179,8 @@
           cantidad: item.cantidad,
           precio: item.precio // Mantenemos consistencia en el nombre
         })),
+        tipo_pago: datosDesdeDialogo.tipo_pago,
+        cliente_id: datosDesdeDialogo.cliente_id,
         pagos: datosDesdeDialogo.pagos, // Recibidos del diálogo
         sucursal_id: auth.sucursalSeleccionada?.id,
         caja_turno_id: posStore.turno?.id

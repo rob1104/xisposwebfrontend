@@ -7,7 +7,7 @@
 
 
         <q-toolbar-title>
-          <div class="text-h6 text-bold ls-1">PUNTO DE VENTA - LA NACIONAL</div>
+          <div class="text-h6 text-bold ls-1">PUNTO DE VENTA - {{ configStore.nombreTienda }}</div>
           <div class="text-caption text-red-2 text-uppercase text-weight-bolder">
             {{ auth.currentBranchName || 'Administración global' }}
           </div>
@@ -44,7 +44,7 @@
 
               <q-item clickable v-ripple to="/perfil" class="q-py-md">
                 <q-item-section avatar><q-icon name="manage_accounts" color="primary" /></q-item-section>
-                <q-item-section class="text-bold">Configuración de Perfil</q-item-section>
+                <q-item-section class="text-bold">Mi Perfil</q-item-section>
               </q-item>
 
               <q-item clickable v-ripple @click="onLogout" class="text-negative q-py-md">
@@ -69,7 +69,8 @@
           <div class="brand-section q-pa-xl text-center">
             <div class="logo-container q-mx-auto q-mb-lg shadow-2">
               <q-img
-                src="~assets/logo-nacional.png"
+                :src="configStore.logoUrl || 'assets/no-logo.png'"
+                alt="Logo"
                 spinner-color="primary"
                 style="max-width: 80px"
                 fit="contain"
@@ -83,7 +84,7 @@
 
             <div class="row items-center justify-center q-gutter-x-xs q-mt-xs">
               <q-badge style="font-size: 18px;" color="blue-grey-1" text-color="blue-grey-7" label="PUNTO DE VENTA" class="text-bold" />
-              <div class="text-caption text-grey-9">v0.1</div>
+              <div class="text-caption text-grey-9">Versión 0.1.17</div>
             </div>
           </div>
 
@@ -91,11 +92,7 @@
 
           <MenuPrincipal />
 
-          <div class="absolute-bottom q-pa-md text-center gt-sm">
-            <div class="text-caption text-grey-4 font-mono" style="font-size: 10px;">
-              LA NACIONAL ERP &copy; 2026
-            </div>
-          </div>
+
         </q-scroll-area>
       </q-drawer>
 
@@ -110,19 +107,28 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue'
+  import { ref, onMounted } from 'vue'
   import { useAuthStore } from 'stores/auth'
   import { useRouter } from 'vue-router'
+  import { useConfigStore } from 'stores/config'
+
+
   import MenuPrincipal from 'components/MenuPrincipal.vue'
 
 
   const auth = useAuthStore()
+  const configStore = useConfigStore()
   const router = useRouter()
   const leftDrawerOpen = ref(false)
 
   const toggleLeftDrawer = () => {
     leftDrawerOpen.value = !leftDrawerOpen.value
   }
+
+  onMounted(async () => {
+    await configStore.loadConfig()
+  })
+
 
   const onLogout = async () => {
     await auth.logout()

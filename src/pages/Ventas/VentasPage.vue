@@ -1,21 +1,21 @@
 <template>
   <q-page padding class="bg-blue-grey-1 text-blue-grey-10">
     <div class="row q-col-gutter-md q-mb-lg">
-      <div class="col-12 col-sm-6 col-md-3">
+      <div class="col-lg-2 col-md-4 col-sm-6">
         <q-card flat bordered class="kpi-card shadow-1 bg-white rounded-borders">
           <q-item>
             <q-item-section avatar>
               <q-avatar color="blue-1" text-color="blue-9" icon="leaderboard" size="50px" />
             </q-item-section>
             <q-item-section>
-              <q-item-label class="text-caption text-grey-7 uppercase text-bold">Ventas Totales</q-item-label>
+              <q-item-label class="text-caption text-grey-7 uppercase text-bold">Ventas Netas</q-item-label>
               <q-item-label class="text-h5 text-bold text-blue-9">${{ formatMoney(kpis.totalVentas) }}</q-item-label>
             </q-item-section>
           </q-item>
         </q-card>
       </div>
 
-      <div class="col-12 col-sm-6 col-md-3">
+      <div class="col-lg-2 col-md-4 col-sm-6">
         <q-card flat bordered class="kpi-card shadow-1 bg-white rounded-borders">
           <q-item>
             <q-item-section avatar>
@@ -29,29 +29,57 @@
         </q-card>
       </div>
 
-      <div class="col-12 col-sm-6 col-md-3">
+      <div class="col-lg-2 col-md-4 col-sm-6">
         <q-card flat bordered class="kpi-card shadow-1 bg-white rounded-borders">
           <q-item>
             <q-item-section avatar>
               <q-avatar color="cyan-1" text-color="cyan-9" icon="credit_card" size="50px" />
             </q-item-section>
             <q-item-section>
-              <q-item-label class="text-caption text-grey-7 uppercase text-bold">Tarjetas / Transf.</q-item-label>
+              <q-item-label class="text-caption text-grey-7 uppercase text-bold">Tarjetas</q-item-label>
               <q-item-label class="text-h5 text-bold text-cyan-9">${{ formatMoney(kpis.totalBancos) }}</q-item-label>
             </q-item-section>
           </q-item>
         </q-card>
       </div>
 
-      <div class="col-12 col-sm-6 col-md-3">
+      <div class="col-lg-2 col-md-4 col-sm-6">
+        <q-card flat bordered class="kpi-card shadow-1 bg-white rounded-borders border-left-orange">
+          <q-item>
+            <q-item-section avatar>
+              <q-avatar color="orange-1" text-color="orange-9" icon="event_repeat" size="50px" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="text-caption text-grey-7 uppercase text-bold">Ventas a Crédito</q-item-label>
+              <q-item-label class="text-h5 text-bold text-orange-9">${{ formatMoney(kpis.totalCredito) }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-card>
+      </div>
+
+      <div class="col-lg-2 col-md-4 col-sm-6">
         <q-card flat bordered class="kpi-card shadow-1 bg-white rounded-borders">
           <q-item>
             <q-item-section avatar>
               <q-avatar color="amber-1" text-color="amber-9" icon="request_quote" size="50px" />
             </q-item-section>
             <q-item-section>
-              <q-item-label class="text-caption text-grey-7 uppercase text-bold">Impuestos (IVA)</q-item-label>
+              <q-item-label class="text-caption text-grey-7 uppercase text-bold">IVA (Impuestos)</q-item-label>
               <q-item-label class="text-h5 text-bold text-amber-9">${{ formatMoney(kpis.totalImpuestos) }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-card>
+      </div>
+
+      <div class="col-lg-2 col-md-4 col-sm-6">
+        <q-card flat bordered class="kpi-card shadow-1 bg-white rounded-borders border-left-red">
+          <q-item>
+            <q-item-section avatar>
+              <q-avatar color="red-1" text-color="red-9" icon="block" size="50px" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="text-caption text-grey-7 uppercase text-bold">Canceladas</q-item-label>
+              <q-item-label class="text-h5 text-bold text-red-9">${{ formatMoney(kpis.totalCancelado) }}</q-item-label>
             </q-item-section>
           </q-item>
         </q-card>
@@ -118,6 +146,20 @@
         </q-td>
       </template>
 
+      <template v-slot:body-cell-tipo_pago="props">
+        <q-td :props="props">
+          <q-chip
+            :color="props.row.tipo_pago === 'Credito' ? 'orange-1' : 'green-1'"
+            :text-color="props.row.tipo_pago === 'Credito' ? 'orange-9' : 'green-9'"
+            class="text-bold shadow-1"
+            size="sm"
+            :icon="props.row.tipo_pago === 'Credito' ? 'event_repeat' : 'payments'"
+          >
+            {{ props.row.tipo_pago.toUpperCase() }}
+          </q-chip>
+        </q-td>
+      </template>
+
       <template v-slot:body-cell-metodo="props">
       <q-td :props="props" class="text-center">
         <q-chip
@@ -157,7 +199,7 @@
 
       <template v-slot:body-cell-acciones="props">
         <q-td :props="props" class="text-center">
-          <q-btn flat round dense color="primary" icon="visibility" @click="verVenta(props.row)">
+          <q-btn flat round dense color="blue-grey-8" icon="visibility" @click="verVenta(props.row)">
             <q-tooltip>Detalles de Venta</q-tooltip>
           </q-btn>
           <q-btn flat round dense color="secondary" icon="print">
@@ -280,19 +322,28 @@
 
   // KPIs DINÁMICOS
   const kpis = computed(() => {
-    const totalVentas = ventas.value.reduce((s, v) => s + Number(v.total), 0)
-    const totalImpuestos = ventas.value.reduce((s, v) => s + Number(v.impuestos), 0)
+      // 1. Filtramos para trabajar solo con ventas vigentes (Excluimos canceladas)
+    const ventasActivas = ventas.value.filter(v => v.status === 'Completada')
 
-    // Cálculo por método de pago basado en la relación 'pagos'
-    const totalEfectivo = ventas.value.reduce((s, v) => {
-      // Filtramos solo los pagos hechos en efectivo
+    const totalVentas = ventasActivas.reduce((s, v) => s + Number(v.total), 0)
+    const totalImpuestos = ventasActivas.reduce((s, v) => s + Number(v.impuestos), 0)
+
+    const ventasCanceladas = ventas.value.filter(v => v.status === 'Cancelada')
+
+    const totalCancelado = ventasCanceladas.reduce((s, v) => s + Number(v.total), 0)
+
+    // 2. Cálculo de Ventas a Crédito
+    const totalCredito = ventasActivas.reduce((s, v) => {
+      return v.tipo_pago === 'Credito' ? s + Number(v.total) : s
+    }, 0)
+
+    // 3. Cálculo de Efectivo neto (restando cambios entregados)
+    const totalEfectivo = ventasActivas.reduce((s, v) => {
       const efectivoNetoVenta = v.pagos?.filter(p => p.metodo_pago === 'Efectivo')
         .reduce((sum, p) => {
-          // Restamos el cambio entregado al monto recibido
           const montoReal = Number(p.monto) - Number(p.cambio_entregado || 0)
           return sum + montoReal
         }, 0) || 0
-
       return s + efectivoNetoVenta
     }, 0)
 
@@ -300,14 +351,17 @@
       totalVentas,
       totalImpuestos,
       totalEfectivo,
-      totalBancos: totalVentas - totalEfectivo
+      totalCredito,
+      totalCancelado,
+      totalBancos: totalVentas - totalEfectivo - totalCredito
     }
   })
 
   const columns = [
     { name: 'fecha', label: 'Fecha/Hora', field: 'created_at', align: 'left', sortable: true },
     { name: 'folio', label: 'Folio', field: 'folio', align: 'left', sortable: true },
-    { name: 'cliente', label: 'Cliente', field: row => row.cliente?.nombre, align: 'left' },
+    { name: 'cliente', label: 'Cliente', field: row => row.cliente?.razon_social, align: 'left' },
+    { name: 'tipo_pago', label: 'TIPO PAGO', field: 'tipo_pago', align: 'center', sortable: true },
     { name: 'metodo', label: 'Método de pago', align: 'center' },
     { name: 'status', label: 'Estatus', field: 'status', align: 'center' },
     { name: 'total', label: 'Total', field: 'total', align: 'right', sortable: true },

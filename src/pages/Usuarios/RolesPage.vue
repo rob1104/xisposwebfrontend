@@ -87,6 +87,9 @@
             </q-td>
 
             <q-td key="actions" :props="props" class="text-center">
+              <q-btn flat round color="purple" icon="visibility" @click="openView(props.row)">
+                <q-tooltip>Ver Detalles</q-tooltip>
+              </q-btn>
               <q-btn flat round color="indigo" icon="edit" @click="openEdit(props.row)">
                 <q-tooltip>Editar Permisos</q-tooltip>
               </q-btn>
@@ -104,6 +107,8 @@
       :editData="selectedRole"
       @saved="loadRoles"
     />
+
+    <RolesViewDialog v-model="showView" :role="selectedRole" />
   </q-page>
 </template>
 
@@ -112,6 +117,7 @@
   import { api } from 'boot/axios'
   import { useQuasar } from 'quasar'
   import RolesForm from 'components/Usuarios/RolesForm.vue'
+  import RolesViewDialog from 'components/Usuarios/RolesViewDialog.vue'
 
   const $q = useQuasar()
   const rows = ref([])
@@ -119,6 +125,12 @@
   const filter = ref('')
   const showDialog = ref(false)
   const selectedRole = ref(null)
+
+  const showView = ref(false)
+  const openView = (role) => {
+    selectedRole.value = role
+    showView.value = true
+  }
 
   const columns = [
     { name: 'name', label: 'NOMBRE DEL ROL', field: 'name', align: 'left', sortable: true },

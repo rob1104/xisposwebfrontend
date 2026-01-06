@@ -27,6 +27,7 @@
 
       <div class="col-12 col-md-4 text-right self-center">
         <q-btn
+          :disabled="!auth.can('clientes.crear')"
           color="primary"
           icon="person_add"
           label="Nuevo Cliente"
@@ -116,6 +117,14 @@
             </q-td>
 
             <q-td key="actions" :props="props" class="text-center">
+              <q-btn
+                flat round dense
+                color="blue-8"
+                icon="account_balance_wallet"
+                @click="abrirAntiguedad(props.row)"
+              >
+                <q-tooltip>Antigüedad de Saldos</q-tooltip>
+              </q-btn>
               <q-btn flat round color="indigo" icon="edit" @click="openEdit(props.row)">
                 <q-tooltip>Editar Cliente</q-tooltip>
               </q-btn>
@@ -134,6 +143,8 @@
       :taxRegimes="taxRegimes"
       @saved="loadCustomers"
     />
+
+    <ClienteAntiguedadModal v-model="modalAging" :clienteId="selectedClientId" />
   </q-page>
 </template>
 
@@ -141,15 +152,28 @@
   import { ref, computed, onMounted } from 'vue'
   import { api } from 'boot/axios'
   import { useQuasar } from 'quasar'
+  import { useAuthStore } from 'src/stores/auth'
   import ClientesForm from 'components/Clientes/ClientesForm.vue'
+  import ClienteAntiguedadModal from 'components/Clientes/ClienteAntiguedadModal.vue'
 
   const $q = useQuasar()
+  const auth = useAuthStore()
   const rows = ref([])
   const taxRegimes = ref([])
   const loading = ref(true)
   const filter = ref('')
   const showDialog = ref(false)
   const selectedCustomer = ref(null)
+
+
+  const modalAging = ref(false)
+  const selectedClientId = ref(null)
+
+
+  const abrirAntiguedad = (cliente) => {
+    selectedClientId.value = cliente.id
+    modalAging.value = true
+  }
 
   const columns = [
     { name: 'numero_global', label: 'GLOBAL / NOMBRE COMERCIAL', field: row => `${row.numero_global} ${row.nombre_comercial || ''} ${row.razon_social} ${row.rfc || ''} ${row.email || ''}`, align: 'left', sortable: true, sort: (a, b) => parseInt(a) - parseInt(b) },

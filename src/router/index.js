@@ -27,16 +27,29 @@ export default defineRouter(function (/* { store, ssrContext } */) {
     history: createHistory(process.env.VUE_ROUTER_BASE)
   })
 
-  Router.beforeEach((to, from, next) => {
+  Router.beforeEach(async(to, from, next) => {
     const auth = useAuthStore()
 
-    // Si la ruta requiere auth y no está logueado, al login
-    if (to.meta.auth && !auth.isLoggedIn) {
-      next('/login')
-    } else {
-      next()
-    }
-  })
+      // 1. Si el usuario está logueado, sincronizamos sus datos al menos una vez al entrar
+      // o cada vez que navegue a una ruta con permisos para asegurar cambios "en vivo".
+      if (auth.isLoggedIn) {
+        // Para evitar lentitud, puedes elegir sincronizar solo en rutas con meta.permission
+        if (to.meta.permission || to.meta.auth) {
+          await auth.fetchUser() // <--- ESTO TRAE LOS PERMISOS NUEVOS CADA VEZ
+        }
+      }
 
-  return Router
+      // 2. Validación de seguridad
+      if (to.meta.permission) {
+        // El getter 'can' ahora responderá con los permisos recién descargados
+        if (auth.can(to.meta.permission)) {
+          next()
+        } else {
+          next('/403') // Redirigir si el admin le quitó el acceso
+        }
+      } else {
+        next()
+      }
+    })
+    return Router
 })

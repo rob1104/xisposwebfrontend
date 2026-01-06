@@ -7,12 +7,23 @@
           <div class="top-line"></div>
 
           <q-card-section class="text-center q-pt-xl">
-            <q-avatar size="120px" font-size="80px" class="q-mb-md shadow-5 bg-white border-logo">
-              <q-img src="~assets/logo-nacional.png" />
-            </q-avatar>
+            <div class="logo-container-modern q-mb-lg shadow-2">
+              <q-img :src="configStore.logoUrl || 'assets/no-logo.png'"
+                     fit="contain"
+                     class="custom-brand-img"
+                     spinner-color="primary">
+                     <template v-slot:error>
+                      <div class="absolute-full flex flex-center bg-grey-3 text-grey-7">
+                        Logo no disponible
+                      </div>
+                    </template>
+              </q-img>
+            </div>
 
-            <div class="text-h4 text-bold text-primary ls-2">LA NACIONAL</div>
-            <div class="text-subtitle1 text-grey-8 text-weight-light">Gestión de Punto de Venta</div>
+
+            <div class="text-h4 text-bold text-primary ls-2">{{ configStore.nombreTienda }}</div>
+            <div class="text-subtitle1 text-grey-8 text-weight-bold" style="font-size: 16px;">Sistema de Punto de Venta</div>
+            <div class="text-caption text-grey-7 text-weight-light-5">Versión 0.1.17</div>
           </q-card-section>
 
           <q-card-section class="q-px-xl q-pb-xl">
@@ -72,55 +83,58 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
-import { useAuthStore } from 'stores/auth'
-import { useRouter } from 'vue-router'
-import { useQuasar } from 'quasar'
+  import { reactive, ref, onMounted } from 'vue'
+  import { useAuthStore } from 'stores/auth'
+  import { useRouter } from 'vue-router'
+  import { useQuasar } from 'quasar'
+  import { useConfigStore } from 'src/stores/config'
 
-const auth = useAuthStore()
-const router = useRouter()
-const $q = useQuasar()
+  const auth = useAuthStore()
+  const configStore = useConfigStore()
+  const router = useRouter()
+  const $q = useQuasar()
 
-const loading = ref(false)
-const emailInput = ref(null) // Referencia para el autofoco
+  const loading = ref(false)
+  const emailInput = ref(null) // Referencia para el autofoco
 
-const form = reactive({
-  email: '',
-  password: ''
-})
+  const form = reactive({
+    email: '',
+    password: ''
+  })
 
-// Lógica de Autofoco al montar la página
-onMounted(() => {
-  setTimeout(() => {
-    emailInput.value?.focus()
-  }, 300)
-})
+  const onSubmit = async () => {
+    loading.value = true
+    try {
+      const response = await auth.login(form)
 
-const onSubmit = async () => {
-  loading.value = true
-  try {
-    await auth.login(form)
-    if (auth.user) {
+
       $q.notify({
         color: 'positive',
         message: `Bienvenido, ${auth.user.name}`,
         icon: 'verified_user',
-        position: 'top-right'
+        position: 'bottom'
       })
       router.push('/dashboard')
+
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || 'Error de acceso'
+      $q.notify({
+        color: 'negative',
+        message: errorMsg,
+        icon: 'lock',
+        position: 'bottom'
+      })
+    } finally {
+      loading.value = false
     }
-  } catch (error) {
-    /*const errorMsg = error.response?.data?.message || 'Error de acceso'
-    $q.notify({
-      color: 'negative',
-      message: errorMsg,
-      icon: 'lock',
-      position: 'bottom'
-    })*/
-  } finally {
-    loading.value = false
   }
-}
+
+  onMounted(async () => {
+    await configStore.loadConfig()
+    setTimeout(() => {
+      emailInput.value?.focus()
+    }, 300)
+  })
 </script>
 
 <style lang="scss" scoped>
@@ -161,5 +175,32 @@ const onSubmit = async () => {
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     }
+  }
+
+  .logo-container-modern {
+    // Dimensiones máximas del contenedor
+    width: 100%;
+    max-width: 250px;
+    height: 140px;
+
+    // Centrado y bordes
+    margin-left: auto;
+    margin-right: auto;
+    background: white;
+    border-radius: 16px; // Estilo redondeado moderno, no circular
+    border: 1px solid rgba(0,0,0,0.05);
+    padding: 12px; // Espacio interno para que el logo no toque los bordes
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .custom-brand-img {
+    // Asegura que la imagen use todo el espacio disponible sin salirse
+    width: 100%;
+    height: 100%;
+    max-height: 120px;
   }
 </style>
