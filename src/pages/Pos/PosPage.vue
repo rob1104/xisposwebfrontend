@@ -23,6 +23,15 @@
           />
         </div>
         <div class="col-12 col-md-4 q-pa-md">
+          <q-btn
+            color="green-4"
+            icon="print"
+            text-color="black"
+            label="Reimprimir Último Ticket"
+            class="full-width q-mb-md"
+            @click="ejecutarReimpresion"
+            :loading="reimprimiendo"
+          />
           <PosSummary
             :resumen="totalVenta"
             :count="carrito.length"
@@ -78,6 +87,7 @@
   import { api } from 'src/boot/axios'
   import { useAuthStore } from 'src/stores/auth'
   import { usePosStore } from 'src/stores/pos'
+  import { useConfigStore } from 'src/stores/config'
 
   // Sub-componentes
   import PosHeader from 'components/Pos/PosHeader.vue'
@@ -87,16 +97,20 @@
   import PosDialogPayment from 'components/Pos/PosDialogPayment.vue'
   import PosDialogArqueo from 'components/Pos/PosDialogArqueo.vue'
   import PosDialogApertura from 'src/components/Pos/PosDialogApertura.vue'
+  import { PrintService } from 'src/services/PrintService'
 
   const $q = useQuasar()
   const auth = useAuthStore()
   const posStore = usePosStore()
+  const configStore = useConfigStore()
+
 
   const dialogoApertura = ref(false)
   const carrito = ref([])
   const dialogoBuscador = ref(false)
   const dialogoPago = ref(false)
   const dialogoArqueo = ref(false)
+  const reimprimiendo = ref(false)
 
   let intervaloFoco = null
 
@@ -155,6 +169,27 @@
     }, inicial)
   })
 
+  const ejecutarReimpresion = async () => {
+    reimprimiendo.value = true
+
+    try {
+      await PrintService.reimprimirUltimoTicket(configStore)
+      $q.notify({
+        color: 'positive',
+        message: 'Reimpresión enviada',
+        icon: 'print'
+      })
+    } catch (e) {
+      $q.notify({
+        color: 'negative',
+        message: e.message || 'Error al reimprimir',
+        icon: 'warning'
+      })
+    } finally {
+      reimprimiendo.value = false
+    }
+  }
+
   const agregarAlCarrito = (producto, cantidad = 1) => {
     const index = carrito.value.findIndex(p => p.id === producto.id)
     if (index !== -1) {
@@ -186,13 +221,18 @@
         caja_turno_id: posStore.turno?.id
       }
 
-      console.log("Payload: " + payload)
 
       // ÚNICA petición al servidor
       const { data } = await api.post('/api/pos/finalizar-venta', payload)
 
       if (data.id) {
-        $q.notify({ color: 'positive', message: `VENTA ${data.folio} EXITOSA`, icon: 'check_circle' })
+
+        try {
+          await PrintService.imprimirTicketReal(data, carrito.value, totalVenta.value, data.configticket, data.cliente)
+          $q.notify({ color: 'positive', message: `VENTA ${data.folio} E IMPRESIÓN EXITOSA`, icon: 'print' })
+        } catch (printErr) {
+          $q.notify({ color: 'warning', message: printErr.message, icon: 'warning' })
+        }
 
         // Reinicio del POS
         carrito.value = []

@@ -98,6 +98,9 @@
             </q-td>
 
             <q-td key="actions" :props="props" class="text-center">
+              <q-btn flat round color="purple" icon="receipt_long" @click="openTicketConfig(props.row)">
+                <q-tooltip>Diseñar Ticket</q-tooltip>
+             </q-btn>
               <q-btn flat round color="indigo" icon="edit" @click="openEdit(props.row)">
                 <q-tooltip>Editar Sucursal</q-tooltip>
               </q-btn>
@@ -109,7 +112,7 @@
         </template>
       </q-table>
     </q-card>
-
+    <TicketConfigModal v-model="showTicketConfig" :sucursal="selectedSucursalConfig" />
     <SucursalForm v-model="showDialog" :editData="selectedItem" @saved="loadData" />
   </q-page>
 </template>
@@ -119,6 +122,7 @@
   import { api } from 'boot/axios'
   import { useQuasar } from 'quasar'
   import SucursalForm from 'components/Sucursales/SucursalesForm.vue'
+  import TicketConfigModal from 'components/Sucursales/TicketConfigModal.vue'
 
   const $q = useQuasar()
   const rows = ref([])
@@ -126,6 +130,14 @@
   const filter = ref('')
   const showDialog = ref(false)
   const selectedItem = ref(null)
+
+  const showTicketConfig = ref(false)
+  const selectedSucursalConfig = ref(null)
+
+  const openTicketConfig = (row) => {
+    selectedSucursalConfig.value = { ...row }
+    showTicketConfig.value = true
+  }
 
   const columns = [
     { name: 'nombre', label: 'SUCURSAL / UBICACIÓN', field: 'nombre', align: 'left', sortable: true },

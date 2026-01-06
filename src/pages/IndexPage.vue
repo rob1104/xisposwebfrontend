@@ -87,14 +87,45 @@
           </q-card-section>
         </q-card>
       </div>
+      <div>
+        <q-btn
+          color="deep-purple"
+          icon="settings_remote"
+          label="Probar QZ Tray"
+          push
+          @click="probrarImpresion"
+        />
 
+      </div>
     </div>
   </q-page>
 </template>
 
 <script setup>
-import { useAuthStore } from 'stores/auth'
+  import { ref } from 'vue'
+  import { useQuasar } from 'quasar'
+  import { useAuthStore } from 'stores/auth'
+  import { PrintService } from 'src/services/PrintService'
 
-// Inyectamos el store que configuramos anteriormente
-const auth = useAuthStore()
+
+  const $q = useQuasar()
+  const auth = useAuthStore()
+
+  const probrarImpresion = async () => {
+  try {
+    await PrintService.imprimirTicketPruebaPython()
+    $q.notify({
+      color: 'positive',
+      message: 'Ticket de prueba enviado con éxito',
+      icon: 'print'
+    })
+  } catch (error) {
+    $q.notify({
+      color: 'negative',
+      message: error.message,
+      icon: 'warning'
+    })
+  }
+}
+
 </script>
