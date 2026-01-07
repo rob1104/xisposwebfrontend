@@ -7,17 +7,17 @@
       <q-item-section class="text-weight-medium">Panel Principal</q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/pos" active-class="custom-active-link" class="menu-item">
+    <q-item v-if="auth.can('pos.ver')" clickable v-ripple to="/pos" active-class="custom-active-link" class="menu-item">
       <q-item-section avatar><q-icon name="point_of_sale" /></q-item-section>
       <q-item-section class="text-weight-medium">Punto de Venta</q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/compras" active-class="custom-active-link" class="menu-item">
+    <q-item v-if="auth.can('compras.ver')" clickable v-ripple to="/compras" active-class="custom-active-link" class="menu-item">
       <q-item-section avatar><q-icon name="shopping_basket" /></q-item-section>
       <q-item-section class="text-weight-medium">Compras</q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/ventas" active-class="custom-active-link" class="menu-item">
+    <q-item v-if="auth.can('ventas.ver')" clickable v-ripple to="/ventas" active-class="custom-active-link" class="menu-item">
       <q-item-section avatar><q-icon name="money" /></q-item-section>
       <q-item-section class="text-weight-medium">Ventas</q-item-section>
     </q-item>
@@ -30,17 +30,17 @@
       header-class="text-weight-bold text-grey-8 custom-expansion"
       expand-separator
     >
-      <q-item clickable v-ripple to="/clientes" active-class="custom-active-link" class="menu-item-sub">
+      <q-item v-if="auth.can('clientes.ver')" clickable v-ripple to="/clientes" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="group" /></q-item-section>
         <q-item-section>Clientes</q-item-section>
       </q-item>
 
-      <q-item clickable v-ripple to="/proveedores" active-class="custom-active-link" class="menu-item-sub">
+      <q-item v-if="auth.can('proveedores.ver')" clickable v-ripple to="/proveedores" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="local_shipping" /></q-item-section>
         <q-item-section>Proveedores</q-item-section>
       </q-item>
 
-      <q-item clickable v-ripple to="/productos" active-class="custom-active-link" class="menu-item-sub">
+      <q-item v-if="auth.can('productos.ver')" clickable v-ripple to="/productos" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="inventory_2" /></q-item-section>
         <q-item-section>Productos</q-item-section>
       </q-item>
@@ -53,17 +53,27 @@
       header-class="text-weight-bold text-grey-8 custom-expansion"
       class="q-mt-sm"
     >
-      <q-item clickable v-ripple to="/movimientosinventario" active-class="custom-active-link" class="menu-item-sub">
+      <q-item v-if="auth.can('inventario.movimientos')" clickable v-ripple to="/movimientosinventario" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="swap_vert" /></q-item-section>
         <q-item-section>Movimientos</q-item-section>
       </q-item>
 
-      <q-item clickable v-ripple to="/inventarioglobal" active-class="custom-active-link" class="menu-item-sub">
+       <q-item v-if="auth.can('inventario.transferencias')" clickable v-ripple to="/transferencias" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="arrow_forward" /></q-item-section>
+        <q-item-section>Transferir</q-item-section>
+      </q-item>
+
+      <q-item v-if="auth.can('inventario.recibir')" clickable v-ripple to="/recibir" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="arrow_back" /></q-item-section>
+        <q-item-section>Recibir</q-item-section>
+      </q-item>
+
+      <q-item v-if="auth.can('inventario.global')"clickable v-ripple to="/inventarioglobal" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="assignment" /></q-item-section>
         <q-item-section>Inventario Global</q-item-section>
       </q-item>
 
-      <q-item clickable v-ripple to="/inventariogxsucursal" active-class="custom-active-link" class="menu-item-sub">
+      <q-item v-if="auth.can('inventario.historico')" clickable v-ripple to="/inventarioxsucursal" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="assignment" /></q-item-section>
         <q-item-section>Inventario Por Sucursal</q-item-section>
       </q-item>
@@ -77,12 +87,12 @@
       header-class="text-weight-bold text-grey-8 custom-expansion"
       class="q-mt-sm"
     >
-      <q-item clickable v-ripple to="/usuarios" active-class="custom-active-link" class="menu-item-sub">
+      <q-item v-if="auth.can('usuarios.ver')" clickable v-ripple to="/usuarios" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="person_search" /></q-item-section>
         <q-item-section>Control de Usuarios</q-item-section>
       </q-item>
 
-      <q-item clickable v-ripple to="/roles" active-class="custom-active-link" class="menu-item-sub">
+      <q-item v-if="auth.can('roles.ver')" clickable v-ripple to="/roles" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="policy" /></q-item-section>
         <q-item-section>Permisos del Sistema</q-item-section>
       </q-item>
@@ -92,22 +102,22 @@
 
     <q-item-label header class="text-overline text-red-9 text-bold text-uppercase" style="font-size: 18px;">Administración</q-item-label>
 
-    <q-item clickable v-ripple to="/catalogos" active-class="custom-active-link" class="menu-item">
+    <q-item v-if="auth.can('conceptos.ver')" clickable v-ripple to="/catalogos" active-class="custom-active-link" class="menu-item">
       <q-item-section avatar><q-icon name="collections" /></q-item-section>
       <q-item-section class="text-weight-medium">Conceptos</q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/sucursales" active-class="custom-active-link" class="menu-item">
+    <q-item v-if="auth.can('sucursales.ver')" clickable v-ripple to="/sucursales" active-class="custom-active-link" class="menu-item">
       <q-item-section avatar><q-icon name="storefront" /></q-item-section>
       <q-item-section class="text-weight-medium">Sucursales</q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/auditoria" active-class="custom-active-link" class="menu-item">
+    <q-item v-if="auth.can('logs.ver')" clickable v-ripple to="/auditoria" active-class="custom-active-link" class="menu-item">
       <q-item-section avatar><q-icon name="manage_history" /></q-item-section>
       <q-item-section class="text-weight-medium">Logs de Auditoría</q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/configuracion" active-class="custom-active-link" class="menu-item">
+    <q-item v-if="auth.can('configuracion.ver')" clickable v-ripple to="/configuracion" active-class="custom-active-link" class="menu-item">
       <q-item-section avatar><q-icon name="tune" /></q-item-section>
       <q-item-section class="text-weight-medium">Configuración</q-item-section>
     </q-item>
@@ -117,7 +127,9 @@
 <script setup>
   import { ref, watch, onMounted } from 'vue'
   import { useRoute } from 'vue-router'
+  import { useAuthStore } from 'stores/auth'
 
+  const auth = useAuthStore()
   const route = useRoute()
   const catalogoExpanded = ref(false)
   const inventarioExpanded = ref(false)
@@ -130,7 +142,7 @@
       catalogoExpanded.value = true
     }
 
-    const inventarioPaths = ['/movimientosinventario', '/inventarioglobal']
+    const inventarioPaths = ['/movimientosinventario', '/inventarioglobal', '/transferencias', '/inventarioxsucursal']
     if (inventarioPaths.some(path => route.path.includes(path))) {
       inventarioExpanded.value = true
     }

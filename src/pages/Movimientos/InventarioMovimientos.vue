@@ -71,7 +71,29 @@
           <q-icon name="inventory_2" class="q-mr-sm" />
           Movimientos al Inventario
         </div>
+
         <q-space />
+
+        <q-select
+          v-if="auth.roles[0] === 'Administrador'"
+          v-model="sucursalFiltroId"
+          :options="sucursales"
+          option-label="nombre"
+          option-value="id"
+          emit-value
+          map-options
+          outlined
+          dense
+          label="Ver Sucursal"
+          class="q-mr-md bg-white"
+          style="min-width: 200px"
+          @update:model-value="onSucursalFilterChange"
+        >
+          <template v-slot:prepend>
+            <q-icon name="filter_list" color="primary" size="xs" />
+          </template>
+        </q-select>
+
         <q-btn
           color="primary"
           icon="add"
@@ -262,6 +284,7 @@
   const buscando = ref(false)
   const opcionesProductos = ref([])
   const productoSeleccionado = ref(null)
+  const sucursalFiltroId = ref(auth.sucursalSeleccionada)
 
   const form = ref({
     sucursal_id: null,
@@ -311,11 +334,11 @@
   const cargarMovimientos = async () => {
     loading.value = true
     try {
-      // El interceptor adjunta el X-Sucursal-Id automáticamente
+      // El interceptor adjunta el X-Sucursal-Id automáticamente basándose en auth.sucursalSeleccionada
       const { data } = await api.get('/api/inventario')
       movimientos.value = Array.isArray(data) ? data : (data.data || [])
     } catch (error) {
-      console.error('Error:', error)
+      console.error('Error al cargar movimientos:', error)
     } finally {
       loading.value = false
     }
@@ -459,8 +482,17 @@
     }
   }
 
-  onMounted(() => {
-    CargarSucursales()
+  const onSucursalFilterChange = (id) => {
+    const sede = sucursales.value.find(s => s.id === id)
+    if (sede) {
+      auth.setSucursal(sede)
+      cargarMovimientos()
+    }
+  }
+
+  onMounted(async() => {
+    await CargarSucursales()
+    sucursalFiltroId.value = auth.sucursalSeleccionada?.id
     cargarMovimientos()
   })
 </script>

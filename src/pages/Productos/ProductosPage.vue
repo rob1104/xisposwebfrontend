@@ -118,7 +118,17 @@
               $ {{ formatNumber(props.row.precios?.[0]?.precio) }}
             </q-td>
 
-            <q-td key="actions" :props="props" class="text-center">
+
+              <q-td key="actions" :props="props">
+                <q-btn
+                  flat round
+                  color="deep-orange"
+                  icon="analytics"
+                  @click="verKardex(props.row)"
+                >
+                  <q-tooltip>Historial de Movimientos (Kardex)</q-tooltip>
+                </q-btn>
+
               <q-btn flat round color="indigo" icon="edit" @click="openEdit(props.row)" />
               <q-btn flat round color="negative" icon="delete" @click="confirmDelete(props.row)" />
             </q-td>
@@ -126,7 +136,10 @@
         </template>
       </q-table>
     </q-card>
-
+    <KardexDialog
+      v-model="showKardex"
+      :producto="productoSeleccionado"
+    />
     <ProductForm v-model="showDialog" :editData="selectedItem" @saved="loadData" />
   </q-page>
 </template>
@@ -136,6 +149,7 @@
   import { api } from 'boot/axios'
   import ProductForm from 'components/Productos/ProductosForm.vue'
   import { useQuasar } from 'quasar'
+  import KardexDialog from 'src/components/Productos/KardexDialog.vue'
 
 
   const $q = useQuasar()
@@ -144,6 +158,14 @@
   const filter = ref('')
   const showDialog = ref(false)
   const selectedItem = ref(null)
+  const showKardex = ref(false)
+  const productoSeleccionado = ref(null)
+
+  const verKardex = (producto) => {
+    productoSeleccionado.value = { ...producto }
+    showKardex.value = true
+  }
+
 
   const columns = [
     { name:

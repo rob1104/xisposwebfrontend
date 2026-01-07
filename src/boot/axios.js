@@ -5,7 +5,7 @@ import { useAuthStore } from 'src/stores/auth'
 
 // Creamos la instancia de Axios
 const api = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: process.env.API_URL,
   withCredentials: true,
   withXSRFToken: true,
   headers: {

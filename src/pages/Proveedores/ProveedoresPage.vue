@@ -101,7 +101,15 @@
             </q-td>
 
             <q-td key="actions" :props="props" class="text-center">
-              <q-btn flat round color="primary" icon="edit" @click="openEdit(props.row)">
+              <q-btn
+                flat round
+                color="orange-9"
+                icon="history_toggle_off"
+                @click="abrirAntiguedad(props.row)"
+              >
+                <q-tooltip>Antigüedad de Saldos</q-tooltip>
+              </q-btn>
+              <q-btn flat round color="indigo" icon="edit" @click="openEdit(props.row)">
                 <q-tooltip>Editar Proveedor</q-tooltip>
               </q-btn>
               <q-btn flat round color="negative" icon="delete" @click="confirmDelete(props.row)">
@@ -112,7 +120,10 @@
         </template>
       </q-table>
     </q-card>
-
+    <ProveedorAntiguedadModal
+      v-model="modalAntigSaldos"
+      :proveedor="proveedorSeleccionado"
+    />
     <ProveedorForm v-model="showDialog" :editData="selectedItem" @saved="loadData" />
   </q-page>
 </template>
@@ -122,6 +133,7 @@
   import { api } from 'boot/axios'
   import { useQuasar } from 'quasar'
   import ProveedorForm from 'components/Proveedores/ProveedoresForm.vue'
+  import ProveedorAntiguedadModal from 'src/components/Proveedores/ProveedorAntiguedadModal.vue'
 
   const $q = useQuasar()
   const rows = ref([])
@@ -129,6 +141,15 @@
   const filter = ref('')
   const showDialog = ref(false)
   const selectedItem = ref(null)
+
+  const modalAntigSaldos = ref(false)
+  const proveedorSeleccionado = ref(null)
+
+  const abrirAntiguedad = (row) => {
+    proveedorSeleccionado.value = { ...row }
+    modalAntigSaldos.value = true
+  }
+
 
   const columns = [
     { name: 'numero_global', label: 'ID', field: row => `${row.numero_global} ${row.nombre_comercial || ''} ${row.razon_social} ${row.rfc || ''} ${row.email || ''}`, align: 'left', sortable: true, sort: (a, b) => parseInt(a) - parseInt(b) },

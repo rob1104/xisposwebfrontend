@@ -14,14 +14,20 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.16.4",
+    "apexcharts": "^5.3.6",
     "axios": "^1.2.1",
+    "exceljs": "^4.4.0",
+    "file-saver": "^2.0.5",
+    "jspdf": "^4.0.0",
+    "jspdf-autotable": "^5.0.7",
     "jsrsasign": "^11.1.0",
     "pinia": "^3.0.1",
     "pinia-plugin-persistedstate": "^4.7.1",
     "quasar": "^2.16.0",
     "qz-tray": "^2.2.5",
     "vue": "^3.5.22",
-    "vue-router": "^4.0.0"
+    "vue-router": "^4.0.0",
+    "vue3-apexcharts": "^1.10.0"
   },
   "devDependencies": {
     "@quasar/app-vite": "^2.1.0",

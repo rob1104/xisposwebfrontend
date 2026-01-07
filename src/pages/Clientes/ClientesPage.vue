@@ -119,8 +119,8 @@
             <q-td key="actions" :props="props" class="text-center">
               <q-btn
                 flat round dense
-                color="blue-8"
-                icon="account_balance_wallet"
+                color="orange-9"
+                icon="history_toggle_off"
                 @click="abrirAntiguedad(props.row)"
               >
                 <q-tooltip>Antigüedad de Saldos</q-tooltip>

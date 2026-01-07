@@ -1,131 +1,187 @@
 <template>
-  <q-page class="q-pa-md bg-grey-3">
-    <div class="row q-col-gutter-md">
-
-      <div class="col-12">
-        <div class="text-h4 text-bold text-secondary q-mb-md text-uppercase">
-          <span class="text-primary">panel principal</span>
-        </div>
-        <q-separator color="primary" size="3px" class="q-mb-lg" style="width: 100px" />
+  <q-page class="q-pa-lg bg-grey-3">
+    <div class="row items-center q-mb-xl">
+      <div class="col-12 col-md-6">
+        <div class="text-h4 text-bold text-grey-9">Panel de Inicio</div>
+        <div class="text-subtitle1 text-grey-7">Resumen de inventario y operaciones.</div>
       </div>
-
-      <div class="col-12 col-md-4">
-        <q-card class="shadow-5 full-height">
-          <q-card-section class="bg-primary text-white">
-            <div class="text-h6"><q-icon name="person" /> Datos del Usuario</div>
-          </q-card-section>
-
-          <q-card-section>
-            <q-list dense>
-              <q-item>
-                <q-item-section>
-                  <q-item-label caption>Nombre completo</q-item-label>
-                  <q-item-label class="text-bold">{{ auth.user?.name }}</q-item-label>
-                </q-item-section>
-              </q-item>
-              <q-item>
-                <q-item-section>
-                  <q-item-label caption>Correo electrónico</q-item-label>
-                  <q-item-label class="text-bold">{{ auth.user?.email }}</q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-card-section>
-        </q-card>
+      <q-space />
+      <div class="col-12 col-md-3">
+        <q-select
+          v-model="sucursalFiltro"
+          :options="auth.sucursales"
+          option-label="nombre"
+          outlined dense bg-color="white"
+          label="Filtrar por Sucursal"
+          class="shadow-2 border-radius-10"
+        >
+          <template v-slot:prepend><q-icon name="storefront" color="primary" /></template>
+        </q-select>
       </div>
+    </div>
 
-      <div class="col-12 col-md-4">
-        <q-card class="shadow-5 full-height">
-          <q-card-section class="bg-secondary text-white">
-            <div class="text-h6"><q-icon name="admin_panel_settings" /> Roles del Sistema</div>
-          </q-card-section>
-
-          <q-card-section class="q-gutter-xs">
-            <div v-if="auth.roles.length > 0">
-              <q-chip
-                v-for="role in auth.roles"
-                :key="role"
-                color="primary"
-                text-color="white"
-                icon="verified"
-                class="text-uppercase text-bold"
-              >
-                {{ role }}
-              </q-chip>
+    <div class="row q-col-gutter-lg q-mb-lg">
+      <div class="col-12 col-sm-6 col-md-3" v-for="kpi in kpis" :key="kpi.title">
+        <q-card class="shadow-5 border-radius-15 kpi-card clickable" v-ripple>
+          <q-card-section class="row items-center no-wrap">
+            <q-avatar :icon="kpi.icon" :color="kpi.color" text-color="white" size="lg" shadow-2 />
+            <div class="q-ml-md">
+              <div class="text-caption text-grey-7 text-bold text-uppercase">{{ kpi.title }}</div>
+              <div class="text-h5 text-bold">{{ kpi.value }}</div>
             </div>
-            <div v-else class="text-grey italic">No hay roles asignados</div>
+          </q-card-section>
+          <q-linear-progress :value="kpi.progress" :color="kpi.color" class="q-mt-none" />
+        </q-card>
+      </div>
+    </div>
+
+    <div class="row q-col-gutter-lg q-mb-lg">
+      <div class="col-12 col-lg-8">
+        <q-card class="shadow-5 border-radius-15 full-height">
+          <q-card-section class="row items-center q-pb-none">
+            <div class="text-h6 text-bold text-grey-8">Flujo de Inventario (Últimos 7 días)</div>
+            <q-space />
+            <q-btn flat round icon="more_vert" color="grey-7" />
+          </q-card-section>
+          <q-card-section>
+            <apexchart height="300" type="area" :options="chartOptions" :series="chartSeries" />
           </q-card-section>
         </q-card>
       </div>
 
-      <div class="col-12 col-md-4">
-        <q-card class="shadow-5 full-height">
-          <q-card-section class="bg-grey-9 text-white">
-            <div class="text-h6"><q-icon name="store" /> Sucursales con Acceso</div>
+      <div class="col-12 col-lg-4">
+        <q-card class="shadow-5 border-radius-15 full-height bg-white">
+          <q-card-section class="bg-red-8 text-white row items-center">
+            <q-icon name="warning" size="sm" class="q-mr-sm" />
+            <div class="text-h6 text-bold">Stock Crítico</div>
           </q-card-section>
-
-          <q-card-section>
-            <q-list separator v-if="auth.sucursales.length > 0">
-              <q-item v-for="sucursal in auth.sucursales" :key="sucursal.id">
+          <q-card-section class="q-pa-none">
+            <q-list separator>
+              <q-item v-for="n in 5" :key="n" class="q-py-md">
                 <q-item-section avatar>
-                  <q-icon name="location_on" color="primary" />
+                  <q-avatar rounded color="red-1" text-color="red-9" icon="inventory_2" />
                 </q-item-section>
                 <q-item-section>
-                  <q-item-label class="text-bold">{{ sucursal.nombre }}</q-item-label>
-                  <q-item-label caption>{{ sucursal.address || 'Sin dirección' }}</q-item-label>
+                  <q-item-label class="text-bold">Producto Demo #{{ n }}</q-item-label>
+                  <q-item-label caption>Sucursal: Matamoros Principal</q-item-label>
                 </q-item-section>
                 <q-item-section side>
-                  <q-badge :color="auth.sucursalSeleccionada?.id === sucursal.id ? 'positive' : 'grey-7'">
-                    {{ auth.sucursalSeleccionada?.id === sucursal.id ? 'Activa' : 'Disponible' }}
-                  </q-badge>
+                  <q-badge color="red-9" label="2 unid." />
                 </q-item-section>
               </q-item>
             </q-list>
-            <div v-else class="text-center q-pa-md text-grey">
-              No tienes sucursales asignadas.
-            </div>
+          </q-card-section>
+          <q-card-actions align="center">
+            <q-btn flat color="red-9" label="Ver Reporte Completo" icon-right="arrow_forward" />
+          </q-card-actions>
+        </q-card>
+      </div>
+
+
+
+    </div>
+
+    <div class="row q-col-gutter-lg">
+      <div class="col-12 col-md-12">
+        <q-card class="shadow-5 border-radius-15">
+          <q-card-section class="row items-center">
+            <div class="text-h6 text-bold text-grey-8">Actividad Reciente</div>
+            <q-space />
+            <q-badge outline color="primary" label="Global" />
+          </q-card-section>
+          <q-card-section class="q-pa-none">
+            <q-table
+              :rows="recentMovements"
+              :columns="columns"
+              flat
+              dense
+              hide-pagination
+            >
+              <template v-slot:body-cell-tipo="props">
+                <q-td :props="props">
+                  <q-chip dense :color="props.value === 'ENTRADA' ? 'positive' : 'negative'" text-color="white" size="sm">
+                    {{ props.value }}
+                  </q-chip>
+                </q-td>
+              </template>
+            </q-table>
           </q-card-section>
         </q-card>
       </div>
-      <div>
-        <q-btn
-          color="deep-purple"
-          icon="settings_remote"
-          label="Probar QZ Tray"
-          push
-          @click="probrarImpresion"
-        />
 
-      </div>
     </div>
   </q-page>
 </template>
 
 <script setup>
-  import { ref } from 'vue'
-  import { useQuasar } from 'quasar'
+  import { ref, onMounted, watch } from 'vue'
+  import { api } from 'boot/axios'
   import { useAuthStore } from 'stores/auth'
-  import { PrintService } from 'src/services/PrintService'
+  import VueApexCharts from 'vue3-apexcharts'
 
-
-  const $q = useQuasar()
   const auth = useAuthStore()
+  const apexchart = VueApexCharts
+  const loading = ref(true)
+  const sucursalFiltro = ref(auth.sucursalSeleccionada?.id)
 
-  const probrarImpresion = async () => {
-  try {
-    await PrintService.imprimirTicketPruebaPython()
-    $q.notify({
-      color: 'positive',
-      message: 'Ticket de prueba enviado con éxito',
-      icon: 'print'
-    })
-  } catch (error) {
-    $q.notify({
-      color: 'negative',
-      message: error.message,
-      icon: 'warning'
-    })
+  // Refs para datos reales
+  const kpis = ref([])
+  const criticalStock = ref([])
+  const recentMovements = ref([])
+  const chartSeries = ref([])
+  const chartOptions = ref({
+    chart: { toolbar: { show: false }, fontFamily: 'inherit' },
+    stroke: { curve: 'smooth', width: 3 },
+    xaxis: { categories: [] },
+    colors: ['#1976D2', '#F44336'], // Azul entradas, Rojo salidas
+    fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.1 } }
+  })
+
+  const fetchDashboardData = async () => {
+    loading.value = true
+    try {
+      const { data } = await api.get('/api/dashboard/summary', {
+        params: { sucursal_id: sucursalFiltro.value }
+      })
+
+      kpis.value = data.kpis
+      criticalStock.value = data.criticos
+      recentMovements.value = data.recientes
+
+      // Actualizar Gráfica
+      chartSeries.value = [
+        { name: 'Entradas', data: data.chart.entradas },
+        { name: 'Salidas', data: data.chart.salidas }
+      ]
+      chartOptions.value = {
+        ...chartOptions.value,
+        xaxis: { categories: data.chart.categories }
+      }
+
+    } catch (e) {
+      console.error("Error cargando dashboard", e)
+    } finally {
+      loading.value = false
+    }
   }
-}
 
+  // Recargar cuando cambie el filtro de sucursal
+  watch(sucursalFiltro, () => fetchDashboardData())
+
+  onMounted(() => {
+    fetchDashboardData()
+  })
 </script>
+
+<style lang="scss" scoped>
+  .border-radius-15 { border-radius: 15px; }
+  .border-radius-10 { border-radius: 10px; }
+  .kpi-card {
+    transition: all 0.3s ease;
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+    }
+  }
+  .opacity-70 { opacity: 0.7; }
+</style>
