@@ -7,7 +7,7 @@ const routes = [
       { path: '', redirect: '/dashboard' },
       { path: 'dashboard', component: () => import('pages/IndexPage.vue'), name: 'dashboard' },
       { path: 'clientes', component: () => import('pages/Clientes/ClientesPage.vue'), name: 'clientes', meta: { permission: 'clientes.ver' } },
-      { path: 'proveedores', component: () => import('pages/Proveedores/ProveedoresPage.vue'), name: 'proveedores' },
+      { path: 'proveedores', component: () => import('pages/Proveedores/ProveedoresPage.vue'), name: 'proveedores', meta: { permission: 'proveedores.ver' } },
       { path: 'auditoria', component: () => import('pages/LogsPage.vue'), name: 'auditoria' },
       { path: 'productos', component: () => import('pages/Productos/ProductosPage.vue'), name: 'productos' },
       { path: 'usuarios', component: () => import('pages/Usuarios/UsuariosPage.vue'), name: 'usuarios' },

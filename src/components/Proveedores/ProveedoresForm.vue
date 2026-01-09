@@ -16,7 +16,7 @@
         align="justify"
         inline-label
       >
-        <q-tab name="generales" icon="business" label="Datos Fiscales" />
+        <q-tab name="generales" icon="business" label="Datos Generales" />
         <q-tab name="direccion" icon="map" label="Ubicación" />
         <q-tab name="credito" icon="account_balance_wallet" label="Finanzas" />
       </q-tabs>
@@ -33,23 +33,33 @@
                   @blur="handleNombreComercialBlur"
                   v-bind="inputProps"
                   v-model="form.nombre_comercial"
-                  label="Nombre Comercial del Proveedor *"
+                  label="Nombre Comercial *"
                   ref="refGenerales"
-                  :rules="[val => !!val || 'Campo requerido']"
+                  lazy-rules
+                  @update:model-value="val => (form.nombre_comercial = val.toUpperCase())"
+                  :rules="[val => !!val || 'El nombre es requerido']"
                 >
-                  <template v-slot:prepend><q-icon name="storefront" color="primary" /></template>
+                  <template uppercase v-slot:prepend><q-icon name="storefront" color="primary" /></template>
                 </q-input>
               </div>
 
               <div class="col-12 col-md-8">
-                <q-input v-bind="inputProps" v-model="form.razon_social" label="Razón Social (Nombre Legal)" />
+                <q-input uppercase v-bind="inputProps" v-model="form.razon_social" label="Razón Social" @update:model-value="val => (form.razon_social = val.toUpperCase())" />
               </div>
               <div class="col-12 col-md-4">
-                <q-input v-bind="inputProps" v-model="form.rfc" label="RFC / Identificación Fiscal" mask="AAAA######XXX" />
+                <q-input v-bind="inputProps" v-model="form.rfc" label="RFC" mask="AAAA######XXX" />
               </div>
 
               <div class="col-12 col-md-7">
-                <q-input v-bind="inputProps" v-model="form.email" label="Correo Electrónico *" :rules="[val => !!val || 'Campo requerido']" />
+                <q-input
+                  v-bind="inputProps"
+                  v-model="form.email"
+                  label="Correo Electrónico"
+                  lazy-rules
+                  :rules="[
+                        val => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) || 'Formato de email incorrecto'
+                      ]"
+                   />
               </div>
               <div class="col-12 col-md-5">
                 <q-input v-bind="inputProps" v-model="form.telefono" label="Teléfono Principal" mask="(###) ### - ####" />

@@ -57,16 +57,18 @@
           </q-card-section>
           <q-card-section class="q-pa-none">
             <q-list separator>
-              <q-item v-for="n in 5" :key="n" class="q-py-md">
+              <q-item v-for="item in criticalStock" :key="item.id" class="q-py-md">
                 <q-item-section avatar>
-                  <q-avatar rounded color="red-1" text-color="red-9" icon="inventory_2" />
+                  <q-avatar rounded color="red-1" text-color="red-9" icon="priority_high" />
                 </q-item-section>
+
                 <q-item-section>
-                  <q-item-label class="text-bold">Producto Demo #{{ n }}</q-item-label>
-                  <q-item-label caption>Sucursal: Matamoros Principal</q-item-label>
+                  <q-item-label class="text-bold">{{ item.producto?.nombre }}</q-item-label>
+                  <q-item-label caption>Sucursal: {{ item.sucursal?.nombre }}</q-item-label>
                 </q-item-section>
+
                 <q-item-section side>
-                  <q-badge color="red-9" label="2 unid." />
+                  <q-badge color="red-9" :label="`${item.stock_actual} unid.`" />
                 </q-item-section>
               </q-item>
             </q-list>
@@ -136,6 +138,33 @@
     colors: ['#1976D2', '#F44336'], // Azul entradas, Rojo salidas
     fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.1 } }
   })
+
+  const columns = [
+  {
+    name: 'fecha',
+    label: 'Fecha',
+    field: row => row.created_at ? row.created_at.substring(0, 10) : '',
+    align: 'left'
+  },
+  {
+    name: 'producto',
+    label: 'Producto',
+    field: row => row.producto?.nombre || 'N/A',
+    align: 'left'
+  },
+  {
+    name: 'tipo',
+    label: 'Tipo',
+    field: 'tipo_movimiento',
+    align: 'center'
+  },
+  {
+    name: 'cantidad',
+    label: 'Cant.',
+    field: 'cantidad',
+    align: 'right'
+  }
+]
 
   const fetchDashboardData = async () => {
     loading.value = true

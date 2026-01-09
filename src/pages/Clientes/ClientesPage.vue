@@ -56,7 +56,7 @@
         <template v-slot:top-right>
           <q-input
             v-model="filter"
-            placeholder="Buscar por nombre, RFC o ID..."
+            placeholder="Buscar..."
             outlined
             dense
             class="search-input"
@@ -118,6 +118,7 @@
 
             <q-td key="actions" :props="props" class="text-center">
               <q-btn
+              :disabled="!auth.can('clientes.saldos')"
                 flat round dense
                 color="orange-9"
                 icon="history_toggle_off"
@@ -125,10 +126,10 @@
               >
                 <q-tooltip>Antigüedad de Saldos</q-tooltip>
               </q-btn>
-              <q-btn flat round color="indigo" icon="edit" @click="openEdit(props.row)">
+              <q-btn :disabled="!auth.can('clientes.editar')" flat round color="indigo" icon="edit" @click="openEdit(props.row)">
                 <q-tooltip>Editar Cliente</q-tooltip>
               </q-btn>
-              <q-btn flat round color="negative" icon="delete" @click="confirmDelete(props.row)">
+              <q-btn :disabled="!auth.can('clientes.borrar')" flat round color="negative" icon="delete" @click="confirmDelete(props.row)">
                 <q-tooltip>Eliminar Cliente</q-tooltip>
               </q-btn>
             </q-td>
@@ -176,11 +177,11 @@
   }
 
   const columns = [
-    { name: 'numero_global', label: 'GLOBAL / NOMBRE COMERCIAL', field: row => `${row.numero_global} ${row.nombre_comercial || ''} ${row.razon_social} ${row.rfc || ''} ${row.email || ''}`, align: 'left', sortable: true, sort: (a, b) => parseInt(a) - parseInt(b) },
+    { name: 'numero_global', label: 'GLOBAL / NOMBRE COMERCIAL', field: row => `${row.numero_global} ${row.nombre_comercial || ''} ${row.razon_social} ${row.rfc || ''} ${row.email || ''} ${row.telefono || ''}`, align: 'left', sortable: true, sort: (a, b) => parseInt(a) - parseInt(b) },
     { name: 'razon_social', label: 'RAZON SOCIAL / RFC', field: 'razon_social', align: 'left', sortable: true },
-    { name: 'email', label: 'CONTACTO', align: 'left' },
-    { name: 'tipo_pago', label: 'MÉTODO PAGO', align: 'center', sortable: true },
-    { name: 'saldo_actual', label: 'ESTADO DE CUENTA', field: 'saldo_actual', align: 'right', sortable: true },
+    { name: 'email', label: 'CONTACTO', align: 'left', field: 'email' ,sortable: true},
+    { name: 'tipo_pago', label: 'MÉTODO PAGO', align: 'center', sortable: true, field: 'tipo_pago' },
+    { name: 'saldo_actual', label: 'ESTADO DE CUENTA', field: 'saldo_actual', align: 'right', sortable: true, field: 'saldo_actual' },
     { name: 'actions', label: 'ACCIONES', align: 'center' }
   ]
 
@@ -214,11 +215,28 @@
       persistent: true
     }).onOk(async () => {
       try {
+        // Intentamos la eliminación
         await api.delete(`/api/clientes/${customer.id}`)
-        $q.notify({ color: 'positive', message: 'Cliente eliminado', icon: 'check' })
+
+        $q.notify({
+          color: 'positive',
+          message: 'Cliente eliminado correctamente',
+          icon: 'check'
+        })
         loadCustomers()
       } catch (e) {
-        $q.notify({ color: 'negative', message: 'Error al eliminar', icon: 'error' })
+        // 1. Extraemos el mensaje del backend
+        // Usamos el operador ?. para evitar errores si la respuesta viene vacía
+        const serverMessage = e.response?.data?.message || 'Error de conexión con el servidor'
+
+        // 2. Mostramos el mensaje real que envió Laravel
+        $q.notify({
+          color: 'warning',
+          message: serverMessage,
+          icon: 'report_problem',
+          // Opcional: permitir que el mensaje se quede más tiempo si es largo
+          timeout: 4000
+        })
       }
     })
   }
@@ -230,7 +248,7 @@
   }
 
   const getTipoPagoColor = (val) => {
-    const colors = { 0: 'pink-6', 1: 'green-8', 2: 'cyan-9', 3: 'indigo-9' }
+    const colors = { 0: 'pink-6', 1: 'green-8', 2: 'brown-6', 3: 'indigo-9' }
     return colors[val] || 'grey-7'
   }
 

@@ -18,8 +18,8 @@
           <q-card-section class="row items-center no-wrap">
             <q-avatar icon="account_balance_wallet" color="negative" text-color="white" shadow-5 />
             <div class="q-ml-md">
-              <div class="text-h6 text-bold text-negative">${{ totalDeuda.toLocaleString() }}</div>
-              <div class="text-caption text-grey-7">Saldo Total Pendiente</div>
+              <div class="text-h6 text-bold text-negative">$ {{ formatCurrency(totalDeuda) }}</div>
+              <div class="text-caption text-grey-7">Saldo Total por Pagar</div>
             </div>
           </q-card-section>
         </q-card>
@@ -27,6 +27,7 @@
 
       <div class="col-12 col-md-4 text-right self-center">
         <q-btn
+          :disabled="!auth.can('proveedores.crear')"
           color="primary"
           icon="add"
           label="Nuevo Proveedor"
@@ -55,9 +56,10 @@
         <template v-slot:top-right>
           <q-input
             v-model="filter"
-            placeholder="Buscar por nombre, RFC o ID..."
+            placeholder="Buscar por nombre, RFC o teléfono..."
             outlined
             dense
+            debounce="300"
             class="search-input"
             bg-color="white"
           >
@@ -69,19 +71,20 @@
           <q-tr :props="props" class="hover-row">
             <q-td key="numero_global" :props="props">
               <q-badge color="grey-3" text-color="primary" class="text-bold q-pa-xs">
-                {{ props.row.numero_global }}
+                #{{ props.row.numero_global }}
               </q-badge>
+              <div class="text-bold">{{ props.row.nombre_comercial || 'Sin Nombre Comercial' }}</div>
             </q-td>
 
             <q-td key="nombre_comercial" :props="props">
-              <div class="text-bold">{{ props.row.nombre_comercial }}</div>
-              <div class="text-caption text-grey-6">{{ props.row.rfc || 'Sin RFC' }}</div>
+              <div class="text-bold">{{ props.row.razon_social || props.row.nombre_comercial }}</div>
+              <div class="text-caption text-grey-6 text-mono">{{ props.row.rfc || 'Sin RFC' }}</div>
             </q-td>
 
             <q-td key="email" :props="props">
               <div class="row items-center no-wrap">
                 <q-icon name="mail_outline" size="xs" color="grey-7" class="q-mr-xs" />
-                {{ props.row.email }}
+                <span class="text-caption">{{ props.row.email }}</span>
               </div>
               <div class="row items-center no-wrap text-caption text-grey-6">
                 <q-icon name="phone" size="xs" color="grey-7" class="q-mr-xs" />
@@ -90,29 +93,45 @@
             </q-td>
 
             <q-td key="saldo_actual" :props="props" class="text-right">
-              <div :class="props.row.saldo_actual > 0 ? 'text-negative text-bold' : 'text-positive'">
-                ${{ props.row.saldo_actual.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}
+              <div :class="props.row.saldo_actual > 0 ? 'text-negative text-bold' : 'text-positive text-bold'">
+                $ {{ formatCurrency(props.row.saldo_actual) }}
               </div>
               <q-linear-progress
+                v-if="props.row.limite_credito > 0"
                 :value="getProgresoCredito(props.row)"
-                :color="props.row.saldo_actual > 0 ? 'negative' : 'positive'"
+                :color="props.row.saldo_actual > props.row.limite_credito ? 'red-9' : 'primary'"
                 class="q-mt-xs"
+                size="4px"
+                rounded
               />
             </q-td>
 
             <q-td key="actions" :props="props" class="text-center">
               <q-btn
-                flat round
+                :disabled="!auth.can('proveedores.saldos')"
+                flat round dense
                 color="orange-9"
                 icon="history_toggle_off"
                 @click="abrirAntiguedad(props.row)"
               >
                 <q-tooltip>Antigüedad de Saldos</q-tooltip>
               </q-btn>
-              <q-btn flat round color="indigo" icon="edit" @click="openEdit(props.row)">
+              <q-btn
+                :disabled="!auth.can('proveedores.editar')"
+                flat round dense
+                color="indigo"
+                icon="edit"
+                @click="openEdit(props.row)"
+              >
                 <q-tooltip>Editar Proveedor</q-tooltip>
               </q-btn>
-              <q-btn flat round color="negative" icon="delete" @click="confirmDelete(props.row)">
+              <q-btn
+                :disabled="!auth.can('proveedores.borrar')"
+                flat round dense
+                color="negative"
+                icon="delete"
+                @click="confirmDelete(props.row)"
+              >
                 <q-tooltip>Eliminar Proveedor</q-tooltip>
               </q-btn>
             </q-td>
@@ -120,6 +139,7 @@
         </template>
       </q-table>
     </q-card>
+
     <ProveedorAntiguedadModal
       v-model="modalAntigSaldos"
       :proveedor="proveedorSeleccionado"
@@ -132,12 +152,14 @@
   import { ref, computed, onMounted } from 'vue'
   import { api } from 'boot/axios'
   import { useQuasar } from 'quasar'
+  import { useAuthStore } from 'src/stores/auth'
   import ProveedorForm from 'components/Proveedores/ProveedoresForm.vue'
   import ProveedorAntiguedadModal from 'src/components/Proveedores/ProveedorAntiguedadModal.vue'
 
   const $q = useQuasar()
+  const auth = useAuthStore()
   const rows = ref([])
-  const loading = ref(false)
+  const loading = ref(true)
   const filter = ref('')
   const showDialog = ref(false)
   const selectedItem = ref(null)
@@ -145,25 +167,31 @@
   const modalAntigSaldos = ref(false)
   const proveedorSeleccionado = ref(null)
 
-  const abrirAntiguedad = (row) => {
-    proveedorSeleccionado.value = { ...row }
-    modalAntigSaldos.value = true
-  }
-
-
+  // Columnas unificadas con lógica de búsqueda extendida
   const columns = [
-    { name: 'numero_global', label: 'ID', field: row => `${row.numero_global} ${row.nombre_comercial || ''} ${row.razon_social} ${row.rfc || ''} ${row.email || ''}`, align: 'left', sortable: true, sort: (a, b) => parseInt(a) - parseInt(b) },
+    {
+      name: 'numero_global',
+      label: 'ID / NOMBRE COMERCIAL',
+      field: row => `${row.numero_global} ${row.nombre_comercial || ''} ${row.razon_social || ''} ${row.rfc || ''} ${row.email || ''} ${row.telefono || ''}`,
+      align: 'left',
+      sortable: true,
+      sort: (a, b) => parseInt(a) - parseInt(b)
+    },
     { name: 'nombre_comercial', label: 'RAZON SOCIAL / RFC', field: 'nombre_comercial', align: 'left', sortable: true },
-    { name: 'email', label: 'CONTACTO', align: 'left' },
+    { name: 'email', label: 'CONTACTO', align: 'left', field: 'email', sortable: true },
     { name: 'saldo_actual', label: 'ESTADO DE CUENTA', field: 'saldo_actual', align: 'right', sortable: true },
     { name: 'actions', label: 'ACCIONES', align: 'center' }
   ]
 
-  const totalDeuda = computed(() => rows.value.reduce((acc, curr) => acc + curr.saldo_actual, 0))
+  const totalDeuda = computed(() => rows.value.reduce((acc, curr) => acc + (curr.saldo_actual || 0), 0))
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value || 0)
+  }
 
   const getProgresoCredito = (row) => {
     if (!row.limite_credito || row.limite_credito === 0) return 0
-    return Math.min(row.saldo_actual / row.limite_credito, 1)
+    return Math.min((row.saldo_actual || 0) / row.limite_credito, 1)
   }
 
   const loadData = async () => {
@@ -174,6 +202,11 @@
     } catch (e) {
       console.error(e)
     } finally { loading.value = false }
+  }
+
+  const abrirAntiguedad = (row) => {
+    proveedorSeleccionado.value = { ...row }
+    modalAntigSaldos.value = true
   }
 
   const openCreate = () => { selectedItem.value = null; showDialog.value = true }
@@ -189,11 +222,18 @@
       persistent: true
     }).onOk(async () => {
       try {
-        await api.delete(`/api/proveedores/${row.id}`)
-        $q.notify({ color: 'positive', message: 'Proveedor eliminado correctamente', icon: 'done' })
+        await api.delete(`/api/providers/${row.id}`)
+        $q.notify({ color: 'positive', message: 'Proveedor eliminado correctamente', icon: 'check' })
         loadData()
       } catch (e) {
-        $q.notify({ color: 'negative', message: 'Error al eliminar', icon: 'error' })
+        // Capturamos el mensaje real del backend (Spatie o validaciones)
+        const serverMessage = e.response?.data?.message || 'Error al eliminar el proveedor'
+        $q.notify({
+          color: 'warning',
+          message: serverMessage,
+          icon: 'report_problem',
+          timeout: 4000
+        })
       }
     })
   }
@@ -219,6 +259,7 @@
       text-transform: uppercase;
       color: #555;
       background: #f9f9f9;
+      border-bottom: 2px solid $primary;
     }
   }
 
@@ -236,5 +277,10 @@
   .custom-btn-radius {
     border-radius: 10px;
     font-weight: bold;
+  }
+
+  .text-mono {
+    font-family: 'Courier New', Courier, monospace;
+    letter-spacing: 0.5px;
   }
 </style>

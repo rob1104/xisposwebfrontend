@@ -4,7 +4,7 @@
       <q-card-section class="bg-primary text-white row items-center">
         <div class="text-h6 text-uppercase">
           <q-icon :name="isEdit ? 'edit' : 'person_add'" class="q-mr-sm" />
-          {{ isEdit ? 'Editar Cliente:' + form.nombre_comercial : 'Registrar Cliente' }}
+          {{ isEdit ? 'Editar Cliente: ' + form.nombre_comercial : 'Registrar Cliente' }}
         </div>
         <q-space />
         <q-btn icon="close" flat round dense v-close-popup />
@@ -37,7 +37,10 @@
                   v-model="form.nombre_comercial"
                   label="Nombre Comercial *"
                   ref="refGeneral"
-                  :rules="[val => !!val || 'El nombre es obligatorio']"
+                  uppercase
+                  lazy-rules
+                  @update:model-value="val => (form.nombre_comercial = val.toUpperCase())"
+                  :rules="[val => !!val || 'El nombre es requerido']"
                   @blur="handleNombreComercialBlur"
                 >
                   <template v-slot:prepend><q-icon name="storefront" color="primary" /></template>
@@ -47,8 +50,11 @@
                 <q-input
                   v-bind="inputProps"
                   v-model="form.email"
-                  label="Correo Electrónico *"
-                  :rules="[val => /.+@.+\..+/.test(val) || 'Email inválido']"
+                  lazy-rules
+                  label="Correo Electrónico"
+                  :rules="[
+                        val => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) || 'Formato de email incorrecto'
+                      ]"
                 >
                   <template v-slot:prepend><q-icon name="email" color="primary" /></template>
                 </q-input>
@@ -68,23 +74,35 @@
                 <q-input
                   v-bind="inputProps"
                   v-model="form.razon_social"
-                  label="Razón Social (Fiscal) *"
+                  uppercase
+                  @update:model-value="val => (form.razon_social = val.toUpperCase())"
+                  label="Razón Social"
                   ref="refBilling"
+                  lazy-rules
                   :rules="[val => !!val || 'Requerido para facturación']"
                 />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-bind="inputProps" v-model="form.rfc" label="RFC *" mask="AAAA######XXX" unmasked-value />
+                <q-input
+                  v-bind="inputProps"
+                  v-model="form.rfc"
+                  label="RFC"
+                  lazy-rules
+                  @update:model-value="val => (form.rfc = val.toUpperCase())"
+                  :rules="[
+                    val => rfcValid(val) || 'Formato de RFC inválido'
+                  ]"
+                  uppercase />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-bind="inputProps" v-model="form.codigo_postal" label="C.P. Fiscal *" mask="#####" />
+                <q-input v-bind="inputProps" v-model="form.codigo_postal" label="Código Postal:" mask="#####" />
               </div>
               <div class="col-12">
                 <q-select
                   v-bind="inputProps"
                   v-model="form.tax_regime_id"
                   :options="taxRegimes"
-                  label="Régimen Fiscal *"
+                  label="Régimen Fiscal"
                   emit-value
                   map-options
                 />
@@ -207,6 +225,7 @@
   import { ref, reactive, computed, watch, nextTick } from 'vue'
   import { api } from 'boot/axios'
   import { useQuasar } from 'quasar'
+  import { rfcValid } from 'src/helpers/utils.js'
 
   const props = defineProps({
     modelValue: Boolean, // Controla si el diálogo se ve
@@ -310,9 +329,6 @@
       form.dias_credito = 0
       form.saldo_actual = 0
       form.vender_vencido = false
-
-      // Opcional: Notificación silenciosa
-      console.log('Valores de crédito reseteados por cambio de modo de pago')
     }
   })
 
@@ -362,8 +378,10 @@
 
   const handleNombreComercialBlur = () => {
     if (!isEdit.value && form.nombre_comercial) {
-      if (form.razon_social === '')
+      if (form.razon_social === '') {
         form.razon_social = form.nombre_comercial
+      }
     }
   }
+
 </script>
