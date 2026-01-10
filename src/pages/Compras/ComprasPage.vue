@@ -160,18 +160,28 @@
         <q-td :props="props" class="text-center">
           <q-btn
             flat round dense
+            color="purple-10"
+            icon="picture_as_pdf"
+            @click="descargarPDF(props.row)"
+            :loading="descargandoId === props.row.id"
+          >
+            <q-tooltip>Descargar PDF</q-tooltip>
+          </q-btn>
+
+
+          <q-btn flat round dense color="blue-7" icon="visibility" @click="verDetalle(props.row)">
+            <q-tooltip>Ver Partidas</q-tooltip>
+          </q-btn>
+
+
+           <q-btn
+            flat round dense
             color="red-8"
             icon="cancel"
             @click="prepararCancelacion(props.row)"
             :disable="props.row.estatus === 'CANCELADA'"
           >
             <q-tooltip>Cancelar Compra</q-tooltip>
-          </q-btn>
-          <q-btn flat round dense color="blue-7" icon="visibility" @click="verDetalle(props.row)">
-            <q-tooltip>Ver Partidas</q-tooltip>
-          </q-btn>
-          <q-btn flat round dense color="purple" icon="print">
-            <q-tooltip>Imprimir Compra</q-tooltip>
           </q-btn>
         </q-td>
       </template>
@@ -214,7 +224,11 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-
+      <DetalleCompraModal
+        v-model="showDetalle"
+        :compra-id="selectedCompraId"
+        @download="onDownloadFromModal"
+    />
   </q-page>
 </template>
 
@@ -225,6 +239,7 @@
   import { useQuasar } from 'quasar'
   import CompraForm from 'src/components/Compras/CompraForm.vue'
   import { useAuthStore } from 'src/stores/auth'
+  import DetalleCompraModal from 'src/components/Compras/DetalleCompraModal.vue'
 
   const authStore = useAuthStore()
 
@@ -239,6 +254,20 @@
   const motivoCancelacion = ref('')
   const compraACancelar = ref(null)
   const cancelando = ref(false)
+  const descargandoId = ref(null);
+
+  const showDetalle = ref(false)
+  const selectedCompraId = ref(null)
+
+  const verDetalle = (row) => {
+    selectedCompraId.value = row.id
+    showDetalle.value = true
+  }
+
+// Reutilizamos la función de PDF que ya habías creado
+const onDownloadFromModal = (compra) => {
+  descargarPDF(compra) // Tu función existente
+}
 
   const prepararCancelacion = (row) => {
     compraACancelar.value = row
@@ -323,18 +352,45 @@
     }
   }
 
-   const verDetalle = (compra) => {
-    $q.notify({
-      message: `Consultando detalles del folio ${compra.folio}`,
-      color: 'info',
-      icon: 'visibility'
-    })
-  }
-
   const formatFechaFull = (fecha) => {
     if (!fecha) return '-'
     // date.formatDate(objetoFecha, mascara)
     return date.formatDate(fecha, 'DD/MM/YYYY, HH:mm:ss')
+  }
+
+  const descargarPDF = async (compra) => {
+    descargandoId.value = compra.id
+    try {
+      const response = await api.get(`/api/compras/${compra.id}/pdf`, {
+        responseType: 'blob' // Importante para archivos binarios
+      })
+
+      // Creamos un link temporal para forzar la descarga
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `Compra_${compra.folio}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+
+      // Limpieza
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+
+      $q.notify({
+        color: 'positive',
+        message: 'PDF generado correctamente',
+        icon: 'download'
+      })
+    } catch (error) {
+      $q.notify({
+        color: 'negative',
+        message: 'Error al generar el PDF',
+        icon: 'error'
+      })
+    } finally {
+      descargandoId.value = null
+    }
   }
 
   onMounted(cargarCompras)

@@ -14,6 +14,7 @@
             type="number"
             dark filled
             prefix="$"
+            @focus="$event.target.select()"
             class="text-h4 amount-input"
             autofocus
           />
@@ -28,6 +29,7 @@
             prefix="$"
             placeholder="Ej. 17.50"
             class="text-h5"
+            @focus="$event.target.select()"
             @keyup.enter="abrirCaja"
           >
             <template v-slot:prepend>
@@ -55,16 +57,17 @@
 </template>
 
 <script setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, onMounted } from 'vue'
   import { usePosStore } from 'src/stores/pos'
   import { useQuasar } from 'quasar'
+  import { api } from 'src/boot/axios'
 
   const props = defineProps(['modelValue'])
   const emit = defineEmits(['update:modelValue'])
   const posStore = usePosStore()
   const $q = useQuasar()
 
-  const form = ref({ fondo_apertura: 0, tipo_cambio: posStore.tipoCambioHoy || 0 })
+  const form = ref({ fondo_apertura: 0, tipo_cambio: 1.00 })
   const cargando = ref(false)
 
   const internalValue = computed({
@@ -73,6 +76,10 @@
   })
 
   const abrirCaja = async () => {
+    if (form.value.tipo_cambio <= 0) {
+      $q.notify({ color: 'negative', message: 'El tipo de cambio debe ser mayor a 0' })
+      return
+    }
     cargando.value = true
     try {
       await posStore.abrirTurno(form.value)
@@ -84,4 +91,14 @@
       cargando.value = false
     }
   }
+
+  onMounted(async() => {
+    try {
+      const { data } = await api.get('/api/pos/sugerencia-apertura')
+      form.value.tipo_cambio = Number(data.tipo_cambio)
+    } catch (e) {
+      console.warn("No se pudo obtener el T.C. anterior")
+    }
+  })
+
 </script>

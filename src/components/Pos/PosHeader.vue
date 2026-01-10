@@ -66,6 +66,7 @@
         <q-tooltip>Cerrar Turno (Corte X)</q-tooltip>
       </q-btn>
     </div>
+
   </div>
 </template>
 
@@ -82,6 +83,9 @@
 
   const barcode = ref('')
   const scannerInput = ref(null)
+
+
+
 
   /**
    * Procesa la entrada del teclado
@@ -111,6 +115,9 @@
   defineExpose({
     focus: () => scannerInput.value?.focus()
   })
+
+
+
 </script>
 
 <style lang="scss" scoped>

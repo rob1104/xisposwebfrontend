@@ -29,6 +29,7 @@
 
       <div class="col-12 col-md-4 text-right self-center">
         <q-btn
+          :disabled="!auth.can('productos.crear')"
           color="primary" icon="add" label="Nuevo Producto" size="lg"
           class="shadow-5 custom-btn-radius" unelevated @click="openCreate"
         />
@@ -56,8 +57,8 @@
 
         <template v-slot:body="props">
           <q-tr :props="props" class="hover-row">
-            <q-td key="nombre" :props="props" style="font-size: 16px;">
-              <div class="text-bold text-primary">{{ props.row.nombre }}</div>
+            <q-td key="nombre" :props="props" style="font-size: 14px;">
+              <div class="text-bold text-blue-grey-7">{{ props.row.nombre }}</div>
               <div class="row items-center text-caption text-grey-7">
                 <q-badge color="grey-3" text-color="grey-9" class="q-mr-xs text-bold">
                   {{ props.row.codigo_barras }}
@@ -129,8 +130,8 @@
                   <q-tooltip>Historial de Movimientos (Kardex)</q-tooltip>
                 </q-btn>
 
-              <q-btn flat round color="indigo" icon="edit" @click="openEdit(props.row)" />
-              <q-btn flat round color="negative" icon="delete" @click="confirmDelete(props.row)" />
+              <q-btn :disabled="!auth.can('productos.editar')" flat round color="indigo" icon="edit" @click="openEdit(props.row)" />
+              <q-btn :disabled="!auth.can('productos.borrar')" flat round color="negative" icon="delete" @click="confirmDelete(props.row)" />
             </q-td>
           </q-tr>
         </template>
@@ -150,9 +151,11 @@
   import ProductForm from 'components/Productos/ProductosForm.vue'
   import { useQuasar } from 'quasar'
   import KardexDialog from 'src/components/Productos/KardexDialog.vue'
+  import { useAuthStore } from 'src/stores/auth'
 
 
   const $q = useQuasar()
+  const auth = useAuthStore()
   const rows = ref([])
   const loading = ref(false)
   const filter = ref('')

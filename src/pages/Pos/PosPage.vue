@@ -78,6 +78,12 @@
     />
 
     <PosDialogArqueo v-model="dialogoArqueo" @closed="onTurnoCerrado" />
+
+    <CashMovementModal
+      v-model="showCashModal"
+      @success="onMovementSuccess"
+    />
+
   </q-page>
 </template>
 
@@ -97,6 +103,7 @@
   import PosDialogPayment from 'components/Pos/PosDialogPayment.vue'
   import PosDialogArqueo from 'components/Pos/PosDialogArqueo.vue'
   import PosDialogApertura from 'src/components/Pos/PosDialogApertura.vue'
+  import CashMovementModal from 'src/components/Pos/CashMovementModal.vue'
   import { PrintService } from 'src/services/PrintService'
 
   const $q = useQuasar()
@@ -112,6 +119,8 @@
   const dialogoArqueo = ref(false)
   const reimprimiendo = ref(false)
 
+  const showCashModal = ref(false)
+
   let intervaloFoco = null
 
     /**
@@ -123,7 +132,9 @@
       !dialogoBuscador.value &&
       !dialogoPago.value &&
       !dialogoArqueo.value &&
-      !dialogoApertura.value
+      !dialogoApertura.value &&
+      !showCashModal.value
+
 
     if (ningunDialogoAbierto) {
       // Buscamos el input dentro del componente de cabecera
@@ -292,7 +303,8 @@
     dialogoPago.value = true
   }
 
-  const abrirMovimientoCaja = () => { /* Implementar diálogo de caja si es necesario */ }
+  const abrirMovimientoCaja = () => {  showCashModal.value = true }
+
   const confirmarCierreTurno = () => { dialogoArqueo.value = true }
   const onTurnoCerrado = () => {
     carrito.value = []
@@ -316,6 +328,10 @@
     if (intervaloFoco) clearInterval(intervaloFoco);
     window.removeEventListener('keydown', manejarTecladoGlobal)
   })
+
+  const onMovementSuccess = () => {
+    showCashModal.value = false
+  }
 
 </script>
 

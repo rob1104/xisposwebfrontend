@@ -111,5 +111,25 @@ export const PrintService = {
       console.error("Error al reimprimir:", error)
       throw error
     }
+  },
+  async imprimirMovimientoCaja(movimiento, turnoId, cajeroNombre) {
+    try {
+      const payload = {
+        tipo: movimiento.tipo,
+        monto: movimiento.monto,
+        concepto: movimiento.concepto,
+        turno: turnoId || '---',
+        fecha: new Date().toLocaleString(),
+        cajero: cajeroNombre || 'Desconocido',
+        logo_url: "" // Opcional: puedes obtenerlo del configStore si es necesario
+      };
+
+      // Enviamos a la ruta específica creada en el print_bridge.pyw
+      await axios.post('http://localhost:5000/print-movement', payload);
+      return true;
+    } catch (error) {
+      console.error("Error al imprimir movimiento de caja:", error);
+      throw new Error("Movimiento registrado, pero el puente de impresión no respondió.");
+    }
   }
 }

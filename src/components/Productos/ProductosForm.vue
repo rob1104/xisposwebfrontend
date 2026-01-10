@@ -1,5 +1,5 @@
 <template>
-  <q-dialog v-model="show" @show="onDialogOpen" persistent transition-show="slide-up" transition-hide="slide-down">
+  <q-dialog v-model="show" @show="onDialogOpen" persistent>
     <q-card style="width: 1000px; max-width: 95vw;" class="border-radius-20 bg-grey-1 overflow-hidden shadow-24">
 
       <q-card-section class="bg-primary text-white row items-center q-py-lg">
@@ -35,7 +35,7 @@
               <div class="col-12 text-subtitle2 text-bold text-grey-8 row items-center">
                 <q-icon name="fingerprint" color="primary" class="q-mr-xs" /> Identidad del Producto
               </div>
-              <div class="col-12">
+              <div class="col-lg-8 col-md-12">
                 <q-input
                   v-bind="inputProps"
                   v-model="form.nombre"
@@ -45,6 +45,17 @@
                   lazy-rules
                   @update:model-value="val => (form.nombre = val.toUpperCase())"
                   :rules="[val => !!val || 'El nombre es requerido']" />
+              </div>
+              <div class="col-lg-4 col-md-12">
+                  <q-item tag="label" v-ripple class="border-radius-10 bg-blue-1">
+                  <q-item-section>
+                    <q-item-label class="text-bold text-primary">Estado del Producto</q-item-label>
+                    <q-item-label caption>{{ form.status ? 'Activo' : 'Desactivado' }}</q-item-label>
+                  </q-item-section>
+                  <q-item-section side>
+                    <q-toggle v-model="form.status" :true-value="true" :false-value="false" color="primary" />
+                  </q-item-section>
+                </q-item>
               </div>
               <div class="col-12 col-md-6">
                 <q-input v-bind="inputProps" v-model="form.codigo_barras" label="Código de Barras *" lazt-rules :rules="[val => !!val || 'El código de barras es requerido']">
@@ -245,6 +256,7 @@
 
   const form = reactive({
     nombre: '',
+    status: true,
     codigo_barras: '',
     categoria_id: null,
     tipo_producto: 'Inventariable',
@@ -393,6 +405,7 @@
   const resetForm = () => {
     Object.assign(form, {
                     nombre: '',
+                    status: true,
                     codigo_barras: '',
                     categoria_id: null,
                     tipo_producto: 'Inventariable',
