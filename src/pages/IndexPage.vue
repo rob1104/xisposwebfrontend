@@ -110,7 +110,7 @@
           </q-card-section>
         </q-card>
       </div>
-
+      <TurnoHistorial />
     </div>
   </q-page>
 </template>
@@ -119,6 +119,7 @@
   import { ref, onMounted, watch } from 'vue'
   import { api } from 'boot/axios'
   import { useAuthStore } from 'stores/auth'
+  import TurnoHistorial from 'src/components/Pos/TurnoHistorial.vue'
   import VueApexCharts from 'vue3-apexcharts'
 
   const auth = useAuthStore()

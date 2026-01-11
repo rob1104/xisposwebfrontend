@@ -29,13 +29,14 @@ export const PrintService = {
     }
   },
 
-  async imprimirTicketReal(venta, items, resumen, configticket, cliente) {
+  async imprimirTicketReal(venta, items, resumen, configticket, cliente, pagosEfectuados = []) {
     const configStore = useConfigStore()
     const auth = useAuthStore()
     const header_custom = configticket.header_lines || []
     const footer_custom = configticket.footer_lines || []
 
     try {
+      const listaSeguraPagos = Array.isArray(pagosEfectuados) ? pagosEfectuados : [];
       const payload = {
         logo_url: configStore.logoUrl, // URL del logo definida en tu config
         empresa: {
@@ -52,6 +53,16 @@ export const PrintService = {
         total: resumen.total,
         subtotal: resumen.subtotal,
         impuestos: resumen.impuestos,
+        pagos_detalle: listaSeguraPagos.map(p => ({
+          metodo: p.metodo_pago,
+          monto: p.monto,
+          tarjeta_ultimos_4: p.tarjeta_ultimos_4,
+          referencia_pago: p.referencia_pago,
+          moneda: p.moneda ||'MXN',
+          monto_original: p.monto_original || p.monto,
+          tipo_cambio_usado: p.tc_aplicado || p.tipo_cambio_usado || 1,
+          nota: p.moneda_original === 'USD' ? `(${p.monto_original} USD a ${p.tc_aplicado || p.tipo_cambio_usado || 1})` : ''
+        })),
         productos: items.map(item => ({
           nombre: item.nombre,
           cantidad: item.cantidad,
@@ -96,6 +107,15 @@ export const PrintService = {
         subtotal: venta.subtotal,
         impuestos: venta.impuestos,
         total: venta.total,
+        pagos_detalle: venta.pagos.map(p => ({
+          metodo: p.metodo_pago,
+          monto: p.monto,
+          moneda: p.moneda,
+          tarjeta_ultimos_4: p.tarjeta_ultimos_4,
+          referencia_pago: p.referencia_pago,
+          monto_original: p.monto_original,
+          tipo_cambio_usado: p.tipo_cambio_usado
+        })),
         productos: venta.detalles.map(d => ({
           cantidad: d.cantidad,
           nombre: d.producto.nombre,
@@ -112,6 +132,7 @@ export const PrintService = {
       throw error
     }
   },
+
   async imprimirMovimientoCaja(movimiento, turnoId, cajeroNombre) {
     try {
       const payload = {

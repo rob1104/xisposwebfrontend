@@ -4,7 +4,10 @@
     persistent
     backdrop-filter="blur(10px) brightness(30%)"
   >
-    <q-card style="width: 1000px; max-width: 95vw; border-radius: 20px;" class="bg-blue-grey-10 text-white overflow-hidden shadow-24">
+    <q-card
+  style="width: 100%; max-width: 1000px; max-height: 90vh;"
+  class="bg-blue-grey-10 text-white overflow-hidden shadow-24 column no-wrap"
+>
 
       <q-card-section class="bg-blue-grey-9 q-pa-lg row items-center border-bottom-white-10">
         <q-avatar color="primary" text-color="white" icon="analytics" size="50px" class="shadow-5" />
@@ -16,40 +19,121 @@
         <q-btn icon="close" flat round dense v-close-popup color="blue-grey-4" />
       </q-card-section>
 
-      <q-card-section class="row q-col-gutter-lg q-pa-xl">
+      <q-card-section class="row q-col-gutter-md q-pa-md scroll col">
 
         <div class="col-12 col-md-7">
-          <div class="text-h6 text-yellow text-bold q-mb-sm">Desglose de Efectivo</div>
-          <q-scroll-area style="height: 500px;" class="rounded-borders bg-blue-grey-9 q-pa-md shadow-inner">
-            <q-list padding>
-              <q-item v-for="den in denominaciones" :key="den.valor" class="q-mb-sm bg-blue-grey-10 rounded-borders border-white-5">
+          <div class="row items-center q-mb-md">
+            <div class="text-h6 text-yellow text-bold">Conteo</div>
+            <q-space />
+            <q-badge outline color="white" :label="`T.C. HOY: $${posStore.turno?.tipo_cambio}`" class="q-pa-xs" />
+          </div>
+
+          <q-scroll-area
+  :style="$q.screen.lt.md ? 'height: 40vh;' : 'height: 60vh;'"
+  class="rounded-borders bg-blue-grey-9 q-pa-md shadow-inner"
+>
+
+            <q-card flat class="bg-blue-grey-11 q-pa-md q-mb-lg border-usd rounded-borders shadow-3">
+              <div class="row items-center q-col-gutter-md">
                 <q-item-section avatar>
-                  <q-icon
-                    :name="den.valor >= 20 ? 'payments' : 'toll'"
-                    :color="den.valor >= 20 ? 'cyan-4' : 'amber-4'"
-                    size="sm"
-                  />
+                  <q-icon name="language" color="yellow-9" size="md" />
                 </q-item-section>
 
                 <q-item-section>
-                  <q-item-label class="text-bold text-subtitle1">{{ den.label }}</q-item-label>
+                  <q-item-label class="text-bold text-yellow-9 text-subtitle1">Dólares (USD)</q-item-label>
+                  <q-item-label caption class="text-grey-5">Billetes / Monedas americanos</q-item-label>
                 </q-item-section>
 
-                <q-item-section side style="width: 120px;">
+                <q-item-section side style="width: 130px;">
+                  <q-input
+                    v-model.number="dolaresCantidad"
+                    type="number"
+                    oninput="if(this.value < 0) this.value = 0;"
+                    dark filled dense
+                    input-class="text-center text-bold text-h6 text-yellow-9 font-mono"
+                    @focus="$event.target.select()"
+                  />
+                </q-item-section>
+
+                <q-item-section side class="text-right" style="min-width: 140px;">
+                  <div class="text-caption text-grey-5 uppercase">En Pesos</div>
+                  <div class="text-h6 text-bold text-white font-mono">
+                    ${{ formatMoney(dolaresCantidad * posStore.turno?.tipo_cambio) }}
+                  </div>
+                </q-item-section>
+              </div>
+            </q-card>
+
+            <q-card flat class="bg-blue-grey-11 q-pa-md q-mb-lg border-usd rounded-borders shadow-3">
+              <div class="row items-center q-col-gutter-md">
+                <q-item-section avatar>
+                  <q-avatar color="cyan-9" text-color="white" icon="credit_card" />
+                </q-item-section>
+
+                <q-item-section class="text-bold text-yellow-9 text-subtitle1">
+                  <q-item-label class="text-bold text-cyan-4 text-subtitle1">Ventas con Tarjeta</q-item-label>
+                  <q-item-label caption class="text-grey-5">Suma de vouchers o reporte de terminal</q-item-label>
+                </q-item-section>
+
+                <q-item-section side style="width: 130px;">
+                  <q-input
+                    v-model.number="tarjetaContado"
+                    type="number"
+                    dark filled dense
+                    prefix="$"
+                    oninput="if(this.value < 0) this.value = 0;"
+                    input-class="text-center text-bold text-h6 text-cyan-4 font-mono"
+                    @focus="$event.target.select()"
+                  />
+                </q-item-section>
+
+                <q-item-section side class="text-right" style="min-width: 140px;">
+                  <div class="text-caption text-grey-5 uppercase">Esperado Sistema</div>
+                  <div class="text-h6 text-bold text-white font-mono">
+                    ${{ formatMoney(tarjetaEsperado) }}
+                  </div>
+                </q-item-section>
+              </div>
+            </q-card>
+
+            <div class="text-overline text-grey-5 q-mb-sm">Denominaciones MXN</div>
+            <q-list separator dark>
+              <q-item v-for="den in denominaciones" :key="den.valor" class="q-py-sm">
+                <q-avatar
+                  :color="den.valor >= 100 ? 'primary' : 'blue-grey-7'"
+                  text-color="white"
+                  size="48px"
+                  class="text-bold shadow-3 border-white-1"
+                >
+                  <span :class="[
+                    'font-mono',
+                    den.valor >= 2000 ? 'text-caption-custom' : 'text-subtitle2'
+                  ]">
+                    ${{ den.valor }}
+                  </span>
+                </q-avatar>
+
+                <q-item-section>
+                  <q-item-label class="text-subtitle1 text-bold">{{ den.label }}</q-item-label>
+                </q-item-section>
+
+                <q-item-section side>
                   <q-input
                     v-model.number="den.cantidad"
                     type="number"
                     dark
-                    filled
+                    outlined
                     dense
-                    input-class="text-center text-bold text-h6 font-mono"
-                    @click="$event.target.select()"
+                    oninput="if(this.value < 0) this.value = 0;"
+                    style="width: 100px; background-color:rosybrown";
+                    input-class="text-center text-bold font-mono"
+                    @focus="$event.target.select()"
                   />
                 </q-item-section>
 
-                <q-item-section side style="width: 120px;" class="text-right">
-                  <div class="text-h6 text-bold text-cyan-4 font-mono">
-                    ${{ formatMoney(den.valor * den.cantidad) }}
+                <q-item-section side class="text-right" style="width: 140px;">
+                  <div class="text-h6 text-bold text-white font-mono text-cyan-4">
+                    ${{ formatMoney(den.valor * (den.cantidad || 0)) }}
                   </div>
                 </q-item-section>
               </q-item>
@@ -58,50 +142,62 @@
         </div>
 
         <div class="col-12 col-md-5">
-          <div class="column q-gutter-y-md">
+          <q-card flat class="bg-blue-grey-9 q-pa-lg full-height border-white-5 rounded-borders shadow-10">
+            <div class="text-h6 text-bold text-center text-yellow q-mb-lg border-bottom-white-10 q-pb-sm uppercase tracking-widest">Resumen</div>
 
-            <q-card flat class="bg-blue-grey-9 q-pa-lg rounded-borders border-white-5">
-              <div class="text-caption text-blue-grey-4 uppercase text-bold">Total Contado Físicamente</div>
-              <div class="text-h2 text-bold text-cyan-4 font-mono text-shadow-blue">
-                ${{ formatMoney(efectivoContado) }}
+            <div class="q-gutter-y-md">
+              <div class="row justify-between items-center bg-blue-grey-10 q-pa-md rounded-borders">
+                <span class="text-grey-4">Efectivo esperado en caja:</span>
+                <span class="text-h6 font-mono">${{ formatMoney(totalEsperado - tarjetaEsperado) }}</span>
               </div>
-            </q-card>
 
-            <div class="row q-pa-md bg-blue-grey-11 rounded-borders items-center">
-              <div class="column col-7">
-                <span class="text-caption text-black uppercase">Efectivo en Sistema</span>
-                <span class="text-h6 text-bold font-mono text-black">${{ formatMoney(efectivoSistema) }}</span>
+              <div class="row justify-between items-center bg-blue-grey-10 q-pa-md rounded-borders">
+                <span class="text-grey-4">Efectivo Físico (Contado):</span>
+                <span class="text-h6 font-mono text-cyan-4 text-bold">${{ formatMoney(efectivoContado) }}</span>
               </div>
-              <q-icon name="monitor" color="blue-grey-4" size="md" class="col-5 text-right opacity-30" />
-            </div>
 
-            <q-card flat class="q-pa-lg rounded-borders shadow-10" :class="diferenciaEstilo.bg">
-              <div class="row items-center justify-between">
-                <div class="column">
-                  <span class="text-caption uppercase text-bold" :class="diferenciaEstilo.text">Diferencia Final</span>
-                  <span class="text-h3 text-bold font-mono" :class="diferenciaEstilo.text">
-                    ${{ formatMoney(diferencia) }}
+              <q-separator dark class="q-my-md" />
+
+              <div class="q-gutter-y-sm">
+                <div class="row justify-between text-caption">
+                  <span class="text-grey-5">Diferencia Efectivo:</span>
+                  <span :class="diferenciaEfectivo < 0 ? 'text-orange' : 'text-green'">
+                      {{ diferenciaEfectivo >= 0 ? '+' : '' }}${{ formatMoney(diferenciaEfectivo) }}
                   </span>
                 </div>
-                <q-icon :name="diferenciaEstilo.icon" size="xl" :class="diferenciaEstilo.text" />
+
+                <div class="row justify-between text-caption">
+                  <span class="text-grey-5">Diferencia Tarjeta:</span>
+                  <span :class="diferenciaTarjeta < 0 ? 'text-red' : 'text-green'">
+                      {{ diferenciaTarjeta >= 0 ? '+' : '' }}${{ formatMoney(diferenciaTarjeta) }}
+                  </span>
+                </div>
+
+                <div :class="['q-pa-lg rounded-borders text-center shadow-5 q-mt-md', diferenciaTotal >= 0 ? 'bg-green-10' : 'bg-red-10']">
+                  <div class="text-overline text-white opacity-80 uppercase tracking-widest">Diferencia Total</div>
+                  <div class="text-h3 text-bold font-mono text-white">
+                    {{ diferenciaTotal >= 0 ? '+' : '' }}{{ formatMoney(diferenciaTotal) }}
+                  </div>
+                </div>
               </div>
-            </q-card>
 
-            <q-banner v-if="diferencia !== 0" dense class="bg-red-9 text-white rounded-borders q-pa-md">
-              <template v-slot:avatar><q-icon name="warning" /></template>
-              <div class="text-caption">Existe un descuadre que será notificado al administrador al cerrar.</div>
-            </q-banner>
-
-            <q-btn
-              label="FINALIZAR CORTE Y CERRAR TURNO"
-              color="positive"
-              size="lg"
-              unelevated
-              class="full-width q-py-md text-bold shadow-10 btn-premium"
-              @click="ejecutarCierreFinal"
-              :loading="procesandoCierre"
-            />
-          </div>
+              <div class="q-pt-xl">
+                <q-btn
+                  label="PROCESAR CIERRE DE TURNO"
+                  color="blue"
+                  class="full-width q-py-lg text-bold text-subtitle1 border-radius-15 shadow-8"
+                  unelevated
+                  :loading="procesandoCierre"
+                  @click="ejecutarCierreFinal"
+                >
+                  <q-icon right name="lock_open" class="q-ml-sm" />
+                </q-btn>
+                <div class="text-center q-mt-md text-caption text-grey-6 italic">
+                  * Al confirmar, el turno se cerrará
+                </div>
+              </div>
+            </div>
+          </q-card>
         </div>
       </q-card-section>
     </q-card>
@@ -109,97 +205,135 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch } from 'vue'
-  import { api } from 'src/boot/axios'
-  import { useQuasar } from 'quasar'
+  import { ref, computed, watch, onMounted } from 'vue'
   import { usePosStore } from 'src/stores/pos'
+  import { useQuasar } from 'quasar'
+  import { api } from 'boot/axios'
 
   const props = defineProps(['modelValue'])
   const emit = defineEmits(['update:modelValue', 'closed'])
 
   const $q = useQuasar()
   const posStore = usePosStore()
-  const procesandoCierre = ref(false)
-  const efectivoSistema = ref(0)
+  const totalEsperado = ref(0)
   const efectivoContado = ref(0)
+  const procesandoCierre = ref(false)
+  const tarjetaEsperado = ref(0)
+  const tarjetaContado = ref(0)
+  const efectivoEsperado = ref(0)
 
-  /**
-   * Lista Optimizada (Sin redundancias)
-   */
-  const denominaciones = ref([
-    { label: '$1,000', valor: 1000, cantidad: 0 },
-    { label: '$500',   valor: 500,  cantidad: 0 },
-    { label: '$200',   valor: 200,  cantidad: 0 },
-    { label: '$100',   valor: 100,  cantidad: 0 },
-    { label: '$50',    valor: 50,   cantidad: 0 },
-    { label: '$20',    valor: 20,   cantidad: 0 },
-    { label: '$10',    valor: 10,   cantidad: 0 },
-    { label: '$5',     valor: 5,    cantidad: 0 },
-    { label: '$2',     valor: 2,    cantidad: 0 },
-    { label: '$1',     valor: 1,    cantidad: 0 },
-    { label: '50¢',    valor: 0.5,  cantidad: 0 },
-  ])
+  // CAPTURA DE DÓLARES
+  const dolaresCantidad = ref(0)
 
   const internalValue = computed({
     get: () => props.modelValue,
     set: (val) => emit('update:modelValue', val)
   })
 
-  /**
-   * REEMPLAZO DE LA FUNCIÓN: Uso de Watcher para reactividad premium
-   * Esto elimina la necesidad de llamar a una función en el @update:model-value
-   */
-  watch(denominaciones, () => {
-    efectivoContado.value = denominaciones.value.reduce((acc, d) => {
-      return acc + (d.valor * (parseFloat(d.cantidad) || 0))
-    }, 0)
-  }, { deep: true })
+  const resetArqueo = () => {
+    // 1. Ponemos en cero todas las denominaciones MXN
+    denominaciones.value.forEach(d => {
+      d.cantidad = 0
+    })
 
-  const diferencia = computed(() => efectivoContado.value - efectivoSistema.value)
+    // 2. Reseteamos dólares y tarjetas
+    dolaresCantidad.value = 0
+    tarjetaContado.value = 0
 
-  const diferenciaEstilo = computed(() => {
-    if (Math.abs(diferencia.value) < 0.01) return { bg: 'bg-green-9', text: 'text-green-2', icon: 'check_circle' }
-    return diferencia.value < 0
-      ? { bg: 'bg-red-9', text: 'text-red-2', icon: 'error_outline' }
-      : { bg: 'bg-orange-9', text: 'text-orange-2', icon: 'add_circle_outline' }
+    // 3. Reseteamos el total contado acumulado
+    efectivoContado.value = 0
+  }
+
+  watch(internalValue, (abierto) => {
+    if (abierto) {
+      // Primero limpiamos los datos anteriores
+      resetArqueo()
+
+      // Luego cargamos los datos nuevos del servidor
+      cargarBalanceEsperado()
+    }
   })
 
-  const formatMoney = (val) => Number(val).toLocaleString('en-US', { minimumFractionDigits: 2 })
+  const denominaciones = ref([
+    { label: 'Billete $1000', valor: 1000, cantidad: 0 },
+    { label: 'Billete $500',  valor: 500,  cantidad: 0 },
+    { label: 'Billete $200',  valor: 200,  cantidad: 0 },
+    { label: 'Billete $100',  valor: 100,  cantidad: 0 },
+    { label: 'Billete $50',   valor: 50,   cantidad: 0 },
+    { label: 'Billete $20',   valor: 20,   cantidad: 0 },
+    { label: 'Moneda $10',    valor: 10,   cantidad: 0 },
+    { label: 'Moneda $5',     valor: 5,    cantidad: 0 },
+    { label: 'Moneda $2',     valor: 2,    cantidad: 0 },
+    { label: 'Moneda $1',     valor: 1,    cantidad: 0 },
+    { label: 'Centavos',      valor: 0.50, cantidad: 0 }
+  ])
+
+  const diferencia = computed(() => efectivoContado.value - totalEsperado.value)
+  const diferenciaEfectivo = computed(() => efectivoContado.value - efectivoEsperado.value)
+  const diferenciaTarjeta = computed(() => tarjetaContado.value - tarjetaEsperado.value)
+  const diferenciaTotal = computed(() => diferenciaEfectivo.value + diferenciaTarjeta.value)
+
+  const formatMoney = (val) => {
+    return Number(val || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  }
 
   const cargarBalanceEsperado = async () => {
     try {
-      const { data } = await api.get(`/api/pos/balance-turno/${posStore.turno?.id}`)
-      efectivoSistema.value = parseFloat(data.balance_efectivo)
+      const { data } = await api.get(`/api/pos/balance-turno/${posStore.turno.id}`)
+      efectivoEsperado.value = data.efectivo_esperado
+      tarjetaEsperado.value = data.tarjeta_esperado
+      totalEsperado.value = data.total_general
     } catch (e) {
-      $q.notify({ color: 'negative', message: 'No se pudo obtener el balance de sistema' })
+      console.error("Error al obtener balance")
     }
   }
 
+  // WATCHER: Suma denominaciones MXN + Dólares convertidos
+  watch([denominaciones, dolaresCantidad], () => {
+    const totalPesos = denominaciones.value.reduce((acc, d) => acc + (d.valor * (parseFloat(d.cantidad) || 0)), 0)
+    const valorDolaresEnPesos = dolaresCantidad.value * (posStore.turno?.tipo_cambio || 1)
+
+    efectivoContado.value = totalPesos + valorDolaresEnPesos
+  }, { deep: true })
+
   const ejecutarCierreFinal = async () => {
     $q.dialog({
-      title: '<span class="text-yellow text-bold">CONFIRMAR CIERRE</span>',
+      title: 'Confirmar Cierre',
       message: '¿Está seguro de finalizar el turno? Esta acción es irreversible.',
-      html: true,
       dark: true,
-      cancel: true,
-      ok: { label: 'SÍ, CERRAR CAJA', color: 'positive', unelevated: true }
+      persistent: true,
+      ok: { label: 'Si, Cerrar Caja', color: 'primary', unelevated: true },
+      cancel: { label: 'Cancelar', flat: true, color: 'grey-5' }
     }).onOk(async () => {
       procesandoCierre.value = true
       try {
+
+        const desgloseMXN = denominaciones.value.map(d => ({
+          label: d.label,
+          valor: d.valor,
+          cantidad: d.cantidad || 0,
+          subtotal: d.valor * (d.cantidad || 0)
+        }))
+
+
+        const filaDolares = {
+          label: "Dolares (USD)",
+          valor: posStore.turno?.tipo_cambio || 1,
+          cantidad: dolaresCantidad.value || 0,
+          subtotal: Number((dolaresCantidad.value * (posStore.turno?.tipo_cambio || 1)).toFixed(2))
+        }
+
         const payload = {
           turno_id: posStore.turno.id,
           efectivo_contado: efectivoContado.value,
           diferencia: diferencia.value,
-          denominaciones: denominaciones.value.map(d => ({
-            label: d.label,
-            valor: d.valor,
-            cantidad: d.cantidad,
-            subtotal: d.valor * d.cantidad
-          }))
+          tarjeta_contado: tarjetaContado.value, // <--- NUEVO
+          tarjeta_esperado: tarjetaEsperado.value, // <--- PARA AUDITORÍA
+          denominaciones: [...desgloseMXN, filaDolares],
         }
-        await api.post('/api/pos/cerrar-turno', payload) //
 
-        //$q.notify({ color: 'positive', message: 'TURNO CERRADO CON ÉXITO', icon: 'lock_outline' })
+        await api.post('/api/pos/cerrar-turno', payload)
+
         posStore.turno = null
         internalValue.value = false
         emit('closed')
@@ -212,9 +346,7 @@
   }
 
   watch(internalValue, (nuevoEstado) => {
-    if (nuevoEstado) {
-      cargarBalanceEsperado()
-    }
+    if (nuevoEstado) cargarBalanceEsperado()
   })
 
   onMounted(() => {
@@ -229,18 +361,11 @@
   .border-white-5 { border: 1px solid rgba(255,255,255,0.05); }
   .bg-blue-grey-11 { background: #1e282c; }
   .shadow-inner { box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); }
-  .text-shadow-blue { text-shadow: 0 0 15px rgba(77, 208, 225, 0.4); }
+  .border-radius-15 { border-radius: 15px; }
 
-  .btn-premium {
-    border-radius: 12px;
-    transition: all 0.3s ease;
-    &:hover { transform: scale(1.02); filter: brightness(1.1); }
-  }
-
-  /* Ocultar flechas del input number */
-  :deep(input::-webkit-outer-spin-button),
-  :deep(input::-webkit-inner-spin-button) {
-    -webkit-appearance: none;
-    margin: 0;
+  // ESTILO ESPECIAL PARA EL CARD DE DÓLARES
+  .border-usd {
+    border: 1px solid rgba(242, 192, 55, 0.4) !important;
+    background: linear-gradient(135deg, rgba(242, 192, 55, 0.05) 0%, rgba(30, 40, 44, 1) 100%) !important;
   }
 </style>
