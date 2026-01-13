@@ -43,14 +43,29 @@
       </q-card-section>
 
       <q-card-actions class="q-pb-xl q-px-xl">
-        <q-btn
-          label="INICIAR TURNO"
-          color="positive"
-          class="full-width q-py-md text-bold"
-          unelevated
-          :loading="cargando"
-          @click="abrirCaja"
-        />
+        <div class="row q-col-gutter-sm">
+          <div class="col-xl-4">
+            <q-btn
+              label="CANCELAR"
+              flat
+              color="grey-6"
+              class="q-py-md text-bold"
+              v-close-popup
+              style="border-radius: 12px;"
+            />
+          </div>
+          <div class="col-xl-4">
+            <q-btn
+              label="INICIAR TURNO"
+              color="positive"
+              class="q-py-md text-bold"
+              unelevated
+              :loading="cargando"
+              @click="abrirCaja"
+            />
+          </div>
+        </div>
+
       </q-card-actions>
     </q-card>
   </q-dialog>

@@ -63,7 +63,7 @@
       :columns="columns"
       row-key="id"
       flat bordered
-      class="rounded-borders shadow-1 bg-white"
+      class="rounded-borders shadow-1 bg-white main-table"
       :loading="loading"
       :filter="filter"
     >
@@ -96,11 +96,10 @@
         </div>
       </template>
 
-       <template v-slot:body-cell-fecha="props">
+      <template v-slot:body-cell-fecha="props">
         <q-td :props="props">
-          <span style="font-size: 14px; color: purple">
-            {{ props.value }}
-          </span>
+          <div class="text-blue-grey-7 text-bold">{{ formatFecha(props.value) }}</div>
+          <div class="text-caption text-grey-6">{{ formatHora(props.value) }}</div>
         </q-td>
       </template>
 
@@ -259,6 +258,9 @@
   const showDetalle = ref(false)
   const selectedCompraId = ref(null)
 
+  const formatFecha = (f) => date.formatDate(f, 'DD MMM YYYY')
+  const formatHora = (f) => date.formatDate(f, 'hh:mm A')
+
   const verDetalle = (row) => {
     selectedCompraId.value = row.id
     showDetalle.value = true
@@ -397,12 +399,22 @@ const onDownloadFromModal = (compra) => {
 
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
   .custom-focus .q-field__control {
     transition: all 0.3s ease;
   }
   .custom-focus.q-field--focused .q-field__control {
     background-color: rgba(142, 0, 0, 0.04) !important;
     border-color: $primary;
+  }
+  .main-table {
+    background: white;
+    :deep(thead th) {
+      font-weight: bold;
+      text-transform: uppercase;
+      color: white;
+      background: #263238;
+      border-bottom: 2px solid $primary;
+    }
   }
 </style>

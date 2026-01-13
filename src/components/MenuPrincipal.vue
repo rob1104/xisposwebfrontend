@@ -1,126 +1,142 @@
 <template>
   <q-list padding class="menu-list q-px-md">
-    <q-item-label header class="text-overline text-red-9 text-bold text-uppercase" style="font-size: 18px;">Operaciones</q-item-label>
 
-    <q-item clickable v-ripple to="/dashboard" active-class="custom-active-link" class="menu-item">
-      <q-item-section avatar><q-icon name="dashboard_customize" /></q-item-section>
-      <q-item-section class="text-weight-medium">Panel Principal</q-item-section>
+    <q-item clickable v-ripple to="/dashboard" active-class="custom-active-link" class="menu-item q-mb-lg">
+      <q-item-section avatar><q-icon name="dashboard" /></q-item-section>
+      <q-item-section class="text-weight-bold text-uppercase">DASHBOARD</q-item-section>
     </q-item>
 
-    <q-item v-if="auth.can('pos.ver')" clickable v-ripple to="/pos" active-class="custom-active-link" class="menu-item">
+    <q-item-label header class="menu-header">Comercial</q-item-label>
+
+    <q-item v-if="auth.can('ventas.pos')" clickable v-ripple to="/pos" active-class="custom-active-link" class="menu-item">
       <q-item-section avatar><q-icon name="point_of_sale" /></q-item-section>
-      <q-item-section class="text-weight-medium">Punto de Venta</q-item-section>
+      <q-item-section class="text-weight-medium">Punto de Venta (POS)</q-item-section>
     </q-item>
-
-    <q-item v-if="auth.can('compras.ver')" clickable v-ripple to="/compras" active-class="custom-active-link" class="menu-item">
-      <q-item-section avatar><q-icon name="shopping_basket" /></q-item-section>
-      <q-item-section class="text-weight-medium">Compras</q-item-section>
-    </q-item>
-
-    <q-item v-if="auth.can('ventas.ver')" clickable v-ripple to="/ventas" active-class="custom-active-link" class="menu-item">
-      <q-item-section avatar><q-icon name="money" /></q-item-section>
-      <q-item-section class="text-weight-medium">Ventas</q-item-section>
-    </q-item>
-
 
     <q-expansion-item
-      v-model="catalogoExpanded"
-      icon="auto_stories"
-      label="Catálogos"
-      header-class="text-weight-bold text-grey-8 custom-expansion"
-      expand-separator
+      v-model="ventasExpanded"
+      icon="receipt_long"
+      label="Ventas y Clientes"
+      header-class="menu-expansion-header"
     >
+      <q-item v-if="auth.can('ventas.ver')" clickable v-ripple to="/ventas" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="history" /></q-item-section>
+        <q-item-section>Historial de Ventas</q-item-section>
+      </q-item>
+
       <q-item v-if="auth.can('clientes.ver')" clickable v-ripple to="/clientes" active-class="custom-active-link" class="menu-item-sub">
-        <q-item-section avatar><q-icon name="group" /></q-item-section>
-        <q-item-section>Clientes</q-item-section>
+        <q-item-section avatar><q-icon name="person_search" /></q-item-section>
+        <q-item-section>Cartera de Clientes</q-item-section>
       </q-item>
 
-      <q-item v-if="auth.can('proveedores.ver')" clickable v-ripple to="/proveedores" active-class="custom-active-link" class="menu-item-sub">
-        <q-item-section avatar><q-icon name="local_shipping" /></q-item-section>
-        <q-item-section>Proveedores</q-item-section>
-      </q-item>
-
-      <q-item v-if="auth.can('productos.ver')" clickable v-ripple to="/productos" active-class="custom-active-link" class="menu-item-sub">
-        <q-item-section avatar><q-icon name="inventory_2" /></q-item-section>
-        <q-item-section>Productos</q-item-section>
-      </q-item>
     </q-expansion-item>
+
+    <q-separator class="q-my-md opacity-20" />
+
+    <q-item-label header class="menu-header">Logística</q-item-label>
 
     <q-expansion-item
       v-model="inventarioExpanded"
-      icon="storage"
-      label="Inventario"
-      header-class="text-weight-bold text-grey-8 custom-expansion"
-      class="q-mt-sm"
+      icon="inventory"
+      label="Almacén y Stock"
+      header-class="menu-expansion-header"
     >
-      <q-item v-if="auth.can('inventario.movimientos')" clickable v-ripple to="/movimientosinventario" active-class="custom-active-link" class="menu-item-sub">
-        <q-item-section avatar><q-icon name="swap_vert" /></q-item-section>
-        <q-item-section>Movimientos</q-item-section>
+      <q-item v-if="auth.can('productos.ver')" clickable v-ripple to="/productos" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="label" /></q-item-section>
+        <q-item-section>Catálogo Productos</q-item-section>
       </q-item>
 
-       <q-item v-if="auth.can('inventario.transferencias')" clickable v-ripple to="/transferencias" active-class="custom-active-link" class="menu-item-sub">
-        <q-item-section avatar><q-icon name="arrow_forward" /></q-item-section>
-        <q-item-section>Transferir</q-item-section>
-      </q-item>
-
-      <q-item v-if="auth.can('inventario.recibir')" clickable v-ripple to="/recibir" active-class="custom-active-link" class="menu-item-sub">
-        <q-item-section avatar><q-icon name="arrow_back" /></q-item-section>
-        <q-item-section>Recibir</q-item-section>
-      </q-item>
-
-      <q-item v-if="auth.can('inventario.global')"clickable v-ripple to="/inventarioglobal" active-class="custom-active-link" class="menu-item-sub">
-        <q-item-section avatar><q-icon name="assignment" /></q-item-section>
+      <q-item v-if="auth.can('inventario.global')" clickable v-ripple to="/inventarioglobal" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="public" /></q-item-section>
         <q-item-section>Inventario Global</q-item-section>
       </q-item>
 
       <q-item v-if="auth.can('inventario.historico')" clickable v-ripple to="/inventarioxsucursal" active-class="custom-active-link" class="menu-item-sub">
-        <q-item-section avatar><q-icon name="assignment" /></q-item-section>
-        <q-item-section>Inventario Por Sucursal</q-item-section>
+        <q-item-section avatar><q-icon name="location_on" /></q-item-section>
+        <q-item-section>Stock por Sucursal</q-item-section>
       </q-item>
 
+      <q-item v-if="auth.can('inventario.movimientos')" clickable v-ripple to="/movimientosinventario" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="sync_alt" /></q-item-section>
+        <q-item-section>Kárdex de Movimientos</q-item-section>
+      </q-item>
+
+      <q-item v-if="auth.can('inventario.transferencias')" clickable v-ripple to="/transferencias" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="local_shipping" /></q-item-section>
+        <q-item-section>Transferencias</q-item-section>
+      </q-item>
+
+      <q-item v-if="auth.can('inventario.recibir')" clickable v-ripple to="/recibir" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="call_received" /></q-item-section>
+        <q-item-section>Recibir Mercancía</q-item-section>
+      </q-item>
     </q-expansion-item>
 
     <q-expansion-item
-      v-model="seguridadExpanded"
-      icon="admin_panel_settings"
-      label="Seguridad"
-      header-class="text-weight-bold text-grey-8 custom-expansion"
-      class="q-mt-sm"
+      v-model="comprasExpanded"
+      icon="shopping_cart"
+      label="Compras"
+      header-class="menu-expansion-header"
     >
-      <q-item v-if="auth.can('usuarios.ver')" clickable v-ripple to="/usuarios" active-class="custom-active-link" class="menu-item-sub">
-        <q-item-section avatar><q-icon name="person_search" /></q-item-section>
-        <q-item-section>Control de Usuarios</q-item-section>
+      <q-item v-if="auth.can('compras.ver')" clickable v-ripple to="/compras" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="list_alt" /></q-item-section>
+        <q-item-section>Órdenes de Compra</q-item-section>
       </q-item>
 
-      <q-item v-if="auth.can('roles.ver')" clickable v-ripple to="/roles" active-class="custom-active-link" class="menu-item-sub">
-        <q-item-section avatar><q-icon name="policy" /></q-item-section>
-        <q-item-section>Permisos del Sistema</q-item-section>
+      <q-item v-if="auth.can('proveedores.ver')" clickable v-ripple to="/proveedores" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="hail" /></q-item-section>
+        <q-item-section>Proveedores</q-item-section>
       </q-item>
     </q-expansion-item>
 
-    <q-separator class="q-my-lg" />
+    <q-separator class="q-my-md opacity-20" />
 
-    <q-item-label header class="text-overline text-red-9 text-bold text-uppercase" style="font-size: 18px;">Administración</q-item-label>
+    <q-item-label header class="menu-header">Administración</q-item-label>
 
-    <q-item v-if="auth.can('conceptos.ver')" clickable v-ripple to="/catalogos" active-class="custom-active-link" class="menu-item">
-      <q-item-section avatar><q-icon name="collections" /></q-item-section>
-      <q-item-section class="text-weight-medium">Conceptos</q-item-section>
-    </q-item>
+    <q-expansion-item
+      v-model="seguridadExpanded"
+      icon="settings_suggest"
+      label="Configuración"
+      header-class="menu-expansion-header"
+    >
+      <q-item v-if="auth.can('sucursales.ver')" clickable v-ripple to="/sucursales" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="store" /></q-item-section>
+        <q-item-section>Sucursales</q-item-section>
+      </q-item>
 
-    <q-item v-if="auth.can('sucursales.ver')" clickable v-ripple to="/sucursales" active-class="custom-active-link" class="menu-item">
-      <q-item-section avatar><q-icon name="storefront" /></q-item-section>
-      <q-item-section class="text-weight-medium">Sucursales</q-item-section>
-    </q-item>
+      <q-item v-if="auth.can('conceptos.ver')" clickable v-ripple to="/catalogos" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="category" /></q-item-section>
+        <q-item-section>Conceptos Base</q-item-section>
+      </q-item>
 
-    <q-item v-if="auth.can('logs.ver')" clickable v-ripple to="/auditoria" active-class="custom-active-link" class="menu-item">
-      <q-item-section avatar><q-icon name="manage_history" /></q-item-section>
-      <q-item-section class="text-weight-medium">Logs de Auditoría</q-item-section>
-    </q-item>
+      <q-item v-if="auth.can('configuracion.ver')" clickable v-ripple to="/configuracion" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="tune" /></q-item-section>
+        <q-item-section>Ajustes Generales</q-item-section>
+      </q-item>
+    </q-expansion-item>
 
-    <q-item v-if="auth.can('configuracion.ver')" clickable v-ripple to="/configuracion" active-class="custom-active-link" class="menu-item">
-      <q-item-section avatar><q-icon name="tune" /></q-item-section>
-      <q-item-section class="text-weight-medium">Configuración</q-item-section>
-    </q-item>
+    <q-expansion-item
+      v-model="accesoExpanded"
+      icon="shield"
+      label="Seguridad"
+      header-class="menu-expansion-header"
+    >
+      <q-item v-if="auth.can('usuarios.ver')" clickable v-ripple to="/usuarios" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="manage_accounts" /></q-item-section>
+        <q-item-section>Gestión de Usuarios</q-item-section>
+      </q-item>
+
+      <q-item v-if="auth.can('roles.ver')" clickable v-ripple to="/roles" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="lock_person" /></q-item-section>
+        <q-item-section>Roles y Permisos</q-item-section>
+      </q-item>
+
+      <q-item v-if="auth.can('logs.ver')" clickable v-ripple to="/auditoria" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="fingerprint" /></q-item-section>
+        <q-item-section>Logs de Auditoría</q-item-section>
+      </q-item>
+    </q-expansion-item>
+
   </q-list>
 </template>
 
@@ -131,68 +147,71 @@
 
   const auth = useAuthStore()
   const route = useRoute()
-  const catalogoExpanded = ref(false)
+
+  // Estados de expansión
+  const ventasExpanded = ref(false)
   const inventarioExpanded = ref(false)
+  const comprasExpanded = ref(false)
   const seguridadExpanded = ref(false)
+  const accesoExpanded = ref(false)
 
-  // Función para verificar si la ruta actual pertenece a Catálogos
   const checkRoute = () => {
-    const catalogosPaths = ['/clientes', '/proveedores', '/productos']
-    if (catalogosPaths.some(path => route.path.includes(path))) {
-      catalogoExpanded.value = true
-    }
+    const path = route.path
 
-    const inventarioPaths = ['/movimientosinventario', '/inventarioglobal', '/transferencias', '/inventarioxsucursal']
-    if (inventarioPaths.some(path => route.path.includes(path))) {
-      inventarioExpanded.value = true
-    }
-
-    const seguridadPaths = ['/usuarios', '/roles']
-    if (seguridadPaths.some(path => route.path.includes(path))) {
-      seguridadExpanded.value = true
-    }
+    ventasExpanded.value = ['/ventas', '/clientes'].some(p => path.includes(p))
+    inventarioExpanded.value = ['/productos', '/inventarioglobal', '/inventarioxsucursal', '/movimientosinventario', '/transferencias', '/recibir'].some(p => path.includes(p))
+    comprasExpanded.value = ['/compras', '/proveedores'].some(p => path.includes(p))
+    seguridadExpanded.value = ['/sucursales', '/catalogos', '/configuracion'].some(p => path.includes(p))
+    accesoExpanded.value = ['/usuarios', '/roles', '/auditoria'].some(p => path.includes(p))
   }
 
-  // Observar cambios en la ruta para expandir automáticamente
-  watch(() => route.path, () => {
-    checkRoute()
-  })
-
-  // Verificar al cargar el componente (por si entran directo por URL)
-  onMounted(() => {
-    checkRoute()
-  })
+  watch(() => route.path, () => checkRoute())
+  onMounted(() => checkRoute())
 </script>
 
 <style lang="scss" scoped>
+  .menu-header {
+    text-transform: uppercase;
+    font-weight: 800;
+    color: $red-9;
+    letter-spacing: 1.2px;
+    font-size: 0.75rem;
+    padding-top: 20px;
+  }
+
   .menu-item {
-    border-radius: 12px;
+    border-radius: 10px;
     margin-bottom: 4px;
-    color: #555;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    &:hover { background: rgba(142, 0, 0, 0.05); color: $primary; }
+    color: #444;
+    transition: all 0.2s ease;
+    &:hover { background: rgba(142, 0, 0, 0.04); color: $primary; }
+  }
+
+  .menu-expansion-header {
+    border-radius: 10px;
+    font-weight: 600;
+    color: #444;
   }
 
   .menu-item-sub {
-    border-radius: 10px;
+    border-radius: 8px;
+    margin-left: 12px;
+    margin-right: 8px;
     margin-bottom: 2px;
-    font-size: 0.9em;
-    margin-left: 24px;
-    padding-left: 16px;
-    transition: all 0.2s ease;
+    font-size: 0.92em;
+    color: #666;
     &:hover {
-      border-left: 2px solid;
-      background: rgba(142, 0, 0, 0.05);
+      background: rgba(142, 0, 0, 0.04);
+      color: $primary;
     }
   }
 
   .custom-active-link {
     background: $primary !important;
     color: white !important;
-    font-weight: bold;
-    box-shadow: 0 4px 12px rgba(142, 0, 0, 0.3);
+    box-shadow: 0 4px 10px rgba(142, 0, 0, 0.2);
     .q-icon { color: white !important; }
   }
 
-  .custom-expansion { border-radius: 12px; }
+  .opacity-20 { opacity: 0.2; }
 </style>

@@ -94,7 +94,6 @@ export const useAuthStore = defineStore('auth', {
         this.permissions = data.permissions ? data.permissions.map(p => p.name) : []
         localStorage.setItem('user', JSON.stringify(this.user))
         localStorage.setItem('permissions', JSON.stringify(this.permissions))
-        console.log("User:" + data)
       } catch (e) {
         this.clearLocalAuth()
       }

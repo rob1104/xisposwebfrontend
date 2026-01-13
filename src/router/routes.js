@@ -21,9 +21,9 @@ const routes = [
       { path: 'inventarioxsucursal', component: () => import('pages/Reportes/StockReport.vue'), name: 'inventarioglobalreporte' },
       { path: 'inventariohistorico', component: () => import('pages/Inventario/InventarioHistorico.vue'), name: 'inventariohistorico' },
       { path: 'compras', component: () => import('pages/Compras/ComprasPage.vue'), name: 'compras' },
-      { path: 'ventas', component: () => import('pages/Ventas/VentasPage.vue'), name: 'ventas' },
+      { path: 'ventas', component: () => import('pages/Ventas/VentasPage.vue'), name: 'ventas', meta: { permission: 'ventas.ver' } },
       { path: 'catalogos', component: () => import('pages/CatalogosPage.vue'), name: 'catalogos' },
-      { path: 'pos', component: () => import('pages/Pos/PosPage.vue'), name: 'pos', meta: { hideLayout: true } },
+      { path: 'pos', component: () => import('pages/Pos/PosPage.vue'), name: 'pos', meta: { hideLayout: true, permission: 'ventas.pos' } },
       { path: 'configuracion', component: () => import('pages/Configuracion/ConfiguracionPage.vue'), name: 'configuracion' },
       { path: 'perfil', component: () => import('pages/Usuarios/ProfilePage.vue'), name: 'perfil' },
     ]

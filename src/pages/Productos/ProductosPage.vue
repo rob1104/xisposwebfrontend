@@ -121,7 +121,7 @@
 
 
               <q-td key="actions" :props="props">
-                <q-btn
+                <q-btn :disabled="!auth.can('productos.kardex')"
                   flat round
                   color="deep-orange"
                   icon="analytics"
@@ -278,8 +278,8 @@
     :deep(thead th) {
       font-weight: bold;
       text-transform: uppercase;
-      color: #555;
-      background: #f9f9f9;
+      color: white;
+      background: #263238;
       border-bottom: 2px solid $primary;
     }
   }

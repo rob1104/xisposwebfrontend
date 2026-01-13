@@ -3,11 +3,12 @@
     <div class="row items-center q-mb-xl">
       <div class="col-12 col-md-6">
         <div class="text-h4 text-bold text-grey-9">Panel de Inicio</div>
-        <div class="text-subtitle1 text-grey-7">Resumen de inventario y operaciones.</div>
+        <div v-if="auth.roles[0] !== 'Cajero'" class="text-subtitle1 text-grey-7">Resumen de inventario y operaciones.</div>
       </div>
       <q-space />
       <div class="col-12 col-md-3">
         <q-select
+          v-if="auth.roles[0] !== 'Cajero'"
           v-model="sucursalFiltro"
           :options="auth.sucursales"
           option-label="nombre"
@@ -20,7 +21,7 @@
       </div>
     </div>
 
-    <div class="row q-col-gutter-lg q-mb-lg">
+    <div v-if="auth.roles[0] !== 'Cajero'" class="row q-col-gutter-lg q-mb-lg">
       <div class="col-12 col-sm-6 col-md-3" v-for="kpi in kpis" :key="kpi.title">
         <q-card class="shadow-5 border-radius-15 kpi-card clickable" v-ripple>
           <q-card-section class="row items-center no-wrap">
@@ -35,7 +36,7 @@
       </div>
     </div>
 
-    <div class="row q-col-gutter-lg q-mb-lg">
+    <div v-if="auth.roles[0] !== 'Cajero'" class="row q-col-gutter-lg q-mb-lg">
       <div class="col-12 col-lg-8">
         <q-card class="shadow-5 border-radius-15 full-height">
           <q-card-section class="row items-center q-pb-none">
@@ -49,7 +50,7 @@
         </q-card>
       </div>
 
-      <div class="col-12 col-lg-4">
+      <div v-if="auth.roles[0] !== 'Cajero'" class="col-12 col-lg-4">
         <q-card class="shadow-5 border-radius-15 full-height bg-white">
           <q-card-section class="bg-red-8 text-white row items-center">
             <q-icon name="warning" size="sm" class="q-mr-sm" />
@@ -83,7 +84,7 @@
 
     </div>
 
-    <div class="row q-col-gutter-lg">
+    <div v-if="auth.roles[0] !== 'Cajero'" class="row q-col-gutter-lg">
       <div class="col-12 col-md-12">
         <q-card class="shadow-5 border-radius-15">
           <q-card-section class="row items-center">
@@ -110,7 +111,10 @@
           </q-card-section>
         </q-card>
       </div>
-      <TurnoHistorial />
+    </div>
+
+    <div class="row q-col-gutter-lg">
+       <TurnoHistorial :sucursalId="sucursalFiltro" />
     </div>
   </q-page>
 </template>

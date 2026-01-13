@@ -53,7 +53,7 @@
                     <q-item-label caption>{{ form.status ? 'Activo' : 'Desactivado' }}</q-item-label>
                   </q-item-section>
                   <q-item-section side>
-                    <q-toggle v-model="form.status" :true-value="true" :false-value="false" color="primary" />
+                    <q-toggle :disable="!auth.can('productos.desactivar')" v-model="form.status" :true-value="true" :false-value="false" color="primary" />
                   </q-item-section>
                 </q-item>
               </div>
@@ -228,10 +228,13 @@
   import { ref, reactive, computed, nextTick, onMounted } from 'vue'
   import { api } from 'boot/axios'
   import { useQuasar } from 'quasar'
+  import { useAuthStore } from 'src/stores/auth'
+
 
   const props = defineProps({ modelValue: Boolean, editData: Object })
   const emit = defineEmits(['update:modelValue', 'saved'])
   const $q = useQuasar()
+  const auth = useAuthStore()
 
   const tab = ref('general')
   const loading = ref(false)

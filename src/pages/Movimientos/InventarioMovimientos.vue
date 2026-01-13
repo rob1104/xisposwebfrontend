@@ -63,7 +63,7 @@
       :columns="columns"
       row-key="id"
       flat bordered
-      class="rounded-borders shadow-1"
+      class="rounded-borders shadow-1 main-table"
       :loading="loading"
     >
       <template v-slot:top>
@@ -496,3 +496,16 @@
     cargarMovimientos()
   })
 </script>
+
+<style lang="scss" scoped>
+  .main-table {
+    background: white;
+    :deep(thead th) {
+      font-weight: bold;
+      text-transform: uppercase;
+      color: white;
+      background: #263238;
+      border-bottom: 2px solid $primary;
+    }
+  }
+</style>

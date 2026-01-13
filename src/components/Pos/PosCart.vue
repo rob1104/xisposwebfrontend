@@ -25,8 +25,12 @@
     </template>
 
     <template v-slot:body-cell-precio="props">
-      <q-td :props="props" class="text-bold text-yellow" style="font-size: 20px;">
-        $ {{ (props.value * 1).toFixed(2) }}
+      <q-td :props="props" class="text-bold text-yellow cursor-pointer" style="font-size: 20px;">
+        <div @click="$emit('request-price-change', props.row)">
+          $ {{ (props.value * 1).toFixed(2) }}
+          <q-icon name="edit" size="xs" class="q-ml-xs text-grey-5" />
+        </div>
+        <q-tooltip class="bg-primary">Click para cambiar precio</q-tooltip>
       </q-td>
     </template>
 
@@ -56,7 +60,7 @@
 
 <script setup>
   defineProps(['items'])
-  defineEmits(['increment', 'decrement'])
+  defineEmits(['increment', 'decrement', 'request-price-change'])
 
   const columns = [
     { name: 'index', label: '#', align: 'left', field: 'id' },

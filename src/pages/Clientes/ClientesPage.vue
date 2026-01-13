@@ -49,6 +49,7 @@
         flat
         class="main-table"
       >
+
         <template v-slot:top-left>
           <div class="text-h6 text-bold text-primary">Listado de Clientes</div>
         </template>
@@ -66,9 +67,11 @@
           </q-input>
         </template>
 
+
+
         <template v-slot:body="props">
           <q-tr :props="props" class="hover-row">
-            <q-td key="numero_global" :props="props">
+            <q-td key="numero_global" :props="props" >
               <q-badge color="grey-3" text-color="primary" class="text-bold q-pa-xs">
                 #{{ props.row.numero_global }}
               </q-badge>
@@ -284,8 +287,8 @@
     :deep(thead th) {
       font-weight: bold;
       text-transform: uppercase;
-      color: #555;
-      background: #f9f9f9;
+      color: white;
+      background: #263238;
       border-bottom: 2px solid $primary;
     }
   }

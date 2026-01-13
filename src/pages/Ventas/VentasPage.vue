@@ -191,7 +191,7 @@
 
       <template v-slot:body-cell-total="props">
         <q-td :props="props" class="text-right">
-          <div class="text-h6 text-bold text-blue-grey-9 font-mono">
+          <div class="text-h6 text-bold text-purple-9 font-mono">
             ${{ formatMoney(props.value) }}
           </div>
         </q-td>
@@ -199,14 +199,14 @@
 
       <template v-slot:body-cell-acciones="props">
         <q-td :props="props" class="text-center">
-          <q-btn flat round dense color="blue-grey-8" icon="visibility" @click="verVenta(props.row)">
+          <q-btn :disabled="!auth.can('ventas.ver')" flat round dense color="cyan-8" icon="visibility" @click="verVenta(props.row)">
             <q-tooltip>Detalles de Venta</q-tooltip>
           </q-btn>
-          <q-btn flat round dense color="secondary" icon="print">
+          <q-btn :disabled="!auth.can('ventas.ver')" flat round dense color="secondary" icon="print">
             <q-tooltip>Reimprimir Ticket</q-tooltip>
           </q-btn>
-          <q-btn
-            flat round dense color="negative" icon="delete_sweep"
+          <q-btn :disabled="!auth.can('ventas.cancelar')"
+            flat round dense color="negative" icon="cancel"
             @click="prepararCancelacion(props.row)"
             :disable="props.row.status === 'Cancelada'"
           >
@@ -267,6 +267,9 @@
   import { api } from 'src/boot/axios'
   import { date, useQuasar } from 'quasar'
   import VentaDetalle from 'src/components/Ventas/VentaDetalle.vue'
+  import { useAuthStore } from 'src/stores/auth'
+
+  const auth = useAuthStore()
 
   const $q = useQuasar()
   const ventas = ref([])
@@ -439,9 +442,13 @@
     }
   }
   .main-sales-table {
-    border-radius: 15px;
-    :deep(.q-table__top) {
-      border-bottom: 1px solid #f0f0f0;
+    background: white;
+    :deep(thead th) {
+      font-weight: bold;
+      text-transform: uppercase;
+      color: white;
+      background: #263238;
+      border-bottom: 2px solid $primary;
     }
   }
   .font-mono { font-family: 'Roboto Mono', monospace; }

@@ -257,8 +257,8 @@
     :deep(thead th) {
       font-weight: bold;
       text-transform: uppercase;
-      color: #555;
-      background: #f9f9f9;
+      color: white;
+      background: #263238;
       border-bottom: 2px solid $primary;
     }
   }

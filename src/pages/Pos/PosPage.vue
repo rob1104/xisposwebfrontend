@@ -26,6 +26,7 @@
               :items="carrito"
               @increment="incrementar"
               @decrement="decrementar"
+              @request-price-change="abrirDialogoPrecio"
             />
           </div>
         </div>
@@ -58,9 +59,9 @@
 
       <!-- Footer Responsive con Info -->
       <div class="bg-blue-grey-9 text-white q-pa-xs text-caption row justify-center items-center q-gutter-x-sm q-gutter-y-xs shadow-up-1 flex-wrap">
-        <!-- Atajos de Teclado - Solo en pantallas medianas+ -->
+        <!-- Atajos de Teclado - Solo en pantallas medianas -->
         <div class="gt-sm row q-gutter-x-sm items-center">
-          <span><b class="text-yellow">[F2]</b> Buscar</span>
+          <span><b class="text-yellow">[F5]</b> Buscar</span>
           <span><b class="text-yellow">[F12]</b> Cobrar</span>
         </div>
 
@@ -101,6 +102,13 @@
           unelevated
           @click="dialogoApertura = true"
         />
+         <q-btn
+          label="REGRESAR A INICIO"
+          size="lg"
+          class="full-width q-mt-lg text-bold"
+          unelevated
+          @click="router.push('/')"
+        />
       </q-card>
     </div>
 
@@ -115,7 +123,7 @@
     />
     <PosDialogArqueo v-model="dialogoArqueo" @closed="onTurnoCerrado" />
     <CashMovementModal v-model="showCashModal" @success="onMovementSuccess" />
-
+    <PosDialogPriceChange v-model="dialogoCambiaPrecio" :item="itemSeleccionadoParaPrecio" @change="aplicarCambioPrecio" />
   </q-page>
 </template>
 
@@ -123,11 +131,11 @@
   import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
   import { useQuasar } from 'quasar'
   import { api } from 'src/boot/axios'
+  import { useRouter } from 'vue-router'
   import { useAuthStore } from 'src/stores/auth'
   import { usePosStore } from 'src/stores/pos'
   import { useConfigStore } from 'src/stores/config'
 
-  // Sub-componentes
   import PosHeader from 'components/Pos/PosHeader.vue'
   import PosCart from 'components/Pos/PosCart.vue'
   import PosSummary from 'components/Pos/PosSummary.vue'
@@ -135,12 +143,40 @@
   import PosDialogPayment from 'components/Pos/PosDialogPayment.vue'
   import PosDialogArqueo from 'components/Pos/PosDialogArqueo.vue'
   import PosDialogApertura from 'src/components/Pos/PosDialogApertura.vue'
+  import PosDialogPriceChange from 'src/components/Pos/PosDialogPriceChange.vue'
   import CashMovementModal from 'src/components/Pos/CashMovementModal.vue'
   import { PrintService } from 'src/services/PrintService'
 
   const $q = useQuasar()
   const auth = useAuthStore()
   const posStore = usePosStore()
+
+  const dialogoCambiaPrecio = ref(false)
+  const itemSeleccionadoParaPrecio = ref(null)
+
+  const router = useRouter()
+
+  const abrirDialogoPrecio = (item) => {
+    itemSeleccionadoParaPrecio.value = item
+    dialogoCambiaPrecio.value = true
+  }
+
+  const aplicarCambioPrecio = ({ precio, motivo, autorizado_por }) => {
+    const index = carrito.value.findIndex(p => p.uniqueId === itemSeleccionadoParaPrecio.value.uniqueId)
+    if(index !== -1) {
+      const valorNumerico = Number(precio)
+      carrito.value[index].precio = valorNumerico
+      carrito.value[index].motivo_cambio_precio = motivo
+      carrito.value[index].autorizado_por = autorizado_por
+      $q.notify({
+        color: 'positive',
+        message: `Precio actualizado: $${valorNumerico.toFixed(2)}`,
+        caption: `Motivo: ${motivo}`
+      })
+    }
+  }
+
+
   const configStore = useConfigStore()
 
   const dialogoApertura = ref(false)
@@ -162,7 +198,8 @@
       !dialogoPago.value &&
       !dialogoArqueo.value &&
       !dialogoApertura.value &&
-      !showCashModal.value
+      !showCashModal.value &&
+      !dialogoCambiaPrecio.value
 
     if (ningunDialogoAbierto) {
       const input = document.querySelector('.foco-escaner input')
@@ -227,7 +264,8 @@
       carrito.value.unshift({
         ...producto,
         cantidad: Number(cantidad),
-        uniqueId: Date.now()
+        uniqueId: Date.now(),
+        precio_catalogo: Number(producto.precio)
       })
     }
   }
@@ -241,7 +279,10 @@
         id: item.id,
         cantidad: item.cantidad,
         precio: item.precio,
-        total: item.precio * item.cantidad
+        total: item.precio * item.cantidad,
+        precio_original: item.precio_catalogo,
+        motivo_cambio: item.motivo_cambio_precio || null,
+        autorizado_por: item.autorizado_por || null
       })),
       subtotal: totalVenta.value.subtotal,
       iva: totalVenta.value.iva,
@@ -355,8 +396,15 @@
     })
   }
 
+  watch(dialogoCambiaPrecio, (val) => {
+  if (!val) {
+      // Cuando el diálogo se cierra, esperamos al siguiente ciclo y recuperamos foco
+      nextTick(() => recuperarFocoEscaner())
+    }
+  })
+
   const manejarTecladoGlobal = (e) => {
-    if (e.key === 'F2') { e.preventDefault(); dialogoBuscador.value = true }
+    if (e.key === 'F5') { e.preventDefault(); dialogoBuscador.value = true }
     if (e.key === 'F12') { e.preventDefault(); abrirPago() }
   }
 
