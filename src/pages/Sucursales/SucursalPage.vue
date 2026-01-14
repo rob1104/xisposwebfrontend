@@ -98,6 +98,14 @@
             </q-td>
 
             <q-td key="actions" :props="props" class="text-center">
+              <q-btn
+                flat round
+                color="deep-orange"
+                icon="account_balance"
+                @click="configurarEmisor(props.row)"
+              >
+                <q-tooltip>Configurar Datos Fiscales (SAT)</q-tooltip>
+              </q-btn>
               <q-btn flat round color="purple" icon="receipt_long" @click="openTicketConfig(props.row)">
                 <q-tooltip>Diseñar Ticket</q-tooltip>
              </q-btn>
@@ -114,6 +122,11 @@
     </q-card>
     <TicketConfigModal v-model="showTicketConfig" :sucursal="selectedSucursalConfig" />
     <SucursalForm v-model="showDialog" :editData="selectedItem" @saved="loadData" />
+    <DialogEmisorSucursal
+        v-model="modalEmisor"
+        :sucursal="sucursalSeleccionada"
+        @actualizado="obtenerSucursales"
+      />
   </q-page>
 </template>
 
@@ -123,6 +136,7 @@
   import { useQuasar } from 'quasar'
   import SucursalForm from 'components/Sucursales/SucursalesForm.vue'
   import TicketConfigModal from 'components/Sucursales/TicketConfigModal.vue'
+  import DialogEmisorSucursal from 'src/components/Sucursales/DialogEmisorSucursal.vue'
 
   const $q = useQuasar()
   const rows = ref([])
@@ -133,10 +147,19 @@
 
   const showTicketConfig = ref(false)
   const selectedSucursalConfig = ref(null)
+  const modalEmisor = ref(false)
+  const sucursalSeleccionada = ref(null)
 
   const openTicketConfig = (row) => {
     selectedSucursalConfig.value = { ...row }
     showTicketConfig.value = true
+  }
+
+
+
+  const configurarEmisor = (sucursal) => {
+    sucursalSeleccionada.value = sucursal
+    modalEmisor.value = true
   }
 
   const columns = [
@@ -179,6 +202,10 @@
         $q.notify({ color: 'negative', message: e.response?.data?.message || 'Error', icon: 'report_problem' })
       }
     })
+  }
+
+  const obtenerSucursales = () => {
+    loadData()
   }
 
   onMounted(loadData)
