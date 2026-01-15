@@ -34,9 +34,11 @@
               label="RFC"
               outlined dense color="primary"
               class="col-12 col-sm-6"
-              mask="XXXX#######AAX"
               input-class="text-bold text-uppercase"
-              :rules="[val => !!val || 'El RFC es obligatorio']"
+              @update:model-value="val => (form.rfc = val.toUpperCase())"
+                  :rules="[
+                    val => rfcValid(val) || 'Formato de RFC inválido'
+                  ]"
             >
               <template v-slot:prepend><q-icon name="badge" color="primary" /></template>
             </q-input>
@@ -150,6 +152,7 @@
   import { ref, watch } from 'vue'
   import { api } from 'boot/axios'
   import { useQuasar } from 'quasar'
+  import { rfcValid } from 'src/helpers/utils.js'
 
   const $q = useQuasar()
   const props = defineProps(['modelValue', 'sucursal'])
