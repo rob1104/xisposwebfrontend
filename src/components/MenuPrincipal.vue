@@ -26,10 +26,15 @@
 
       <q-item v-if="auth.can('clientes.ver')" clickable v-ripple to="/clientes" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="person_search" /></q-item-section>
-        <q-item-section>Cartera de Clientes</q-item-section>
+        <q-item-section>Clientes</q-item-section>
       </q-item>
 
     </q-expansion-item>
+
+    <q-item v-if="auth.can('facturacion.ver')" clickable v-ripple to="/facturacion" active-class="custom-active-link" class="menu-item">
+      <q-item-section avatar><q-icon name="money" /></q-item-section>
+      <q-item-section class="text-weight-medium">Facturación</q-item-section>
+    </q-item>
 
     <q-separator class="q-my-md opacity-20" />
 
@@ -51,17 +56,17 @@
         <q-item-section>Inventario Global</q-item-section>
       </q-item>
 
-      <q-item v-if="auth.can('inventario.historico')" clickable v-ripple to="/inventarioxsucursal" active-class="custom-active-link" class="menu-item-sub">
+      <q-item v-if="auth.can('inventario.sucursal')" clickable v-ripple to="/inventarioxsucursal" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="location_on" /></q-item-section>
         <q-item-section>Stock por Sucursal</q-item-section>
       </q-item>
 
       <q-item v-if="auth.can('inventario.movimientos')" clickable v-ripple to="/movimientosinventario" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="sync_alt" /></q-item-section>
-        <q-item-section>Kárdex de Movimientos</q-item-section>
+        <q-item-section>Movimientos</q-item-section>
       </q-item>
 
-      <q-item v-if="auth.can('inventario.transferencias')" clickable v-ripple to="/transferencias" active-class="custom-active-link" class="menu-item-sub">
+      <q-item v-if="auth.can('inventario.transferir')" clickable v-ripple to="/transferencias" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="local_shipping" /></q-item-section>
         <q-item-section>Transferencias</q-item-section>
       </q-item>
@@ -80,7 +85,7 @@
     >
       <q-item v-if="auth.can('compras.ver')" clickable v-ripple to="/compras" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="list_alt" /></q-item-section>
-        <q-item-section>Órdenes de Compra</q-item-section>
+        <q-item-section>Historial de Compras</q-item-section>
       </q-item>
 
       <q-item v-if="auth.can('proveedores.ver')" clickable v-ripple to="/proveedores" active-class="custom-active-link" class="menu-item-sub">
@@ -109,7 +114,7 @@
         <q-item-section>Conceptos Base</q-item-section>
       </q-item>
 
-      <q-item v-if="auth.can('configuracion.ver')" clickable v-ripple to="/configuracion" active-class="custom-active-link" class="menu-item-sub">
+      <q-item v-if="auth.can('configuracion.editar')" clickable v-ripple to="/configuracion" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="tune" /></q-item-section>
         <q-item-section>Ajustes Generales</q-item-section>
       </q-item>
@@ -131,7 +136,7 @@
         <q-item-section>Roles y Permisos</q-item-section>
       </q-item>
 
-      <q-item v-if="auth.can('logs.ver')" clickable v-ripple to="/auditoria" active-class="custom-active-link" class="menu-item-sub">
+      <q-item v-if="auth.can('configuracion.logs')" clickable v-ripple to="/auditoria" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="fingerprint" /></q-item-section>
         <q-item-section>Logs de Auditoría</q-item-section>
       </q-item>
@@ -176,7 +181,7 @@
     color: $red-9;
     letter-spacing: 1.2px;
     font-size: 0.75rem;
-    padding-top: 20px;
+    padding-top: 10px;
   }
 
   .menu-item {

@@ -186,7 +186,7 @@
   ]
 
 
-  // Lógica de carga
+
   const cargarDatosExistentes = async () => {
     // 1. Si el objeto ya trae el emisor, lo cargamos inmediatamente
     if (props.sucursal?.emisor) {

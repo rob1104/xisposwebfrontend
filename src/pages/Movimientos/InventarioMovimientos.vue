@@ -344,10 +344,33 @@
     }
   }
 
+  /**
+   * Resetea todos los campos del formulario y estados de búsqueda
+   */
+  const resetearFormulario = () => {
+    // 1. Resetear el modelo del q-select de búsqueda
+    productoSeleccionado.value = null
+
+    // 2. Limpiar datos del producto visualizados
+    productoEncontrado.value = null
+    stockActual.value = 0
+
+    // 3. Reiniciar el objeto del formulario
+    form.value = {
+      sucursal_id: auth.sucursalSeleccionada?.id || null,
+      codigo: '',
+      producto_id: null,
+      tipo: 'ENTRADA',
+      cantidad: 0,
+      observaciones: ''
+    }
+  }
+
     /**
    * Abre el diálogo de nuevo movimiento y resetea el formulario
    */
   const abrirDialogo = () => {
+    resetearFormulario()
     // 1. Limpiamos los datos del producto y stock previo
     productoEncontrado.value = null
     stockActual.value = 0

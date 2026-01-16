@@ -199,10 +199,24 @@
     }).onOk(async () => {
       try {
         const response = await api.delete(`/api/users/${user.id}`)
-        $q.notify({ color: 'positive', message: response.data.message, icon: 'check' })
+        $q.notify({
+          color: 'positive',
+          message: response.data.message,
+          icon: 'check',
+          position: 'bottom'
+        })
         loadUsers()
       } catch (e) {
-        $q.notify({ color: 'negative', message: e.response?.data?.message || 'Error', icon: 'report_problem' })
+        // Capturamos el mensaje de error de la regla de negocio (422)
+        const errorMsg = e.response?.data?.message || 'Ocurrió un error inesperado al intentar eliminar.';
+
+        $q.notify({
+          color: 'negative',
+          message: errorMsg,
+          icon: 'report_problem',
+          position: 'bottom',
+          actions: [{ label: 'Cerrar', color: 'white' }]
+        })
       }
     })
   }

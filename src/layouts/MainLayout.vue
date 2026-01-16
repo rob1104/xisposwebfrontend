@@ -66,7 +66,7 @@
         :width="280"
       >
         <q-scroll-area class="fit">
-          <div class="brand-section q-pa-xl text-center">
+          <div class="brand-section q-pa-lg text-center">
             <div class="logo-container q-mx-auto q-mb-lg shadow-2">
               <q-img
                 :src="configStore.logoUrl || 'assets/no-logo.png'"
@@ -84,11 +84,11 @@
 
             <div class="row items-center justify-center q-gutter-x-xs q-mt-xs">
               <q-badge style="font-size: 18px;" color="blue-grey-1" text-color="blue-grey-7" label="PUNTO DE VENTA" class="text-bold" />
-              <div class="text-caption text-grey-9">Versión 0.1.17</div>
+              <div class="text-caption text-grey-9">Versión 0.1.18</div>
             </div>
           </div>
 
-          <q-separator inset class="q-mx-md q-mb-lg opacity-50" />
+          <q-separator inset class="q-mx-md q-mb-md opacity-50" />
 
           <MenuPrincipal />
 

@@ -16,6 +16,8 @@
             outlined dense
             :rules="[val => !!val || 'Requerido']"
           />
+
+           <q-input v-model="form.prefijo" label="Prefijo para documentos" maxlength="3" outlined dense type="text" />
           <q-input v-model="form.direccion" label="Dirección" outlined dense type="textarea" />
           <q-input v-model="form.telefono" label="Teléfono" outlined dense mask="(###) ### - ####" />
 
@@ -48,13 +50,13 @@
   const inputNombre = ref(null)
   const loading = ref(false)
   const isEdit = computed(() => !!props.editData)
-  const form = reactive({ nombre: '', direccion: '', telefono: '' })
+  const form = reactive({ nombre: '', direccion: '', telefono: '', prefijo: '' })
 
   const onDialogOpen = () => {
     if (isEdit.value) {
       Object.assign(form, { ...props.editData, status: parseInt(props.editData.status) })
     } else {
-      Object.assign(form, { nombre: '', direccion: '', telefono: '' })
+      Object.assign(form, { nombre: '', direccion: '', telefono: '', prefijo: '' })
     }
     nextTick(() => inputNombre.value?.focus()) // Auto-foco
   }

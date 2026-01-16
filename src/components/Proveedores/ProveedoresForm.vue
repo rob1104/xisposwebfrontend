@@ -57,7 +57,7 @@
                   label="Correo Electrónico"
                   lazy-rules
                   :rules="[
-                        val => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) || 'Formato de email incorrecto'
+                        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) || 'Formato de email incorrecto'
                       ]"
                    />
               </div>
