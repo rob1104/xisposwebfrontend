@@ -58,7 +58,7 @@
     } else {
       Object.assign(form, { nombre: '', direccion: '', telefono: '', prefijo: '' })
     }
-    nextTick(() => inputNombre.value?.focus()) // Auto-foco
+    nextTick(() => inputNombre.value?.focus())
   }
 
   const handleSubmit = async () => {
@@ -75,3 +75,5 @@
     } finally { loading.value = false }
   }
 </script>
+
+

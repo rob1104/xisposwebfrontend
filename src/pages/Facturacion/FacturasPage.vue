@@ -1,20 +1,22 @@
 <template>
-  <q-page class="q-pa-lg bg-grey-2">
-    <div class="row q-col-gutter-md q-mb-lg">
+  <q-page class="q-pa-xl bg-slate-50">
+    <div class="row q-col-gutter-lg q-mb-xl">
       <div class="col-12 col-md-3" v-for="kpi in kpis" :key="kpi.label">
-        <q-card class="kpi-card shadow-2 border-radius-10" :class="`border-left-${kpi.color}`">
-          <q-card-section class="row items-center no-wrap">
-            <q-avatar :icon="kpi.icon" :color="kpi.color" text-color="white" shadow-3 />
-            <div class="q-ml-md">
-              <div class="text-h6 text-bold">{{ kpi.value }}</div>
-              <div class="text-caption text-grey-7">{{ kpi.label }}</div>
+        <q-card class="kpi-card-premium shadow-subtle border-radius-15">
+          <q-card-section class="row items-center no-wrap q-pa-lg">
+            <q-btn round unelevated :icon="kpi.icon" :color="kpi.color" class="shadow-3" />
+            <div class="q-ml-lg">
+              <div class="text-caption text-uppercase text-weight-bolder text-grey-6 letter-spacing-1">
+                {{ kpi.label }}
+              </div>
+              <div class="text-h5 text-weight-bold text-slate-800">{{ kpi.value }}</div>
             </div>
           </q-card-section>
         </q-card>
       </div>
     </div>
 
-    <q-card class="shadow-10 border-radius-15 overflow-hidden">
+    <q-card class="shadow-20 border-radius-20 overflow-hidden bg-white">
       <q-table
         :rows="facturas"
         :columns="columns"
@@ -22,82 +24,102 @@
         :loading="loading"
         :filter="filter"
         flat
-        class="facturas-table"
+        class="premium-facturas-table"
       >
         <template v-slot:top>
-          <div class="text-h6 text-bold text-primary flex items-center">
-            <q-icon name="description" class="q-mr-sm" />
-            Historial de Facturación
+          <div class="row full-width items-center q-pa-sm">
+            <div class="col-12 col-md-4">
+              <div class="text-h5 text-weight-bolder text-slate-900 flex items-center">
+                <q-icon name="receipt_long" color="primary" size="md" class="q-mr-sm" />
+                Facturación
+              </div>
+              <div class="text-caption text-grey-6 q-ml-md">Gestión y control de comprobantes fiscales</div>
+            </div>
+
+            <q-space />
+
+            <div class="col-12 col-md-7 row q-gutter-sm justify-end">
+              <q-select
+                v-if="auth.isAdmin"
+                v-model="sucursalFiltro"
+                :options="sucursales"
+                label="Filtrar por Sucursal"
+                outlined dense
+                bg-color="white"
+                class="col-4 shadow-sm"
+                option-value="id"
+                option-label="nombre"
+                emit-value map-options
+                @update:model-value="loadFacturas"
+              />
+
+              <q-input
+                v-model="filter"
+                placeholder="Buscar cliente, RFC o folio..."
+                outlined dense
+                bg-color="white"
+                class="col-4 shadow-sm"
+              >
+                <template v-slot:prepend><q-icon name="search" color="grey-6" /></template>
+              </q-input>
+
+              <q-btn
+                color="indigo-10"
+                icon="add"
+                label="Emitir CFDI 4.0"
+                class="q-px-md text-weight-bold shadow-5"
+                unelevated
+                @click="nuevaFactura"
+              />
+            </div>
           </div>
-          <q-space />
-
-          <q-select
-            v-if="auth.isAdmin"
-            v-model="sucursalFiltro"
-            :options="sucursales"
-            label="Sucursal"
-            option-value="id"
-            option-label="nombre"
-            outlined dense
-            class="q-mr-md"
-            style="min-width: 200px"
-            map-options
-            emit-value
-            @update:model-value="loadFacturas"
-          />
-
-          <q-input
-            v-model="filter"
-            placeholder="Buscar por Folio, RFC o UUID..."
-            outlined dense
-            class="search-input q-mr-sm"
-          >
-            <template v-slot:append><q-icon name="search" /></template>
-          </q-input>
-
-          <q-btn
-            color="primary"
-            icon="add_circle"
-            label="Nueva Factura"
-            class="custom-btn-radius shadow-5"
-            unelevated
-            @click="nuevaFactura"
-          />
         </template>
 
         <template v-slot:body-cell-fecha="props">
           <q-td :props="props">
-            <div class="text-bold">{{ props.row.fecha_only }}</div>
-            <div class="text-caption text-grey-6">{{ props.row.hora_only }}</div>
+            <div class="text-weight-bold text-slate-800">{{ props.row.fecha_only }}</div>
+            <div class="text-caption text-grey-5">{{ props.row.hora_only }}</div>
           </q-td>
         </template>
 
         <template v-slot:body-cell-cliente="props">
           <q-td :props="props">
-            <div class="text-bold text-uppercase">{{ props.row.receptor_nombre }}</div>
-            <div class="text-caption text-primary">{{ props.row.receptor_rfc }}</div>
+            <div class="text-weight-bolder text-indigo-9 text-uppercase letter-spacing-05">
+              {{ props.row.receptor_nombre }}
+            </div>
+            <div class="text-caption row items-center text-grey-7">
+              <q-icon name="fingerprint" size="xs" class="q-mr-xs" />
+              {{ props.row.receptor_rfc }}
+            </div>
+          </q-td>
+        </template>
+
+        <template v-slot:body-cell-total="props">
+          <q-td :props="props">
+            <div class="total-badge">
+              {{ formatCurrency(props.row.total) }}
+            </div>
           </q-td>
         </template>
 
         <template v-slot:body-cell-uuid="props">
-          <q-td :props="props" class="text-center">
-            <template v-if="props.row.uuid">
-              <q-badge color="blue-grey-2" text-color="blue-grey-10" class="q-pa-xs cursor-pointer" @click="copyToClipboard(props.row.uuid)">
-                {{ props.row.uuid.substring(0, 8) }}...
-                <q-tooltip class="bg-dark">Click para copiar UUID completo</q-tooltip>
-              </q-badge>
-            </template>
-            <span v-else class="text-caption text-grey-5 italic">Sin timbrar</span>
+          <q-td :props="props">
+            <div v-if="props.row.uuid" class="uuid-container cursor-pointer" @click="copyUuid(props.row.uuid)">
+              <span class="uuid-text">{{ props.row.uuid }}</span>
+              <q-icon name="content_copy" size="xs" class="q-ml-xs text-grey-4 hover-show" />
+              <q-tooltip class="bg-indigo-10">Click para copiar UUID completo</q-tooltip>
+            </div>
+            <div v-else class="text-grey-4 text-italic">Sin timbrar</div>
           </q-td>
         </template>
 
         <template v-slot:body-cell-status="props">
           <q-td :props="props" class="text-center">
             <q-chip
-              :color="getStatusColor(props.row.status)"
+              :class="`chip-status-${getStatusClass(props.row.status)}`"
               text-color="white"
               size="sm"
-              class="text-bold shadow-1"
+              class="text-weight-bolder q-px-md"
             >
               {{ props.row.status }}
             </q-chip>
@@ -105,23 +127,49 @@
         </template>
 
         <template v-slot:body-cell-actions="props">
-          <q-td :props="props" class="text-center q-gutter-xs">
-            <q-btn flat round color="primary" icon="picture_as_pdf" size="sm" @click="downloadPdf(props.row)">
-              <q-tooltip>Descargar PDF</q-tooltip>
-            </q-btn>
-            <q-btn flat round color="green-8" icon="code" size="sm" @click="downloadXml(props.row)">
-              <q-tooltip>Descargar XML</q-tooltip>
-            </q-btn>
-            <q-btn flat round color="orange-9" icon="mail" size="sm" @click="resendEmail(props.row)">
-              <q-tooltip>Reenviar al Cliente</q-tooltip>
-            </q-btn>
-            <q-btn flat round color="negative" icon="block" size="sm" @click="cancelFactura(props.row)">
-              <q-tooltip>Cancelar Factura</q-tooltip>
-            </q-btn>
+          <q-td :props="props" class="text-center">
+            <div class="row no-wrap justify-center q-gutter-xs">
+              <q-btn v-if="props.row.status === 'Pendiente'" flat round color="amber-9" icon="sync" size="sm" @click="reintentarTimbrado(props.row)">
+                <q-tooltip>Reintentar Timbrado</q-tooltip>
+              </q-btn>
+
+              <q-btn flat round color="indigo-7" icon="file_download" size="sm">
+                <q-menu cover auto-close>
+                  <q-list style="min-width: 150px">
+                    <q-item clickable @click="downloadPdf(props.row)">
+                      <q-item-section avatar><q-icon name="picture_as_pdf" color="red" /></q-item-section>
+                      <q-item-section>Descargar PDF</q-item-section>
+                    </q-item>
+                    <q-item clickable @click="downloadXml(props.row)">
+                      <q-item-section avatar><q-icon name="code" color="green" /></q-item-section>
+                      <q-item-section>Descargar XML</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
+
+              <q-btn flat round color="grey-6" icon="more_vert" size="sm">
+                <q-menu auto-close>
+                  <q-list>
+                    <q-item clickable @click="resendEmail(props.row)">
+                      <q-item-section avatar><q-icon name="send" /></q-item-section>
+                      <q-item-section>Enviar por correo</q-item-section>
+                    </q-item>
+                    <q-separator />
+                    <q-item clickable class="text-negative" @click="cancelFactura(props.row)">
+                      <q-item-section avatar><q-icon name="delete_sweep" /></q-item-section>
+                      <q-item-section>Cancelar Folio</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
+            </div>
           </q-td>
         </template>
       </q-table>
     </q-card>
+
+    <NuevaFacturaDialog v-model="showNuevaFactura" @saved="loadFacturas" />
   </q-page>
 </template>
 
@@ -130,6 +178,7 @@
   import { api } from 'boot/axios'
   import { useQuasar, copyToClipboard } from 'quasar'
   import { useAuthStore } from 'src/stores/auth'
+  import NuevaFacturaDialog from 'src/components/Facturacion/NuevaFacturaDialog.vue'
 
   const $q = useQuasar()
   const auth = useAuthStore()
@@ -138,23 +187,61 @@
   const facturas = ref([])
   const sucursales = ref([])
   const sucursalFiltro = ref(auth.sucursalSeleccionada?.id)
+  const showNuevaFactura = ref(false)
 
   const nuevaFactura = () => {
-    $q.notify({
-      message: 'Abriendo selector de ventas para facturar...',
-      color: 'positive',
-      icon: 'add_shopping_cart'
-    })
+    showNuevaFactura.value = true
+
   }
 
+  const getStatusClass = (status) => {
+  const map = {
+    'Vigente': 'positive',
+    'Cancelada': 'negative',
+    'Pendiente': 'orange',
+    'ERROR': 'negative'
+  }
+  return map[status] || 'grey'
+}
+
+  const reintentarTimbrado = async (row) => {
+    $q.dialog({
+      title: 'Confirmar Reintento',
+      message: `¿Deseas enviar nuevamente el folio ${row.folio} a timbrar al SAT?`,
+      cancel: true,
+      persistent: true
+    }).onOk(async () => {
+      try {
+        $q.loading.show({ message: 'Comunicando con Servidor de Timbrado...' });
+
+        const { data } = await api.post(`/api/cfdis/${row.id}/reintentar`);
+
+        $q.notify({
+          type: 'positive',
+          message: data.message,
+          caption: `UUID: ${data.uuid}`
+        });
+
+        loadFacturas(); // Recargamos la tabla para ver el estado 'Vigente'
+      } catch (e) {
+        $q.notify({
+          type: 'negative',
+          message: e.response?.data?.message || 'Error en el servidor'
+        });
+      } finally {
+        $q.loading.hide();
+      }
+    });
+  };
+
   const columns = [
-    { name: 'fecha', label: 'Fecha / Hora', align: 'left', sortable: true },
-    { name: 'folio', label: 'Serie-Folio', field: row => `${row.serie}-${row.folio}`, align: 'left', sortable: true },
-    { name: 'cliente', label: 'Cliente (RFC)', align: 'left', sortable: true },
-    { name: 'total', label: 'Total', field: row => formatCurrency(row.total), align: 'right', sortable: true },
-    { name: 'uuid', label: 'UUID (Timbre)', align: 'center' },
-    { name: 'status', label: 'Estado', align: 'center' },
-    { name: 'actions', label: 'Gestión', align: 'center' }
+    { name: 'fecha', label: 'FECHA DE EMISIÓN', align: 'left', sortable: true },
+    { name: 'folio', label: 'SERIE / FOLIO', field: row => `${row.serie}-${row.folio}`, align: 'left', sortable: true },
+    { name: 'cliente', label: 'RECEPTOR (RFC)', align: 'left', sortable: true },
+    { name: 'total', label: 'MONTO TOTAL', align: 'right', sortable: true },
+    { name: 'uuid', label: 'FOLIO FISCAL (UUID)', align: 'left' },
+    { name: 'status', label: 'ESTADO CFDI', align: 'center' },
+    { name: 'actions', label: 'ACCIONES', align: 'center' }
   ]
 
   const kpis = computed(() => [
@@ -167,7 +254,7 @@
   const formatCurrency = (val) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(val)
 
   const getStatusColor = (status) => {
-    const map = { 'TIMBRADA': 'positive', 'CANCELADA': 'negative', 'PENDIENTE': 'orange', 'ERROR': 'black' }
+    const map = { 'Vigente': 'positive', 'Cancelada': 'negative', 'Pendiente': 'orange', 'ERROR': 'black' }
     return map[status] || 'grey'
   }
 
@@ -179,13 +266,11 @@
       console.error("Error al cargar sucursales para el filtro")
     }
   }
-
   const loadFacturas = async () => {
-    if (!sucursalFiltro.value) return // Evita peticiones vacías
+    if (!sucursalFiltro.value) return
 
     loading.value = true
     try {
-      // Esto resuelve el error 404 si ya definiste la ruta en api.php
       const { data } = await api.get('/api/cfdis', {
         params: { sucursal_id: sucursalFiltro.value }
       })
@@ -201,8 +286,70 @@
     }
   }
 
-  const downloadPdf = (row) => { $q.notify({ message: `Generando PDF de folio ${row.folio}...`, color: 'info' }) }
-  const downloadXml = (row) => { $q.notify({ message: `Descargando XML de folio ${row.folio}...`, color: 'positive' }) }
+  const downloadPdf = async (row) => {
+    try {
+      $q.loading.show({ message: 'Generando PDF...' })
+
+      // 1. Primero nos aseguramos de que el PDF esté generado
+      await api.post(`/api/cfdis/${row.id}/generar-pdf`)
+
+      // 2. Descargamos el archivo como blob
+      const response = await api.get(`/api/cfdis/${row.id}/pdf`, { responseType: 'blob' })
+
+      const blob = new Blob([response.data], { type: 'application/pdf' })
+      const url = window.URL.createObjectURL(blob)
+
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `Factura_${row.folio}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+
+      link.remove();
+      window.URL.revokeObjectURL(url)
+    } catch (e) {
+      $q.notify({ type: 'negative', message: 'Error al procesar el PDF' })
+    } finally {
+      $q.loading.hide()
+    }
+  }
+
+  const downloadXml = async(row) => {
+    try {
+      $q.loading.show({ message: 'Preparando archivo...' });
+
+      // 1. Petición a la API solicitando un blob (binario)
+      const response = await api.get(`/api/cfdis/${row.id}/xml`, {
+        responseType: 'blob' // CRÍTICO: Indica que recibiremos un archivo
+      });
+
+      // 2. Crear una URL local para el contenido del archivo
+      const blob = new Blob([response.data], { type: 'text/xml' });
+      const url = window.URL.createObjectURL(blob);
+
+      // 3. Crear un link oculto y simular el clic para descargar
+      const link = document.createElement('a');
+      link.href = url;
+
+      // Nombre del archivo basado en la respuesta o en la fila
+      const nombre = (row.status === 'Vigente') ? `Factura_${row.folio}.xml` : `Borrador_${row.folio}.xml`;
+      link.setAttribute('download', nombre);
+
+      document.body.appendChild(link);
+      link.click();
+
+      // 4. Limpieza: eliminar el link y liberar la URL de memoria
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      $q.notify({ color: 'positive', message: 'Descarga completada', icon: 'check' });
+    } catch (e) {
+      console.error(e);
+      $q.notify({ color: 'negative', message: 'Error al obtener el archivo del servidor' });
+    } finally {
+      $q.loading.hide();
+    }
+  }
   const resendEmail = (row) => { $q.notify({ message: `Reenviando factura a cliente...`, color: 'orange' }) }
   const cancelFactura = (row) => {
     $q.dialog({
@@ -228,22 +375,80 @@
 </script>
 
 <style lang="scss" scoped>
-  .kpi-card {
-    transition: transform 0.3s;
-    &:hover { transform: translateY(-5px); }
-  }
-  .border-left-primary { border-left: 5px solid $primary; }
-  .border-left-positive { border-left: 5px solid $positive; }
-  .border-left-negative { border-left: 5px solid $negative; }
-  .border-left-orange { border-left: 5px solid orange; }
+.bg-slate-50 { background-color: #f8fafc; }
 
-  .facturas-table {
-    :deep(thead th) {
-      background-color: #263238;
-      color: white;
-      font-weight: bold;
-      text-transform: uppercase;
-    }
+// Tarjetas KPI con efecto Glassmorphism
+.kpi-card-premium {
+  border: 1px solid rgba(255,255,255,0.8);
+  background: white;
+  transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   }
-  .custom-btn-radius { border-radius: 8px; font-weight: bold; }
+}
+
+// Estilos de la tabla Premium
+.premium-facturas-table {
+  background: white;
+
+  :deep(thead tr th) {
+    background-color: #f1f5f9;
+    color: #475569;
+    font-weight: 800;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding: 16px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  :deep(tbody tr) {
+    transition: background-color 0.2s;
+    &:hover { background-color: #f8fafc; }
+  }
+
+  :deep(tbody td) { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; }
+}
+
+// Badge de Total Resaltado
+.total-badge {
+  background: #eef2ff;
+  color: $indigo-10;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 900;
+  font-size: 1rem;
+  display: inline-block;
+  border: 1px solid #c7d2fe;
+}
+
+// Contenedor de UUID Técnico
+.uuid-container {
+  font-family: 'Fira Code', 'Courier New', monospace;
+  font-size: 0.7rem;
+  background: #f1f5f9;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  max-width: 280px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:hover {
+    background: #e2e8f0;
+    .hover-show { color: $primary; }
+  }
+}
+
+// Colores de Status Pastel
+.chip-status-positive { background: #10b981 !important; }
+.chip-status-negative { background: #ef4444 !important; }
+.chip-status-orange { background: #f59e0b !important; }
+
+.letter-spacing-1 { letter-spacing: 1.5px; }
+.border-radius-20 { border-radius: 20px; }
+.shadow-20 { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
 </style>
