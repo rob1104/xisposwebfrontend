@@ -50,17 +50,6 @@
         <q-item-section avatar><q-icon name="label" /></q-item-section>
         <q-item-section>Catálogo Productos</q-item-section>
       </q-item>
-
-      <q-item v-if="auth.can('inventario.global')" clickable v-ripple to="/inventarioglobal" active-class="custom-active-link" class="menu-item-sub">
-        <q-item-section avatar><q-icon name="public" /></q-item-section>
-        <q-item-section>Inventario Global</q-item-section>
-      </q-item>
-
-      <q-item v-if="auth.can('inventario.sucursal')" clickable v-ripple to="/inventarioxsucursal" active-class="custom-active-link" class="menu-item-sub">
-        <q-item-section avatar><q-icon name="location_on" /></q-item-section>
-        <q-item-section>Stock por Sucursal</q-item-section>
-      </q-item>
-
       <q-item v-if="auth.can('inventario.movimientos')" clickable v-ripple to="/movimientosinventario" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="sync_alt" /></q-item-section>
         <q-item-section>Movimientos</q-item-section>
@@ -93,6 +82,43 @@
         <q-item-section>Proveedores</q-item-section>
       </q-item>
     </q-expansion-item>
+
+    <q-separator class="q-my-md opacity-20" />
+
+<q-item-label header class="menu-header">Analisis y Datos</q-item-label>
+
+  <q-expansion-item
+    v-model="reportesExpanded"
+    icon="assessment"
+    label="Reportes"
+    header-class="menu-expansion-header"
+  >
+
+    <q-item v-if="auth.can('reportes.global')" clickable v-ripple to="/inventarioglobal" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="public" /></q-item-section>
+        <q-item-section>Inventario Global</q-item-section>
+      </q-item>
+
+      <q-item v-if="auth.can('reportes.sucursal')" clickable v-ripple to="/inventarioxsucursal" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="location_on" /></q-item-section>
+        <q-item-section>Inventario por Sucursal</q-item-section>
+      </q-item>
+
+
+
+    <q-item
+      v-if="auth.can('reportes.inventariohistorico')"
+      clickable
+      v-ripple
+      to="/inventariohistorico"
+      active-class="custom-active-link"
+      class="menu-item-sub"
+    >
+      <q-item-section avatar><q-icon name="history_edu" /></q-item-section>
+      <q-item-section>Inventario Histórico</q-item-section>
+    </q-item>
+
+  </q-expansion-item>
 
     <q-separator class="q-my-md opacity-20" />
 
@@ -159,15 +185,17 @@
   const comprasExpanded = ref(false)
   const seguridadExpanded = ref(false)
   const accesoExpanded = ref(false)
+  const reportesExpanded = ref(false)
 
   const checkRoute = () => {
     const path = route.path
 
     ventasExpanded.value = ['/ventas', '/clientes'].some(p => path.includes(p))
-    inventarioExpanded.value = ['/productos', '/inventarioglobal', '/inventarioxsucursal', '/movimientosinventario', '/transferencias', '/recibir'].some(p => path.includes(p))
+    inventarioExpanded.value = ['/productos', '/transferencias', '/recibir', '/movimientosinventario'].some(p => path.includes(p))
     comprasExpanded.value = ['/compras', '/proveedores'].some(p => path.includes(p))
     seguridadExpanded.value = ['/sucursales', '/catalogos', '/configuracion'].some(p => path.includes(p))
     accesoExpanded.value = ['/usuarios', '/roles', '/auditoria'].some(p => path.includes(p))
+    reportesExpanded.value = ['/inventarioglobal', '/inventarioxsucursal', '/inventariohistorico'].some(p => path.includes(p))
   }
 
   watch(() => route.path, () => checkRoute())

@@ -2,6 +2,26 @@
   <q-page class="q-pa-xl bg-grey-2">
     <div class="row q-col-gutter-lg justify-center">
       <div class="col-12 col-md-8">
+        <div class="text-h6 q-mb-md">Ajustes del Sistema</div>
+
+    <q-card flat bordered class="q-mb-md">
+      <q-card-section>
+        <div class="text-subtitle1 text-weight-bold">Mantenimiento de Inventarios</div>
+        <div class="text-caption text-grey-7">
+          Esta herramienta busca productos que no existan en las tablas de stock de las sucursales y los agrega con valor cero.
+        </div>
+      </q-card-section>
+
+      <q-card-actions align="right">
+        <q-btn
+          label="Sincronizar Stock en Ceros"
+          icon="sync"
+          color="primary"
+          :loading="loadingSync"
+          @click="confirmarSincronizacion"
+        />
+      </q-card-actions>
+    </q-card>
         <q-card flat bordered class="shadow-2 menu-radius overflow-hidden">
           <q-card-section class="bg-blue-grey-10 text-white q-pa-lg">
             <div class="text-h5 text-bold uppercase tracking-widest">Identidad Visual</div>
@@ -41,7 +61,7 @@
                       </div>
                     </template>
                   </q-img>
-</q-avatar>
+                </q-avatar>
 
                 <q-file
                   v-model="form.logo_file"
@@ -86,9 +106,38 @@
   const configStore = useConfigStore()
   const saving = ref(false)
   const previewLogo = ref(null)
+  const loadingSync = ref(false)
 
 
-  console.log('configStore:', configStore.logoUrl)
+  const confirmarSincronizacion = () => {
+      $q.dialog({
+        title: 'Confirmar Acción',
+        message: '¿Deseas inicializar los registros faltantes de inventario en todas las sucursales?',
+        cancel: true,
+        persistent: true
+      }).onOk(() => {
+        ejecutarSincronizacion()
+      })
+    }
+
+    const ejecutarSincronizacion = async () => {
+      loadingSync.value = true
+      try {
+        const { data } = await api.post('/api/config/sincronizar-inventarios')
+        $q.notify({
+          type: 'positive',
+          message: data.message,
+          icon: 'done'
+        })
+      } catch (error) {
+        $q.notify({
+          type: 'negative',
+          message: 'Error al sincronizar inventarios'
+        })
+      } finally {
+        loadingSync.value = false
+      }
+    }
 
   const form = reactive({
     nombre_tienda: '',
@@ -126,10 +175,12 @@
       saving.value = false
     }
 
+
+
     onMounted(async () => {
       if (configStore.nombreTienda === 'Cargando...') {
         await configStore.fetchConfig()
       }
-        })
+    })
   }
 </script>

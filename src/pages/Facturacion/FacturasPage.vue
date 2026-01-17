@@ -85,11 +85,11 @@
         <template v-slot:body-cell-cliente="props">
           <q-td :props="props">
             <div class="text-weight-bolder text-indigo-9 text-uppercase letter-spacing-05">
-              {{ props.row.receptor_nombre }}
+              {{ props.row.cliente.razon_social }}
             </div>
             <div class="text-caption row items-center text-grey-7">
               <q-icon name="fingerprint" size="xs" class="q-mr-xs" />
-              {{ props.row.receptor_rfc }}
+              {{ props.row.cliente.rfc }}
             </div>
           </q-td>
         </template>
@@ -136,7 +136,7 @@
               <q-btn flat round color="indigo-7" icon="file_download" size="sm">
                 <q-menu cover auto-close>
                   <q-list style="min-width: 150px">
-                    <q-item clickable @click="downloadPdf(props.row)">
+                    <q-item v-if="props.row.status === 'Vigente'" clickable @click="downloadPdf(props.row)">
                       <q-item-section avatar><q-icon name="picture_as_pdf" color="red" /></q-item-section>
                       <q-item-section>Descargar PDF</q-item-section>
                     </q-item>
@@ -151,14 +151,18 @@
               <q-btn flat round color="grey-6" icon="more_vert" size="sm">
                 <q-menu auto-close>
                   <q-list>
-                    <q-item clickable @click="resendEmail(props.row)">
+                    <q-item v-if="props.row.status === 'Vigente'" clickable @click="resendEmail(props.row)">
                       <q-item-section avatar><q-icon name="send" /></q-item-section>
                       <q-item-section>Enviar por correo</q-item-section>
                     </q-item>
                     <q-separator />
-                    <q-item clickable class="text-negative" @click="cancelFactura(props.row)">
+                    <q-item v-if="props.row.status === 'Vigente'" clickable class="text-negative" @click="cancelFactura(props.row)">
                       <q-item-section avatar><q-icon name="delete_sweep" /></q-item-section>
                       <q-item-section>Cancelar Folio</q-item-section>
+                    </q-item>
+                    <q-item v-if="props.row.status === 'Pendiente'" clickable class="text-negative" @click="borrarCfdi(props.row)">
+                      <q-item-section avatar><q-icon name="delete" /></q-item-section>
+                      <q-item-section>Borrar Cfdi sin timbrar</q-item-section>
                     </q-item>
                   </q-list>
                 </q-menu>
@@ -212,9 +216,9 @@
       persistent: true
     }).onOk(async () => {
       try {
-        $q.loading.show({ message: 'Comunicando con Servidor de Timbrado...' });
+        $q.loading.show({ message: 'Comunicando con Servidor de Timbrado...' })
 
-        const { data } = await api.post(`/api/cfdis/${row.id}/reintentar`);
+        const { data } = await api.post(`/api/cfdis/${row.id}/reintentar`)
 
         $q.notify({
           type: 'positive',
@@ -229,10 +233,40 @@
           message: e.response?.data?.message || 'Error en el servidor'
         });
       } finally {
-        $q.loading.hide();
+        $q.loading.hide()
       }
-    });
-  };
+    })
+  }
+
+  const borrarCfdi = (row) => {
+    $q.dialog({
+      title: '¿Eliminar borrador?',
+      message: `Se eliminará permanentemente el folio ${row.folio}. Esta acción no se puede deshacer.`,
+      cancel: { color: 'slate-600', flat: true },
+      ok: { color: 'negative', label: 'Eliminar' },
+      persistent: true
+    }).onOk(async () => {
+      try {
+        $q.loading.show({ message: 'Eliminando registro...' });
+        await api.delete(`/api/cfdis/${row.id}`);
+
+        $q.notify({
+          type: 'positive',
+          message: 'Registro eliminado correctamente',
+          icon: 'delete'
+        });
+
+        loadFacturas(); // Recargar la tabla
+      } catch (e) {
+        $q.notify({
+          type: 'negative',
+          message: e.response?.data?.message || 'Error al eliminar'
+        });
+      } finally {
+        $q.loading.hide()
+      }
+    })
+  }
 
   const columns = [
     { name: 'fecha', label: 'FECHA DE EMISIÓN', align: 'left', sortable: true },
@@ -244,12 +278,38 @@
     { name: 'actions', label: 'ACCIONES', align: 'center' }
   ]
 
-  const kpis = computed(() => [
-    { label: 'Facturado Mes', value: formatCurrency(0), color: 'primary', icon: 'payments' },
-    { label: 'Timbradas', value: '0', color: 'positive', icon: 'verified' },
-    { label: 'Canceladas', value: '0', color: 'negative', icon: 'dangerous' },
-    { label: 'Por Timbrar', value: '0', color: 'orange', icon: 'history' }
-  ])
+  const kpis = computed(() => {
+    // Calculamos el total de facturas vigentes del mes
+    const vigentes = facturas.value.filter(f => f.status === 'Vigente')
+    const totalFacturado = vigentes.reduce((acc, curr) => acc + parseFloat(curr.total), 0)
+
+    return [
+      {
+        label: 'Facturado Mes',
+        value: formatCurrency(totalFacturado),
+        color: 'indigo-10',
+        icon: 'payments'
+      },
+      {
+        label: 'Timbradas',
+        value: vigentes.length.toString(),
+        color: 'positive',
+        icon: 'verified'
+      },
+      {
+        label: 'Canceladas',
+        value: facturas.value.filter(f => f.status === 'Cancelada').length.toString(),
+        color: 'negative',
+        icon: 'dangerous'
+      },
+      {
+        label: 'Por Timbrar',
+        value: facturas.value.filter(f => f.status === 'Pendiente').length.toString(),
+        color: 'orange-9',
+        icon: 'history'
+      }
+    ]
+  })
 
   const formatCurrency = (val) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(val)
 

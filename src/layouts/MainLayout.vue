@@ -13,6 +13,30 @@
           </div>
         </q-toolbar-title>
 
+        <q-separator dark vertical inset class="q-mx-md" v-if="auth.can('sucursales.ver')" />
+
+      <div v-if="auth.can('sucursales.ver')" class="row items-center q-gutter-sm">
+        <q-icon name="storefront" size="xs" color="white" />
+        <q-select
+          v-model="auth.sucursalSeleccionada"
+          :options="sucursales"
+          option-label="nombre"
+          dense
+          borderless
+          dark
+          options-dark
+          style="min-width: 200px"
+          @update:model-value="cambiarSucursal"
+          class="text-weight-bold"
+        >
+          <template v-slot:prepend>
+            <div class="text-caption text-uppercase opacity-70" style="font-size: 10px">Sucursal:</div>
+          </template>
+        </q-select>
+      </div>
+
+
+
         <q-space />
 
         <q-btn flat no-caps class="user-profile-btn q-px-md">
@@ -111,15 +135,19 @@
   import { useAuthStore } from 'stores/auth'
   import { useRouter } from 'vue-router'
   import { useConfigStore } from 'stores/config'
+  import { useQuasar } from 'quasar'
+  import { api } from 'src/boot/axios'
 
 
   import MenuPrincipal from 'components/MenuPrincipal.vue'
 
 
   const auth = useAuthStore()
+  const $q = useQuasar()
   const configStore = useConfigStore()
   const router = useRouter()
   const leftDrawerOpen = ref(false)
+  const sucursales = ref([])
 
   const toggleLeftDrawer = () => {
     leftDrawerOpen.value = !leftDrawerOpen.value
@@ -127,7 +155,36 @@
 
   onMounted(async () => {
     await configStore.loadConfig()
+    await cargarSucursales()
   })
+
+  const cargarSucursales = async () => {
+  if (auth.can('sucursales.ver')) {
+    try {
+      const { data } = await api.get('/api/sucursales')
+      sucursales.value = data
+    } catch (e) {
+      console.error('Error al cargar sucursales: ' + e.message)
+    }
+  }
+}
+
+  const cambiarSucursal = (nuevaSucursal) => {
+    $q.loading.show({
+      message: `Cambiando a sucursal: ${nuevaSucursal.nombre}...`,
+      backgroundColor: 'primary'
+    })
+
+    // 1. Actualizamos el store (esto ya afecta a todos los componentes reactivos)
+    auth.sucursalSeleccionada = nuevaSucursal
+
+    // 2. Opcional: Recargar la página para limpiar estados de tablas o reportes
+    setTimeout(() => {
+      $q.loading.hide()
+      // Si quieres que todas las tablas se refresquen forzosamente:
+      window.location.reload()
+    }, 500)
+  }
 
 
   const onLogout = async () => {

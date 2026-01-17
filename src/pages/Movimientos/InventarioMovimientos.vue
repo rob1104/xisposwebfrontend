@@ -295,8 +295,6 @@
     observaciones: ''
   })
 
-  console.log(auth.isAdmin)
-
   // KPIs Computados (Calculados localmente para velocidad)
   const totalEntradas = computed(() => movimientos.value.filter(m => m.tipo_movimiento.includes('ENTRADA')).length)
   const totalSalidas = computed(() => movimientos.value.filter(m => m.tipo_movimiento.includes('SALIDA')).length)

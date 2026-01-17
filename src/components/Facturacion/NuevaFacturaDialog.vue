@@ -1,27 +1,30 @@
 <template>
-  <q-dialog v-model="show" persistent maximized transition-show="slide-up" transition-hide="slide-down">
-    <q-card class="bg-grey-2">
-      <q-card-section class="bg-primary text-white row items-center q-pa-md shadow-5">
-        <div class="text-h6 text-bold text-uppercase flex items-center">
-          <q-icon name="add_chart" class="q-mr-sm" size="md" />
-          Generar Nuevo Comprobante Fiscal (CFDI 4.0)
+  <q-dialog v-model="show" persistent backdrop-filter="blur(4px)" @show="onDialogOpen">
+    <q-card style="width: 1000px; max-width: 95vw;" class="border-radius-20 overflow-hidden shadow-24">
+      <q-card-section class="bg-indigo-10 text-white row items-center q-pa-lg">
+        <div>
+          <div class="text-h5 text-weight-bolder letter-spacing-1 flex items-center">
+            <q-icon name="auto_awesome" class="q-mr-sm" color="amber-4" />
+            NUEVA FACTURA
+          </div>
+          <div class="text-caption text-indigo-2 text-weight-medium">Emisión de comprobante fiscal digital (CFDI 4.0)</div>
         </div>
         <q-space />
-        <q-btn icon="close" flat round dense v-close-popup />
+        <q-btn icon="close" flat round dense v-close-popup class="hover-scale" />
       </q-card-section>
 
-      <q-card-section class="q-pa-none">
+      <q-card-section class="q-pa-none bg-slate-50">
         <q-stepper
           v-model="step"
           ref="stepper"
-          color="primary"
+          color="indigo-10"
           animated
           flat
           class="bg-transparent"
-          header-class="text-bold bg-white shadow-1"
+          header-class="text-weight-bold bg-white shadow-subtle q-py-sm"
         >
-          <q-step :name="1" title="Seleccionar Venta" icon="shopping_bag" :done="step > 1">
-            <q-card flat bordered class="border-radius-15 overflow-hidden shadow-2">
+          <q-step :name="1" title="Venta" icon="shopping_cart" :done="step > 1">
+            <div class="q-pa-md">
               <q-table
                 :rows="ventasPendientes"
                 :columns="colVentas"
@@ -29,63 +32,117 @@
                 selection="single"
                 v-model:selected="ventaSeleccionada"
                 :loading="loadingVentas"
+                :filter="filtroVenta"
                 flat
-                class="premium-table"
-                no-data-label="No hay ventas pendientes por facturar en esta sucursal"
+                bordered
+                class="premium-selection-table"
+                card-class="bg-white"
+                style="max-height: 400px"
               >
-                <template v-slot:top-left>
-                  <div class="text-subtitle1 text-bold text-blue-grey-8">Ventas listas para facturar en {{ auth.sucursalSeleccionada?.nombre }}</div>
+                <template v-slot:top>
+                  <div class="row full-width items-center q-gutter-md">
+                    <div class="text-subtitle1 text-weight-bold text-slate-800">Selecciona la venta a facturar</div>
+                    <q-space />
+                    <q-input
+                      v-model="filtroVenta"
+                      placeholder="Buscar por folio o cliente..."
+                      outlined dense
+                      autofocus
+                      class="bg-white search-box"
+                    >
+                      <template v-slot:prepend><q-icon name="search" /></template>
+                    </q-input>
+                  </div>
                 </template>
+
                 <template v-slot:body-cell-total="props">
-                  <q-td :props="props" class="text-bold text-primary">{{ formatCurrency(props.value) }}</q-td>
+                  <q-td :props="props">
+                    <q-badge color="indigo-1" text-color="indigo-10" class="text-weight-bold q-px-sm">
+                      {{ formatCurrency(props.value) }}
+                    </q-badge>
+                  </q-td>
                 </template>
               </q-table>
-            </q-card>
+            </div>
           </q-step>
 
-          <q-step :name="2" title="Datos del Cliente" icon="account_box" :done="step > 2">
-            <div class="row q-col-gutter-lg justify-center">
-              <div class="col-12 col-md-8">
-                <q-banner dense class="bg-indigo-1 text-indigo-9 rounded-borders q-mb-md shadow-1">
-                    <template v-slot:avatar><q-icon name="shopping_cart" /></template>
-                    Facturando Venta: <b>{{ ventaSeleccionada[0]?.folio }}</b> por un total de
-                    <b class="text-h6">{{ formatCurrency(ventaSeleccionada[0]?.total) }}</b>
-                  </q-banner>
-                <q-card flat bordered class="q-pa-lg border-radius-15 shadow-2">
-                  <div class="text-h6 q-mb-md text-primary flex items-center">
-                    <q-icon name="verified_user" class="q-mr-xs" /> Información Fiscal Requerida
+          <q-step :name="2" title="Receptor" icon="person" :done="step > 2">
+            <div class="q-pa-md row q-col-gutter-lg">
+              <div class="col-12 col-md-5">
+                <div class="text-subtitle2 text-weight-bold text-slate-700 q-mb-sm">Identificación del Cliente</div>
+                <q-select
+                  v-model="clienteSeleccionado"
+                  use-input
+                  input-debounce="300"
+                  label="Buscar en catálogo..."
+                  :options="clientesFiltrados"
+                  @filter="filterFn"
+                  outlined
+                  option-label="razon_social"
+                  clearable
+                  class="bg-white shadow-sm"
+                >
+                  <template v-slot:no-option>
+                    <q-item>
+                      <q-item-section class="text-grey">Sin resultados</q-item-section>
+                    </q-item>
+                  </template>
+                  <template v-slot:after>
+                    <q-btn round color="indigo-10" icon="person_add" @click="showRegistroCliente = true">
+                      <q-tooltip>Registrar cliente nuevo</q-tooltip>
+                    </q-btn>
+                  </template>
+                </q-select>
+
+                <q-banner dense class="bg-indigo-1 text-indigo-10 border-radius-10 q-mt-md">
+                  <template v-slot:avatar><q-icon name="info" /></template>
+                  Los datos deben coincidir exactamente con la CSF del receptor.
+                </q-banner>
+              </div>
+
+              <div class="col-12 col-md-7 border-left q-pl-lg">
+                <div class="text-subtitle2 text-weight-bold text-slate-700 q-mb-sm">Datos Fiscales Requeridos</div>
+                <div class="row q-col-gutter-sm">
+                  <q-input v-model="form.rfc" label="RFC *" outlined dense class="col-12 col-md-4" uppercase />
+                  <q-input v-model="form.nombre" label="Razón Social *" outlined dense class="col-12 col-md-8" uppercase />
+                  <q-input v-model="form.cp" label="C.P. Fiscal *" outlined dense class="col-12 col-md-4" />
+                  <q-select v-model="form.regimen" :options="regimenes" option-label="name" option-value="id" label="Régimen Fiscal *" outlined dense class="col-12 col-md-8" emit-value map-options />
+                  <q-select
+                      v-model="form.forma_pago"
+                      :options="formasPago"
+                      option-value="c_FormaPago"
+                      option-label="descripcion"
+                      label="Forma de Pago *"
+                      outlined dense
+                      class="col-12 col-md-6"
+                      emit-value
+                      map-options
+                    />
+                  <q-select v-model="form.uso_cfdi" :options="usosCfdi" label="Uso de CFDI *" option-value="c_UsoCFDI" option-label="descripcion" outlined dense class="col-12" emit-value map-options />
+
+                  <div class="col-12 q-mt-sm">
+                    <q-toggle v-model="actualizarCatalogo" color="indigo-10" label="Actualizar estos datos en el catalogo de clientes" class="text-caption text-weight-bold text-indigo-9" />
                   </div>
-                  <div class="row q-col-gutter-md">
-                    <q-input v-model="form.rfc" label="RFC *" outlined dense class="col-12 col-md-4" mask="AAAA######XXX" counter uppercase />
-                    <q-input v-model="form.nombre" label="Nombre o Razón Social (Mayúsculas) *" outlined dense class="col-12 col-md-8" uppercase />
-                    <q-input v-model="form.cp" label="Código Postal Fiscal *" outlined dense class="col-12 col-md-4" mask="#####" />
-                    <q-select v-model="form.regimen" :options="regimenes" option-label="name" option-value="code" label="Régimen Fiscal *" outlined dense class="col-12 col-md-8" emit-value map-options />
-                    <q-select v-model="form.uso_cfdi" :options="usosCfdi" label="Uso de CFDI *" option-value="c_UsoCFDI" option-label="descripcion" outlined dense class="col-12" emit-value map-options />
-                  </div>
-                </q-card>
+                </div>
               </div>
             </div>
           </q-step>
 
-          <q-step :name="3" title="Timbrar Factura" icon="send">
-            <div class="row q-col-gutter-md justify-center">
-              <div class="col-12 col-md-6 text-center q-pa-xl">
-                <q-icon name="task_alt" color="positive" size="100px" class="animate__animated animate__bounceIn" />
-                <div class="text-h4 text-bold q-mt-md">¡Todo listo!</div>
-                <p class="text-grey-7 text-subtitle1">
-                  Se generará el CFDI 4.0 por un total de
-                  <span class="text-bold text-primary">{{ formatCurrency(ventaSeleccionada[0]?.total) }}</span>.
-                </p>
-                <q-banner dense class="bg-blue-1 text-blue-9 rounded-borders q-mb-lg">
-                  El XML será sellado y timbrado automaticamente.
-                </q-banner>
+          <q-step :name="3" title="Confirmación" icon="fact_check">
+            <div class="row justify-center q-pa-xl text-center">
+              <div class="col-12 col-md-8">
+                <div class="confirmation-circle q-mx-auto q-mb-lg">
+                  <q-icon name="description" color="indigo-10" size="4rem" />
+                </div>
+                <div class="text-h5 text-weight-bold text-slate-900">¿Confirmar emisión?</div>
+                <div class="text-subtitle1 text-grey-7 q-mb-xl">Se timbrará la venta {{ ventaSeleccionada[0]?.folio }} por {{ formatCurrency(ventaSeleccionada[0]?.total) }}</div>
+
                 <q-btn
-                  color="primary"
-                  label="Confirmar y Timbrar"
-                  size="lg"
-                  icon="flash_on"
+                  color="indigo-10"
+                  label="Timbrar Comprobante Ahora"
+                  size="xl"
                   unelevated
-                  class="full-width custom-btn-radius shadow-8"
+                  class="full-width border-radius-15 shadow-10"
                   :loading="loadingTimbrando"
                   @click="procederTimbrado"
                 />
@@ -95,34 +152,42 @@
         </q-stepper>
       </q-card-section>
 
-      <q-card-actions align="between" class="bg-white q-pa-md shadow-up-5">
-        <q-btn v-if="step > 1" flat color="grey-7" icon="arrow_back" label="Anterior" @click="$refs.stepper.previous()" />
-        <q-btn v-else flat color="negative" label="Cerrar" v-close-popup />
+      <q-card-actions align="between" class="bg-white q-pa-lg">
+        <q-btn v-if="step > 1" flat color="slate-600" icon="chevron_left" label="Regresar" @click="$refs.stepper.previous()" />
+        <q-btn v-else flat color="negative" label="Cancelar" v-close-popup />
 
         <q-btn
           v-if="step < 3"
-          color="primary"
-          icon-right="arrow_forward"
-          label="Siguiente"
+          color="indigo-10"
+          icon-right="chevron_right"
+          label="Continuar"
           unelevated
+          class="q-px-lg border-radius-10"
           :disable="!canGoNext"
           @click="$refs.stepper.next()"
         />
       </q-card-actions>
     </q-card>
+
+    <ClientesForm
+      v-model="showRegistroCliente"
+      :taxRegimes="regimenes"
+      @saved="onClienteRegistrado"
+    />
   </q-dialog>
 </template>
-
 <script setup>
   import { ref, computed, onMounted, watch } from 'vue'
   import { api } from 'boot/axios'
   import { useQuasar } from 'quasar'
   import { useAuthStore } from 'src/stores/auth'
+  import ClientesForm from '../Clientes/ClientesForm.vue'
 
   const $q = useQuasar()
   const auth = useAuthStore()
   const step = ref(1)
 
+  const filtroVenta = ref('')
   const loadingVentas = ref(false)
   const loadingTimbrando = ref(false)
   const cargandoCatalogos = ref(false)
@@ -131,12 +196,74 @@
   const ventasPendientes = ref([])
   const ventaSeleccionada = ref([])
 
+  const clientes = ref([])
+  const clientesFiltrados = ref([])
+  const clienteSeleccionado = ref(null)
+  const showRegistroCliente = ref(false)
+  const actualizarCatalogo = ref(false)
+
+  const formasPago = [
+    { c_FormaPago: '01', descripcion: '01 - Efectivo' },
+    { c_FormaPago: '03', descripcion: '03 - Transferencia electrónica de fondos' },
+    { c_FormaPago: '04', descripcion: '04 - Tarjeta de crédito' },
+    { c_FormaPago: '28', descripcion: '28 - Tarjeta de débito' },
+    { c_FormaPago: '02', descripcion: '02 - Cheque nominativo' },
+    { c_FormaPago: '99', descripcion: '99 - Por definir' }
+  ]
+
+
   const props = defineProps({ modelValue: Boolean })
   const emit = defineEmits(['update:modelValue', 'saved'])
 
   const form = ref({
-    rfc: '', nombre: '', cp: '', regimen: '', uso_cfdi: 'G03'
+    rfc: '', nombre: '', cp: '', regimen: '', uso_cfdi: 'G03', 'cliente_id': null, 'forma_pago': '01'
   })
+
+  const filterFn = (val, update) => {
+    if (val === '') {
+      update(() => {
+        clientesFiltrados.value = clientes.value
+      })
+      return
+    }
+
+    update(() => {
+      const needle = val.toLowerCase()
+      clientesFiltrados.value = clientes.value.filter(v => {
+        // Agregamos validaciones para evitar el error de 'null'
+        // Si el campo es nulo, usamos un texto vacío para que no truene el sistema
+        const nombre = (v.razon_social || '').toLowerCase()
+        const rfc = (v.rfc || '').toLowerCase()
+
+        return nombre.indexOf(needle) > -1 || rfc.indexOf(needle) > -1
+      })
+    })
+  }
+
+  const loadClientes = async () => {
+    try {
+      const { data } = await api.get('/api/clientes')
+      clientes.value = data
+    } catch (e) {
+      console.error("Error al cargar clientes")
+    }
+  }
+
+  watch(clienteSeleccionado, (val) => {
+    if (val) {
+      form.value.cliente_id = val.id
+      form.value.rfc = val.rfc || ''
+      form.value.nombre = val.razon_social || ''
+      form.value.cp = val.codigo_postal || ''
+      form.value.regimen = val.tax_regime_id || ''
+    }
+  })
+
+  const onClienteRegistrado = async () => {
+    await loadClientes()
+    const nuevo = clientes.value[clientes.value.length - 1]
+    clienteSeleccionado.value = nuevo
+  }
 
   const show = computed({
     get: () => props.modelValue,
@@ -148,6 +275,29 @@
     if (step.value === 2) return form.value.rfc && form.value.nombre && form.value.cp && form.value.regimen
     return true
   })
+
+  const resetForm = () => {
+    // Regresamos al primer paso del asistente
+    step.value = 1
+
+    // Limpiamos selecciones de tablas y buscadores
+    ventaSeleccionada.value = []
+    clienteSeleccionado.value = null
+    filtroVenta.value = ''
+
+    // Reseteamos el formulario fiscal
+    form.value = {
+      cliente_id: null,
+      rfc: '',
+      nombre: '',
+      cp: '',
+      regimen: '',
+      uso_cfdi: 'G03'
+    }
+
+    // Apagamos la bandera de actualización de catálogo
+    actualizarCatalogo.value = false
+  }
 
   const cargarCatalogos = async () => {
     cargandoCatalogos.value = true
@@ -191,7 +341,8 @@
     ventaSeleccionada.value = []
     await Promise.all([
       loadVentasPendientes(),
-      cargarCatalogos()
+      cargarCatalogos(),
+      loadClientes()
     ])
   }
 
@@ -216,7 +367,8 @@
       const payload = {
         venta_id: ventaSeleccionada.value[0].id,
         receptor: form.value,
-        sucursal_id: auth.sucursalSeleccionada.id
+        sucursal_id: auth.sucursalSeleccionada.id,
+        actualizar_catalogo: actualizarCatalogo.value
       }
 
       const { data } = await api.post('/api/cfdis/timbrar', payload)
@@ -227,8 +379,10 @@
         icon: 'verified',
         timeout: 10000
       })
-
+      emit('saved')
+      resetForm()
       show.value = false
+
       // Emitir evento para recargar la tabla principal de facturas
     } catch (e) {
       $q.notify({
@@ -246,13 +400,44 @@
 </script>
 
 <style lang="scss" scoped>
-  .premium-table {
-    :deep(thead th) {
-      background-color: #263238;
-      color: white;
+  .bg-slate-50 { background-color: #f8fafc; }
+  .border-radius-20 { border-radius: 20px; }
+  .border-radius-15 { border-radius: 15px; }
+  .border-radius-10 { border-radius: 10px; }
+  .letter-spacing-1 { letter-spacing: 1px; }
+
+  .hover-scale {
+    transition: transform 0.2s;
+    &:hover { transform: scale(1.1); }
+  }
+
+  // Estilo para la tabla de selección de ventas
+  .premium-selection-table {
+    border: none;
+    :deep(thead tr th) {
+      background-color: #f1f5f9;
+      color: #475569;
+      font-weight: 800;
+    }
+    :deep(tbody tr.selected) {
+      background-color: #eef2ff !important;
+      color: $indigo-10;
       font-weight: bold;
     }
   }
-  .border-radius-15 { border-radius: 15px; }
-  .custom-btn-radius { border-radius: 12px; font-weight: bold; }
+
+  .search-box { width: 300px; }
+
+  .confirmation-circle {
+    width: 120px;
+    height: 120px;
+    background: #eef2ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid #c7d2fe;
+  }
+
+  .border-left { border-left: 1px solid #e2e8f0; }
 </style>
