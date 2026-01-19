@@ -6,11 +6,27 @@ export const usePosStore = defineStore('pos', {
   state: () => ({
     turno: null,
     cargandoTurno: false,
+    ventasEnEspera: [],
+    clienteSeleccionado: {}
   }),
   getters: {
     isTurnoAbierto: (state) => !!state.turno && state.turno.status === 'Abierto',
   },
   actions: {
+    pausarVenta(items, total) {
+      const nuevaPausa = {
+        id: Date.now(),
+        fecha: new Date().toLocaleTimeString(),
+        items: [...items],
+        total: total,
+        count: items.lengtg
+      }
+      this.ventasEnEspera.unshift(nuevaPausa)
+
+    },
+    eliminarPausa(id) {
+      this.ventasEnEspera = this.ventasEnEspera.filter(v => v.id !== id)
+    },
     async verificarTurno  () {
       this.cargandoTurno = true
       try {

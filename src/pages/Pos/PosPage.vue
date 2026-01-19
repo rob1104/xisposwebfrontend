@@ -1,5 +1,5 @@
 <template>
-  <q-page class="bg-blue-grey-10 column no-wrap overflow-hidden" style="height: 100vh;">
+  <q-page class="bg-dark-pos column no-wrap overflow-hidden" style="height: 100vh;">
 
     <!-- Loading Spinner -->
     <div v-if="posStore.cargandoTurno" class="fixed-center text-center">
@@ -10,6 +10,7 @@
     <!-- Vista Principal - Turno Abierto -->
     <template v-else-if="posStore.isTurnoAbierto">
       <PosHeader
+        @cancel-sale="cancelarVenta"
         @scan="procesarEscaneo"
         @open-search="dialogoBuscador = true"
         @open-cash="abrirMovimientoCaja"
@@ -17,69 +18,96 @@
       />
 
       <!-- Layout Principal Responsive -->
-      <div class="col row q-col-gutter-sm q-pa-sm overflow-hidden">
+      <div class="col row q-col-gutter-x-sm q-pa-sm overflow-hidden main-content-area">
 
         <!-- Columna del Carrito - Adaptable -->
-        <div class="col-12 col-sm-12 col-md-7 col-lg-8 full-height column">
-          <div class="col overflow-auto bg-blue-grey-9 rounded-borders shadow-2">
+        <div class="col-12 col-md-7 col-lg-8 full-height column">
+          <div class="col overflow-hidden bg-blue-grey-10 rounded-borders shadow-2 inner-panel border-subtle">
             <PosCart
               :items="carrito"
               @increment="incrementar"
               @decrement="decrementar"
               @request-price-change="abrirDialogoPrecio"
+              class="full-height"
             />
           </div>
         </div>
 
-        <!-- Columna de Resumen y Acciones - Adaptable -->
-        <div class="col-12 col-sm-12 col-md-5 col-lg-4 column q-gutter-y-sm">
-          <!-- Botón Reimprimir -->
-          <q-btn
-            color="green-4"
-            icon="print"
-            text-color="black"
-            label="Reimprimir Último"
-            class="full-width text-bold"
-            size="md"
-            @click="ejecutarReimpresion"
-            :loading="reimprimiendo"
-          />
+        <div class="col-12 col-md-5 col-lg-4 full-height column q-mt-sm q-gutter-y-sm">
+          <div class="row q-col-gutter-md">
+            <div class="col">
+              <q-btn
+                color="green-4"
+                icon="print"
+                text-color="black"
+                label="Reimprimir Último"
+                class="full-width text-bold"
+                size="md"
+                @click="ejecutarReimpresion"
+                :loading="reimprimiendo" />
+            </div>
+            <div class="col">
+              <q-btn
+                color="indigo-9"
+                icon="pending_actions"
+                label="Espera"
+                class="full-width action-btn"
+                unelevated
+                @click="dialogoVentasPausadas = true">
+                  <q-badge v-if="posStore.ventasEnEspera.length" color="red" floating>
+                    {{ posStore.ventasEnEspera.length }}
+                  </q-badge>
+              </q-btn>
+            </div>
+          </div>
 
           <!-- Resumen de Venta -->
-          <div class="col-auto">
+          <div class="col column">
             <PosSummary
               :resumen="totalVenta"
               :count="carrito.length"
               @pay="abrirPago"
               @clear="vaciarCarrito"
+              class="col"
             />
           </div>
         </div>
       </div>
 
       <!-- Footer Responsive con Info -->
-      <div class="bg-blue-grey-9 text-white q-pa-xs text-caption row justify-center items-center q-gutter-x-sm q-gutter-y-xs shadow-up-1 flex-wrap">
+      <div class="pos-footer row items-center q-px-md shadow-up-5">
         <!-- Atajos de Teclado - Solo en pantallas medianas -->
-        <div class="gt-sm row q-gutter-x-sm items-center">
+        <div class="gt-sm row items-center q-gutter-x-md text-grey-5">
           <span><b class="text-yellow">[F5]</b> Buscar</span>
-          <span><b class="text-yellow">[F12]</b> Cobrar</span>
+          <span><b class="text-yellow">[F7]</b> Pausar Venta</span>
+          <span><b class="text-yellow">[F8]</b>Cargar Pausadas</span>
+          <span><b class="text-yellow">[F12]</b> Cobrar Venta</span>
         </div>
 
-        <q-separator vertical inset dark class="gt-sm" />
+        <q-space />
 
         <!-- Sucursal -->
-        <div class="text-uppercase text-center" style="min-width: 120px;">
-          <span class="text-bold text-yellow">SUCURSAL: </span>
-          <span class="text-caption">{{ auth.sucursalSeleccionada?.nombre || 'N/A' }}</span>
+        <div class="row items-center q-gutter-x-lg">
+          <div class="status-item">
+            <q-icon name="storefront" color="cyan" size="xs" class="q-mr-xs" />
+            {{ auth.sucursalSeleccionada?.nombre || 'N/A' }}
+          </div>
+          <div class="status-item">
+            <q-icon name="currency_exchange" color="amber" size="xs" class="q-mr-xs" />
+            T.C: <span class="text-white text-bold">{{ posStore.turno?.tipo_cambio || '0.00' }}</span>
+          </div>
+          <q-slide-transition>
+            <div v-if="ultimoCambio > 0" class="change-widget row items-center animate__animated animate__bounceInRight">
+              <div class="text-overline q-mr-sm opacity-70">CAMBIO:</div>
+              <div class="text-h6 text-bold text-light-green-13">$ {{ ultimoCambio.toFixed(2) }}</div>
+              <q-btn flat round dense icon="close" size="xs" class="q-ml-sm" @click="ultimoCambio = 0" />
+            </div>
+          </q-slide-transition>
         </div>
 
-        <q-separator vertical inset dark class="gt-xs" />
 
-        <!-- Tipo de Cambio -->
-        <div class="text-center" style="min-width: 80px;">
-          <span class="text-bold text-yellow">T.C: </span>
-          <span>{{ posStore.turno?.tipo_cambio || '0.00' }}</span>
-        </div>
+
+
       </div>
     </template>
 
@@ -119,11 +147,17 @@
       v-model="dialogoPago"
       :resumen="totalVenta"
       :items="carrito"
+      :cliente-seleccionado="clienteSeleccionado"
       @success="confirmarVenta"
     />
     <PosDialogArqueo v-model="dialogoArqueo" @closed="onTurnoCerrado" />
     <CashMovementModal v-model="showCashModal" @success="onMovementSuccess" />
     <PosDialogPriceChange v-model="dialogoCambiaPrecio" :item="itemSeleccionadoParaPrecio" @change="aplicarCambioPrecio" />
+    <PosDialogoPausadas
+        v-model="dialogoVentasPausadas"
+        :ventas="posStore.ventasEnEspera"
+        @recuperar="recuperarVenta"
+      />
   </q-page>
 </template>
 
@@ -145,16 +179,73 @@
   import PosDialogApertura from 'src/components/Pos/PosDialogApertura.vue'
   import PosDialogPriceChange from 'src/components/Pos/PosDialogPriceChange.vue'
   import CashMovementModal from 'src/components/Pos/CashMovementModal.vue'
+  import PosDialogoPausadas from 'src/components/Pos/PosDialogoPausadas.vue'
   import { PrintService } from 'src/services/PrintService'
 
   const $q = useQuasar()
   const auth = useAuthStore()
   const posStore = usePosStore()
 
+  const dialogoVentasPausadas = ref(false)
+
   const dialogoCambiaPrecio = ref(false)
   const itemSeleccionadoParaPrecio = ref(null)
 
+  const ultimoCambio = ref(0)
+
+  const clienteSeleccionado = ref(null)
+
   const router = useRouter()
+
+  const resetearCliente = async() => {
+    try {
+      const { data } = await api.get('/api/clientes/1')
+      clienteSeleccionado.value = data
+      posStore.clienteSeleccionado = clienteSeleccionado.value
+    } catch (e) {
+      console.error('Error al resetear cliente default')
+    }
+  }
+
+  const cancelarVenta = () => {
+    if (carrito.value.length === 0 && clienteSeleccionado.value?.id === 1) return
+    $q.dialog({
+      title: 'Cancelar Venta',
+      message: '¿Estás seguro de borrar el carrito y resetear el cliente?',
+      cancel: true,
+      persistent: true,
+      ok: { label: 'Sí, Cancelar', color: 'negative' }
+    }).onOk(async () => {
+      carrito.value = []
+      await resetearCliente()
+      $q.notify({ message: 'Venta cancelada y cliente reseteado', color: 'orange-9', icon: 'delete_sweep' })
+    })
+  }
+
+  const ponerEnEspera = () => {
+    if(carrito.value.length === 0) return
+    posStore.pausarVenta(carrito.value, totalVenta.value.total)
+    carrito.value = []
+    $q.notify({
+      message: 'VENTA EN ESPERA',
+      caption: 'Se ha guardado el ticket temporalmente',
+      color: 'indigo-7',
+      icon: 'pause_circle',
+      position: 'bottom'
+    })
+  }
+
+  const recuperarVenta = (ventaPausada) => {
+    if (carrito.value.length > 0) {
+      // Si ya hay algo en el carrito, preguntamos o pausamos la actual
+      $q.notify({ message: 'Primero vacíe o pause la venta actual', color: 'warning' })
+      return
+    }
+
+    carrito.value = ventaPausada.items
+    posStore.eliminarPausa(ventaPausada.id)
+    $q.notify({ message: 'Ticket recuperado', color: 'positive', icon: 'play_circle' })
+  }
 
   const abrirDialogoPrecio = (item) => {
     itemSeleccionadoParaPrecio.value = item
@@ -175,7 +266,6 @@
       })
     }
   }
-
 
   const configStore = useConfigStore()
 
@@ -215,8 +305,9 @@
     }
   })
 
+
   /**
-   * Lógica de Totales Refactorizada
+   * Lógica de Cálculo de Totales
    */
   const totalVenta = computed(() => {
     const inicial = { subtotal: 0, impuestos: 0, total: 0 }
@@ -294,30 +385,35 @@
 
       if (ventaExitosa.id) {
         try {
+
           await PrintService.imprimirTicketReal(
             ventaExitosa,
             carrito.value,
             totalVenta.value,
             ventaExitosa.configticket,
             ventaExitosa.cliente,
-            datosDesdeDialogo.pagos
-          )
+            datosDesdeDialogo.pagos)
 
-          $q.notify({
-            color: 'positive',
-            message: `VENTA ${ventaExitosa.folio} REGISTRADA E IMPRESA`,
-            icon: 'print'
-          })
-        } catch (printError) {
-          $q.notify({
-            color: 'warning',
-            message: 'Venta guardada, pero hubo un problema con la impresora.',
-            caption: printError.message,
-            icon: 'priority_high'
-          })
-        }
+            $q.notify({
+              color: 'positive',
+              message: `VENTA ${ventaExitosa.folio} REGISTRADA E IMPRESA`,
+              icon: 'print'
+            })
+          }
+          catch (printError) {
+            $q.notify({
+              color: 'warning',
+              message: 'Venta guardada, pero hubo un problema con la impresora.',
+              caption: printError.message,
+              icon: 'priority_high'
+            })
+          }
+          finally {
+            ultimoCambio.value = datosDesdeDialogo.cambio_calculado || 0
+          }
 
         carrito.value = []
+        await resetearCliente()
         dialogoPago.value = false
       }
     } catch (error) {
@@ -332,14 +428,17 @@
   }
 
   const incrementar = (item) => item.cantidad++
+
   const decrementar = (item) => {
     if (item.cantidad > 1) item.cantidad--
     else eliminarArticulo(item)
   }
+
   const eliminarArticulo = (item) => {
     const index = carrito.value.findIndex(p => p.uniqueId === item.uniqueId)
     if (index !== -1) carrito.value.splice(index, 1)
   }
+
   const vaciarCarrito = () => {
     if (carrito.value.length === 0) return
     $q.dialog({ title: 'Limpiar', message: '¿Vaciar carrito?', cancel: true })
@@ -350,17 +449,71 @@
     let cantidadEscaneada = 1
     let codigoLimpio = input.trim()
 
-    if (codigoLimpio.includes('*')) {
+    // DETECTAR TARJETA DE CLIENTE (Ejem: CTE-0000001)
+    if (codigoLimpio.startsWith('CTE-')) {
+      try {
+        const { data } = await api.get(`/api/clientes/${codigoLimpio}/global`)
+        if (data) {
+          clienteSeleccionado.value = data
+          $q.notify({
+            message: `CLIENTE IDENTIFICADO: ${data.nombre_comercial}`,
+            caption: `RFC: ${data.rfc || 'Sin RFC'}`,
+            icon: 'person_add',
+            color: 'cyan-9',
+            position: 'center'
+          })
+        }
+        posStore.clienteSeleccionado = clienteSeleccionado.value
+        return
+      }
+      catch (e) {
+        $q.notify({
+          message: 'Código de cliente no encontrado',
+          caption: 'Verifique que el número de cliente sea correcto',
+          color: 'orange-9',
+          position: 'center',
+          icon: 'error'
+        })
+        return
+      }
+    }
+
+    const PREFIJO_BASCULA = auth.sucursalSeleccionada?.bascula || '20'
+
+    /*** B A S C U L A */
+    if (codigoLimpio.startsWith(PREFIJO_BASCULA)) {
+      //Estructura PPCCCCCVVVVVC
+      const codProducto = codigoLimpio.substring(4, 7) //Digitos del producto
+      const valorRaw = codigoLimpio.substring(7, 12)  //Peso
+      cantidadEscaneada = parseFloat(valorRaw) / 1000
+      codigoLimpio = codProducto
+    }
+    else if (codigoLimpio.includes('*')) {
       const partes = codigoLimpio.split('*')
       cantidadEscaneada = parseFloat(partes[0]) || 1
       codigoLimpio = partes[1] || ''
     }
 
+
     if (!codigoLimpio) return
 
     try {
       const res = await api.get(`/api/pos/producto/${codigoLimpio}`)
-      if (res.data) agregarAlCarrito(res.data, cantidadEscaneada)
+      console.log(res.data)
+      if (res.data) {
+        if (res.data.status == 0) {
+          $q.notify({
+            message: 'PRODUCTO DESACTIVADO',
+            caption: `El producto ${res.data.nombre} no está disponible para venta.`,
+            color: 'orange-9',
+            position: 'center',
+            icon: 'block',
+            timeout: 2500
+          })
+          return
+        }
+        agregarAlCarrito(res.data, cantidadEscaneada)
+      }
     } catch (e) {
       $q.notify({
         message: 'PRODUCTO NO ENCONTRADO',
@@ -384,7 +537,9 @@
   }
 
   const abrirMovimientoCaja = () => { showCashModal.value = true }
+
   const confirmarCierreTurno = () => { dialogoArqueo.value = true }
+
   const onTurnoCerrado = () => {
     carrito.value = []
     posStore.turno = null
@@ -398,7 +553,6 @@
 
   watch(dialogoCambiaPrecio, (val) => {
   if (!val) {
-      // Cuando el diálogo se cierra, esperamos al siguiente ciclo y recuperamos foco
       nextTick(() => recuperarFocoEscaner())
     }
   })
@@ -406,11 +560,22 @@
   const manejarTecladoGlobal = (e) => {
     if (e.key === 'F5') { e.preventDefault(); dialogoBuscador.value = true }
     if (e.key === 'F12') { e.preventDefault(); abrirPago() }
+
+    if (e.key === 'F7') {
+      e.preventDefault()
+      ponerEnEspera()
+    }
+    if (e.key === 'F8') {
+      e.preventDefault()
+      dialogoVentasPausadas.value = true
+    }
+
   }
 
   onMounted(async() => {
     window.addEventListener('keydown', manejarTecladoGlobal)
     await posStore.verificarTurno()
+    await resetearCliente()
     if(!posStore.isTurnoAbierto) dialogoApertura.value = true
     intervaloFoco = setInterval(recuperarFocoEscaner, 2500)
   })
@@ -423,9 +588,69 @@
   const onMovementSuccess = () => {
     showCashModal.value = false
   }
+
 </script>
 
 <style lang="scss" scoped>
+  .bg-dark-pos {
+  background: radial-gradient(circle at top right, #1a2327, #0d1214);
+}
+
+.main-content-area {
+  height: calc(100vh - 110px); // Ajuste según altura de Header y Footer
+}
+
+.inner-panel {
+  background: rgba(38, 50, 56, 0.4);
+  backdrop-filter: blur(5px);
+}
+
+.border-subtle {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.action-btn {
+  height: 45px;
+  border-radius: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.pos-footer {
+  height: 45px;
+  background: #101619;
+  border-top: 1px solid rgba(0, 188, 212, 0.2);
+  font-size: 11px;
+}
+
+.shortcut {
+  .key {
+    background: #263238;
+    color: #00e5ff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 4px;
+    font-weight: bold;
+    border: 1px solid rgba(0, 229, 255, 0.3);
+  }
+}
+
+.status-item {
+  color: #b0bec5;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.change-widget {
+  background: rgba(76, 175, 80, 0.15);
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  padding: 0 15px;
+  height: 35px;
+  border-radius: 20px;
+  box-shadow: 0 0 15px rgba(76, 175, 80, 0.1);
+}
   .border-top-grey {
     border-top: 1px solid #e0e0e0;
   }
@@ -434,7 +659,6 @@
     box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
   }
 
-  /* Mejoras responsive adicionales */
   @media (max-width: 599px) {
     .q-page {
       font-size: 0.9rem;

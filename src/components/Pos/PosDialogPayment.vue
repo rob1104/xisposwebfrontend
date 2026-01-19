@@ -130,6 +130,7 @@
                 </div>
 
                 <div class="row q-col-gutter-sm items-start">
+                  <div class="text-overline text-grey-5 q-mb-xs q-ml-xs">FORMA DE PAGO</div>
                     <div class="col-auto">
                       <q-btn-toggle
                       v-model="pagoActual.metodo"
@@ -141,6 +142,7 @@
                         {value: 'tarjeta', icon: 'credit_card'}
                       ]"
                     >
+
                       <template v-slot:option-efectivo><q-icon name="payments" size="sm" class="q-pa-xs" /></template>
                        <template v-slot:option-tarjeta><q-icon name="credit_card" size="sm" class="q-pa-xs" /></template>
                     </q-btn-toggle>
@@ -169,7 +171,6 @@
                   style="border-radius: 12px;"
                 />
               </div>
-
 
               <div class="col-auto bg-blue-grey-10 q-pa-md border-top-subtle row items-center">
                 <div class="col">
@@ -438,7 +439,7 @@
     pagoActual.value = {
       metodo: 'efectivo',
       moneda: 'MXN',
-      monto: props.resumen.total,
+      monto: 0,
       ultimos4: '',
       referencia: ''
     }
@@ -461,6 +462,10 @@
       }
     }
 
+    let montoRecibidoMN = montoConvertidoAPesos.value
+    let esEfectivo = pagoActual.value.metodo === 'efectivo'
+    let cubreTotal = montoRecibidoMN >= saldoPendiente.value
+
     const nuevoPago = {
       ...pagoActual.value,
       monto: montoConvertidoAPesos.value,
@@ -471,11 +476,16 @@
 
     listaPagos.value.push(nuevoPago)
 
+    if(esEfectivo && cubreTotal) {
+      procesarVenta()
+      return
+    }
+
     const pendiente = props.resumen.total - totalPagado.value
     pagoActual.value = {
       metodo: 'efectivo',
       moneda: 'MXN',
-      monto: pendiente > 0 ? pendiente : 0,
+      monto: 0,
       ultimos4: '',
       referencia: ''
     }
@@ -526,7 +536,7 @@
       // Usamos 'Crédito' con acento para coincidir con el ENUM de tu DB
       tipo_pago: tipoPagoTab.value === 'credito' ? 'Crédito' : 'Contado',
       cliente_id: clienteLocal.value?.id || null, // ID del buscador interno
-
+      cambio_calculado: cambio.value,
       // Lógica de pagos: Mapeamos la lista solo si es Contado
       pagos: tipoPagoTab.value === 'credito' ? [] : listaPagos.value.map(p => ({
         // Normalizamos el nombre del método para la DB (Efectivo/Tarjeta)
@@ -577,7 +587,12 @@ watch(() => pagoActual.value.moneda, () => {
    * Se ejecuta al abrir el diálogo
    */
   const onShowDialog = () => {
-    focoPago(); // Mantiene tu lógica de foco inicial
+    focoPago();
+
+    if(props.clienteSeleccionado) {
+      clienteLocal.value = props.clienteSeleccionado
+    }
+
     window.addEventListener('keydown', handleGlobalKeydown);
   };
 
@@ -590,28 +605,28 @@ watch(() => pagoActual.value.moneda, () => {
 
   const handleGlobalKeydown = (e) => {
     if (e.key === 'F1') {
-      e.preventDefault(); // Evita que el navegador abra la ayuda
+      e.preventDefault() // Evita que el navegador abra la ayuda
 
       // Solo procesamos si el botón de finalizar no está deshabilitado por lógica de negocio
       // Para Contado: saldo debe ser 0. Para Crédito: cliente debe ser válido y no exceder límite.
       if (tipoPagoTab.value === 'contado') {
         if (saldoPendiente.value <= 0 && !procesando.value) {
-          procesarVenta();
+          procesarVenta()
         }
       } else {
         if (clienteValidoParaCredito.value && !clienteExcedeLimite.value && !procesando.value) {
-          procesarVenta();
+          procesarVenta()
         }
       }
     }
-  };
+  }
 
 </script>
 
 <style lang="scss" scoped>
 
 
-  // Bordes y Sombras
+  // Bordes y Sombra
   .premium-border {
       border: 1px solid rgba(0, 188, 212, 0.3); // Borde cian sutil
   }
@@ -637,6 +652,18 @@ watch(() => pagoActual.value.moneda, () => {
       background: rgba(0,0,0,0.2) !important; // Fondo más oscuro
       border: 2px solid transparent; // Borde base transparente
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Ocultar flechas en Chrome, Safari, Edge y Opera */
+  .premium-amount-input :deep(input::-webkit-outer-spin-button),
+  .premium-amount-input :deep(input::-webkit-inner-spin-button) {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Ocultar flechas en Firefox */
+  .premium-amount-input :deep(input[type=number]) {
+    -moz-appearance: textfield;
   }
 
   // Modos de color del Input según moneda

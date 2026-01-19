@@ -34,10 +34,7 @@
           </template>
         </q-select>
       </div>
-
-
-
-        <q-space />
+      <q-space />
 
         <q-btn flat no-caps class="user-profile-btn q-px-md">
           <div class="row items-center no-wrap">
@@ -108,7 +105,7 @@
 
             <div class="row items-center justify-center q-gutter-x-xs q-mt-xs">
               <q-badge style="font-size: 18px;" color="blue-grey-1" text-color="blue-grey-7" label="PUNTO DE VENTA" class="text-bold" />
-              <div class="text-caption text-grey-9">Versión 0.1.19</div>
+              <div class="text-caption text-grey-9">Versión 0.1.20</div>
             </div>
           </div>
 

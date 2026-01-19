@@ -108,36 +108,35 @@
   const previewLogo = ref(null)
   const loadingSync = ref(false)
 
-
   const confirmarSincronizacion = () => {
-      $q.dialog({
-        title: 'Confirmar Acción',
-        message: '¿Deseas inicializar los registros faltantes de inventario en todas las sucursales?',
-        cancel: true,
-        persistent: true
-      }).onOk(() => {
-        ejecutarSincronizacion()
-      })
-    }
+    $q.dialog({
+      title: 'Confirmar Acción',
+      message: '¿Deseas inicializar los registros faltantes de inventario en todas las sucursales?',
+      cancel: true,
+      persistent: true
+    }).onOk(() => {
+      ejecutarSincronizacion()
+    })
+  }
 
-    const ejecutarSincronizacion = async () => {
-      loadingSync.value = true
-      try {
-        const { data } = await api.post('/api/config/sincronizar-inventarios')
-        $q.notify({
-          type: 'positive',
-          message: data.message,
-          icon: 'done'
-        })
-      } catch (error) {
-        $q.notify({
-          type: 'negative',
-          message: 'Error al sincronizar inventarios'
-        })
-      } finally {
-        loadingSync.value = false
-      }
+  const ejecutarSincronizacion = async () => {
+    loadingSync.value = true
+    try {
+      const { data } = await api.post('/api/config/sincronizar-inventarios')
+      $q.notify({
+        type: 'positive',
+        message: data.message,
+        icon: 'done'
+      })
+    } catch (error) {
+      $q.notify({
+        type: 'negative',
+        message: 'Error al sincronizar inventarios'
+      })
+    } finally {
+      loadingSync.value = false
     }
+  }
 
   const form = reactive({
     nombre_tienda: '',
@@ -183,4 +182,5 @@
       }
     })
   }
+
 </script>

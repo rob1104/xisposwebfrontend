@@ -1,6 +1,6 @@
 <template>
   <q-card class="summary-card text-white full-height flex flex-center shadow-8" flat>
-    <q-card-section class="full-width q-pa-xl full-height column no-wrap">
+    <q-card-section class="full-width q-pa-md full-height column no-wrap">
 
       <div class="text-center q-mb-lg">
         <div class="text-overline text-blue-grey-2 letter-spacing-2">Resumen de Venta</div>
@@ -61,6 +61,7 @@
 
         <q-btn
           flat
+          style="visibility: hidden;"
           no-caps
           color="orange-3"
           icon="delete_sweep"

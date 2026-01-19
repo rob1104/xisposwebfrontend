@@ -86,6 +86,23 @@
               <span v-else class="text-caption text-grey-5">Sin teléfono</span>
             </q-td>
 
+            <q-td key="prefijo" :props="props">
+              <div class="row items-center justify-center no-wrap">
+                <q-chip icon="star" class="glossy" color="purple" text-color="white">{{ props.row.prefijo }}</q-chip>
+
+              </div>
+            </q-td>
+
+            <q-td key="bascula" :props="props">
+              <div class="row items-center justify-center no-wrap">
+                <span style="color: blue; font-size: 18px; font-weight: bold;">{{ props.row.bascula }}</span>
+
+              </div>
+            </q-td>
+
+
+
+
             <q-td key="status" :props="props" class="text-center">
               <q-badge
                 :color="props.row.status === 1 ? 'positive' : 'negative'"
@@ -165,6 +182,8 @@
   const columns = [
     { name: 'nombre', label: 'SUCURSAL / UBICACIÓN', field: 'nombre', align: 'left', sortable: true },
     { name: 'telefono', label: 'TELÉFONO DE CONTACTO', field: 'telefono', align: 'center' },
+    { name: 'prefijo', label: 'PREFIJO PARA DOCUMENTOS', field: 'telefono', align: 'center' },
+    { name: 'bascula', label: 'IDENTIFICADOR BASCULA', field: 'telefono', align: 'center' },
     { name: 'status', label: 'ESTADO ACTUAL', field: 'status', align: 'center', sortable: true },
     { name: 'actions', label: 'ACCIONES', align: 'center' }
   ]

@@ -51,7 +51,7 @@
     </template>
 
     <template v-slot:body-cell-total="props">
-      <q-td :props="props" class="text-h6 text-bold text-pink-3" style="font-size: 20px;">
+      <q-td :props="props" class="text-h6 text-bold text-light-green-13" style="font-size: 20px;">
         $ {{ (props.row.precio * props.row.cantidad).toFixed(2) }}
       </q-td>
     </template>
