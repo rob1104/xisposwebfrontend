@@ -26,6 +26,9 @@ const routes = [
       { path: 'configuracion', component: () => import('pages/Configuracion/ConfiguracionPage.vue'), name: 'configuracion.editar',  },
       { path: 'perfil', component: () => import('pages/Usuarios/ProfilePage.vue'), name: 'perfil' },
       { path: 'facturacion', component: () => import('pages/Facturacion/FacturasPage.vue'), name: 'facturacion', meta: { permission: 'facturacion.ver' } },
+      { path: 'conteofisico', component: () => import('pages/Inventario/AuditoriaInventario.vue'), name: 'conteofisico', meta: { permission: 'inventario.crearconteofisico' } },
+      { path: 'auditoriahistorial', component: () => import('pages/Inventario/AuditoriaHistorial.vue'), name: 'auditoriahistorial', meta: { permission: 'inventario.verconteofisico' } },
+      { path: 'reportes/ventasdetalladas', component: () => import('pages/Reportes/VentasDetalladas.vue'), name: 'ventasdetalladas', meta: { permission: 'reportes.ventasdetalladas' } },
     ]
   },
   {

@@ -4,8 +4,6 @@
       <q-toolbar class="q-py-md q-px-lg">
         <q-btn flat dense round icon="menu" @click="toggleLeftDrawer" class="q-mr-sm" />
 
-
-
         <q-toolbar-title>
           <div class="text-h6 text-bold ls-1">PUNTO DE VENTA - {{ configStore.nombreTienda }}</div>
           <div class="text-caption text-red-2 text-uppercase text-weight-bolder">
@@ -105,7 +103,7 @@
 
             <div class="row items-center justify-center q-gutter-x-xs q-mt-xs">
               <q-badge style="font-size: 18px;" color="blue-grey-1" text-color="blue-grey-7" label="PUNTO DE VENTA" class="text-bold" />
-              <div class="text-caption text-grey-9">Versión 0.1.20</div>
+              <div class="text-caption text-grey-9">Versión 0.1.21</div>
             </div>
           </div>
 

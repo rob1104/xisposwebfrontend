@@ -55,6 +55,11 @@
         <q-item-section>Movimientos</q-item-section>
       </q-item>
 
+       <q-item v-if="auth.can('inventario.verconteofisico')" clickable v-ripple to="/auditoriahistorial" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="visibility" /></q-item-section>
+        <q-item-section>Conteo Fisico</q-item-section>
+      </q-item>
+
       <q-item v-if="auth.can('inventario.transferir')" clickable v-ripple to="/transferencias" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="local_shipping" /></q-item-section>
         <q-item-section>Transferencias</q-item-section>
@@ -93,6 +98,11 @@
     label="Reportes"
     header-class="menu-expansion-header"
   >
+
+   <q-item v-if="auth.can('reportes.ventasdetalladas')" clickable v-ripple to="/reportes/ventasdetalladas" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="monetization_on" /></q-item-section>
+        <q-item-section>Ventas detalladas</q-item-section>
+      </q-item>
 
     <q-item v-if="auth.can('reportes.global')" clickable v-ripple to="/inventarioglobal" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="public" /></q-item-section>
