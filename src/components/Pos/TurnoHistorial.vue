@@ -102,6 +102,19 @@
           <q-td :props="props" class="text-right">
             <q-btn
               unelevated
+              v-if="props.row.status === 'Cerrado'"
+              round
+              color="secondary"
+              icon="print"
+              size="sm"
+              class="q-mr-sm"
+              @click="reimprimirTicket(props.row.id)"
+            >
+              <q-tooltip class="bg-black">Reimprimir Ticket de Corte</q-tooltip>
+            </q-btn>
+            <q-btn
+              unelevated
+              v-if ="props.row.status === 'Cerrado'"
               round
               color="primary"
               icon="picture_as_pdf"
@@ -122,6 +135,7 @@
   import { api } from 'boot/axios'
   import { useQuasar, date } from 'quasar'
   import { useAuthStore } from 'stores/auth'
+  import { PrintService } from 'src/services/PrintService'
 
 
   const $q = useQuasar()
@@ -189,6 +203,29 @@
       $q.notify({ color: 'negative', message: 'No se pudo generar el reporte' })
     } finally {
        $q.loading.hide()
+    }
+  }
+
+  const reimprimirTicket = async (turnoId) => {
+    $q.loading.show({ message: 'Conectando con impresora térmica...' })
+    try {
+
+      await PrintService.imprimirCorteCaja(turnoId)
+
+      $q.notify({
+        type: 'positive',
+        message: 'Ticket enviado a la impresora',
+        icon: 'print'
+      })
+    } catch (error) {
+      console.error(error)
+      $q.notify({
+        type: 'warning',
+        message: 'No se pudo imprimir. Verifique que el "Puente de Impresión" esté activo.',
+        icon: 'usb_off'
+      })
+    } finally {
+      $q.loading.hide()
     }
   }
 

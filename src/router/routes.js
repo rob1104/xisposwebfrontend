@@ -29,6 +29,7 @@ const routes = [
       { path: 'conteofisico', component: () => import('pages/Inventario/AuditoriaInventario.vue'), name: 'conteofisico', meta: { permission: 'inventario.crearconteofisico' } },
       { path: 'auditoriahistorial', component: () => import('pages/Inventario/AuditoriaHistorial.vue'), name: 'auditoriahistorial', meta: { permission: 'inventario.verconteofisico' } },
       { path: 'reportes/ventasdetalladas', component: () => import('pages/Reportes/VentasDetalladas.vue'), name: 'ventasdetalladas', meta: { permission: 'reportes.ventasdetalladas' } },
+      { path: 'turnos', component: () => import('pages/Ventas/TurnosPage.vue'), name: 'turnos', meta: { permission: 'ventas.ver' } },
     ]
   },
   {

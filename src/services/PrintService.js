@@ -3,8 +3,6 @@ import { useConfigStore } from 'src/stores/config'
 import { useAuthStore } from 'src/stores/auth'
 import { api } from 'src/boot/axios'
 
-
-
 export const PrintService = {
   async imprimirTicketPruebaPython() {
     try {
@@ -151,6 +149,22 @@ export const PrintService = {
     } catch (error) {
       console.error("Error al imprimir movimiento de caja:", error);
       throw new Error("Movimiento registrado, pero el puente de impresión no respondió.");
+    }
+  },
+
+  async imprimirCorteCaja(turnoId) {
+    try {
+      const configStore = useConfigStore()
+      const { data } = await api.get(`/api/pos/print-corte/${turnoId}`)
+      await axios.post('http://localhost:5000/print-corte', data, {
+        ...data,
+        logo_url: configStore.logoUrl
+      })
+      return true
+    }
+    catch (error) {
+      console.error("Error al imprimir corte de caja:", error)
+      throw new Error("Error al imprimir corte de caja.")
     }
   }
 }

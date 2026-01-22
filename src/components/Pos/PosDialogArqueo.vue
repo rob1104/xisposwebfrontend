@@ -5,8 +5,8 @@
     backdrop-filter="blur(10px) brightness(30%)"
   >
     <q-card
-  style="width: 100%; max-width: 1000px; max-height: 90vh;"
-  class="bg-blue-grey-10 text-white overflow-hidden shadow-24 column no-wrap"
+        style="width: 100%; max-width: 1000px; max-height: 90vh;"
+        class="bg-blue-grey-10 text-white overflow-hidden shadow-24 column no-wrap"
 >
 
       <q-card-section class="bg-blue-grey-9 q-pa-lg row items-center border-bottom-white-10">
@@ -29,9 +29,9 @@
           </div>
 
           <q-scroll-area
-  :style="$q.screen.lt.md ? 'height: 40vh;' : 'height: 60vh;'"
-  class="rounded-borders bg-blue-grey-9 q-pa-md shadow-inner"
->
+              :style="$q.screen.lt.md ? 'height: 40vh;' : 'height: 69vh;'"
+              class="rounded-borders bg-blue-grey-9 q-pa-md shadow-inner"
+            >
 
             <q-card flat class="bg-blue-grey-11 q-pa-md q-mb-lg border-usd rounded-borders shadow-3">
               <div class="row items-center q-col-gutter-md">
@@ -142,11 +142,22 @@
         </div>
 
         <div class="col-12 col-md-5">
-          <q-card flat class="bg-blue-grey-9 q-pa-lg full-height border-white-5 rounded-borders shadow-10">
-            <div class="text-h6 text-bold text-center text-yellow q-mb-lg border-bottom-white-10 q-pb-sm uppercase tracking-widest">Resumen</div>
+          <q-card flat class="bg-blue-grey-9 q-pa-md full-height border-white-5 rounded-borders shadow-10">
+            <div class="text-h6 text-bold text-center text-yellow q-mb-lg border-bottom-white-10 q-pb-sm uppercase tracking-widest">
+              Resumen  <q-btn label="movimientos" @click="dialogMovimientosLista = true" />
+            </div>
 
             <div class="q-gutter-y-md">
               <div class="row justify-between items-center bg-blue-grey-10 q-pa-md rounded-borders">
+                <span class="text-grey-4">Ventas Efectivo:</span>
+                <span class="text-h6 font-mono text-light-green">${{ formatMoney(ventasEfectivo) }}</span>
+
+                <span class="text-grey-4">Total de entradas extra en caja:</span>
+                <span class="text-h6 text-light-green font-mono">${{ formatMoney(totalEntradas) }}</span>
+
+                <span class="text-grey-4">Total de retiros de caja:</span>
+                <span class="text-h6 text-red font-mono">${{ formatMoney(totalRetiros) }}</span>
+
                 <span class="text-grey-4">Efectivo esperado en caja:</span>
                 <span class="text-h6 font-mono">${{ formatMoney(totalEsperado - tarjetaEsperado) }}</span>
               </div>
@@ -173,7 +184,7 @@
                   </span>
                 </div>
 
-                <div :class="['q-pa-lg rounded-borders text-center shadow-5 q-mt-md', diferenciaTotal >= 0 ? 'bg-green-10' : 'bg-red-10']">
+                <div :class="['q-pa-md rounded-borders text-center shadow-5 q-mt-md', diferenciaTotal >= 0 ? 'bg-green-10' : 'bg-red-10']">
                   <div class="text-overline text-white opacity-80 uppercase tracking-widest">Diferencia Total</div>
                   <div class="text-h3 text-bold font-mono text-white">
                     {{ diferenciaTotal >= 0 ? '+' : '' }}{{ formatMoney(diferenciaTotal) }}
@@ -181,7 +192,7 @@
                 </div>
               </div>
 
-              <div class="q-pt-xl">
+              <div class="q-pt-md">
                 <q-btn
                   label="PROCESAR CIERRE DE TURNO"
                   color="blue"
@@ -201,6 +212,53 @@
         </div>
       </q-card-section>
     </q-card>
+    <q-dialog v-model="dialogMovimientosLista">
+      <div class="q-mt-lg">
+        <q-card class="bg-blue-grey-10 text-white overflow-hidden shadow-24 column no-wrap">
+          <q-card-section >
+            <div class="text-h6 text-cyan-4 q-mb-sm tracking-widest row items-center">
+            <q-icon name="list" class="q-mr-sm" />
+            Detalle de Movimientos del Turno
+            <q-btn dense flat icon="close" v-close-popup>
+            <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          </q-btn>
+            </div>
+          </q-card-section>
+        </q-card>
+
+        <q-card-section class="bg-blue-grey-9 q-pa-lg row items-center border-bottom-white-10">
+          <q-list bordered separator dark class="rounded-borders">
+                    <q-item v-for="mov in movimientos" :key="mov.id" class="q-py-md">
+                      <q-item-section avatar>
+                        <q-icon
+                          :name="mov.tipo === 'Entrada' ? 'add_circle' : 'remove_circle'"
+                          :color="mov.tipo === 'Entrada' ? 'cyan-4' : 'orange-5'"
+                        />
+                      </q-item-section>
+
+                      <q-item-section>
+                        <q-item-label class="text-bold">{{ mov.concepto }}</q-item-label>
+                        <q-item-label caption class="text-grey-5">{{ mov.tipo }} registrada a las {{ new Date(mov.created_at).toLocaleTimeString() }}</q-item-label>
+                      </q-item-section>
+
+                      <q-item-section side>
+                        <div :class="['text-h6 font-mono text-bold', mov.tipo === 'Entrada' ? 'text-cyan-4' : 'text-orange-5']">
+                          {{ mov.tipo === 'Entrada' ? '+' : '-' }}${{ formatMoney(mov.monto) }}
+                        </div>
+                      </q-item-section>
+                    </q-item>
+
+                <q-item v-if="movimientos.length === 0">
+                <q-item-section class="text-center text-grey-6 italic">
+                   No se registraron movimientos manuales en este turno.
+                </q-item-section>
+              </q-item>
+            </q-list>
+        </q-card-section>
+
+
+      </div>
+    </q-dialog>
   </q-dialog>
 </template>
 
@@ -222,8 +280,16 @@
   const tarjetaContado = ref(0)
   const efectivoEsperado = ref(0)
 
+  //Movimientos de caja
+  const movimientos = ref([])
+  const totalEntradas = ref(0)
+  const totalRetiros = ref(0)
+  const ventasEfectivo = ref(0)
+
   // CAPTURA DE DÓLARES
   const dolaresCantidad = ref(0)
+
+  const dialogMovimientosLista = ref(false)
 
   const internalValue = computed({
     get: () => props.modelValue,
@@ -280,11 +346,17 @@
   const cargarBalanceEsperado = async () => {
     try {
       const { data } = await api.get(`/api/pos/balance-turno/${posStore.turno.id}`)
-      efectivoEsperado.value = data.efectivo_esperado
+
+      ventasEfectivo.value = data.ventas_efectivo
       tarjetaEsperado.value = data.tarjeta_esperado
-      totalEsperado.value = data.total_general
+      movimientos.value = data.movimientos || []
+      totalEntradas.value = data.total_entradas || 0
+      totalRetiros.value = data.total_retiros || 0
+      efectivoEsperado.value = (ventasEfectivo.value + totalEntradas.value) - totalRetiros.value
+      totalEsperado.value = efectivoEsperado.value + tarjetaEsperado.value
+
     } catch (e) {
-      console.error("Error al obtener balance")
+      console.error("Error al obtener balance: " + e.message)
     }
   }
 
@@ -334,6 +406,15 @@
 
         await api.post('/api/pos/cerrar-turno', payload)
 
+        // === IMPRESIÓN TICKET ===
+        $q.notify({ message: 'Imprimiendo Ticket de Corte...', color: 'info', icon: 'print' })
+        try {
+           await PrintService.imprimirCorteCaja(posStore.turno.id)
+        } catch(printErr) {
+           $q.notify({ type: 'warning', message: 'Corte guardado, pero falló la impresión' })
+        }
+        // ===================================
+
         posStore.turno = null
         internalValue.value = false
         emit('closed')
@@ -363,7 +444,6 @@
   .shadow-inner { box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); }
   .border-radius-15 { border-radius: 15px; }
 
-  // ESTILO ESPECIAL PARA EL CARD DE DÓLARES
   .border-usd {
     border: 1px solid rgba(242, 192, 55, 0.4) !important;
     background: linear-gradient(135deg, rgba(242, 192, 55, 0.05) 0%, rgba(30, 40, 44, 1) 100%) !important;

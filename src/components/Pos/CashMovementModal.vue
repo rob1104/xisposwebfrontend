@@ -1,94 +1,106 @@
 <template>
-  <q-dialog v-model="internalValue" persistent transition-show="scale" transition-hide="scale">
-    <q-card style="width: 480px; border-radius: 20px;" class="bg-blue-grey-7 text-white shadow-24 border-primary-top">
+  <q-dialog
+    v-model="internalValue"
+    persistent
+    transition-show="grow"
+    transition-hide="fade"
+    backdrop-filter="blur(12px) brightness(40%)"
+  >
+    <q-card class="premium-cash-card shadow-24 overflow-hidden">
+      <q-card-section :class="['header-gradient q-pa-lg row items-center no-wrap transition-all',
+        form.tipo === 'Retiro' ? 'bg-orange-gradient' : 'bg-cyan-gradient']">
 
-      <q-card-section class="row items-center q-pa-lg">
-        <div class="bg-primary q-pa-sm border-radius-12 shadow-5">
-          <q-icon name="account_balance_wallet" size="md" color="white" />
+        <div class="icon-circle shadow-5">
+          <q-icon :name="form.tipo === 'Retiro' ? 'account_balance_wallet' : 'savings'" size="md" color="white" />
         </div>
-        <div class="q-ml-md">
-          <div class="text-h6 text-bold text-white tracking-tight">Movimiento de caja</div>
-          <div class="text-caption text-primary text-bold uppercase letter-spacing-1">
-            Turno activo: #{{ posStore.turno?.id || '---' }}
+
+        <div class="q-ml-md text-white">
+          <div class="text-h6 text-bold tracking-tight">Gestión de Efectivo</div>
+          <div class="row items-center">
+            <q-badge color="white" text-color="dark" :label="`TURNO #${posStore.turno?.id}`" class="text-bold q-mr-sm" />
+            <div class="text-caption opacity-80 uppercase text-bold letter-spacing-1">Caja en Operación</div>
           </div>
         </div>
         <q-space />
-        <q-btn icon="close" flat round dense v-close-popup color="grey-5" />
+        <q-btn icon="close" flat round dense v-close-popup color="white" class="opacity-60" />
       </q-card-section>
 
-      <q-separator dark />
+      <q-card-section class="q-pa-xl bg-dark-slate">
+        <q-form @submit="handleSubmit" class="q-gutter-y-xl">
 
-      <q-card-section class="q-pa-xl">
-        <q-form @submit="handleSubmit" class="q-gutter-y-lg">
-
-          <div>
-            <div class="text-subtitle2 text-grey-5 q-mb-sm text-center font-medium">¿Qué acción desea realizar?</div>
-            <q-btn-toggle
-              v-model="form.tipo"
-              spread
-              no-caps
-              unelevated
-              toggle-color="primary"
-              color="blue-grey-9"
-              text-color="grey-5"
-              toggle-text-color="white"
-              class="border-radius-15 overflow-hidden shadow-2"
-              :options="[
-                { label: 'Retiro (Salida)', value: 'Retiro', icon: 'call_made' },
-                { label: 'Ingreso (Entrada)', value: 'Entrada', icon: 'call_received' }
-              ]"
-            />
+          <div class="action-selector-container">
+            <div class="text-overline text-grey-5 q-mb-sm text-center font-bold tracking-widest">Tipo de Movimiento</div>
+            <div class="row q-col-gutter-md">
+              <div class="col-6">
+                <div
+                  @click="form.tipo = 'Retiro'"
+                  :class="['action-box transition-all', form.tipo === 'Retiro' ? 'active-withdrawal' : 'inactive-box']"
+                >
+                  <q-icon name="upload" size="sm" />
+                  <div class="text-bold">Retiro</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div
+                  @click="form.tipo = 'Entrada'"
+                  :class="['action-box transition-all', form.tipo === 'Entrada' ? 'active-income' : 'inactive-box']"
+                >
+                  <q-icon name="download" size="sm" />
+                  <div class="text-bold">Ingreso</div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div class="text-center">
+          <div class="amount-container text-center">
+            <div class="text-caption text-grey-5 uppercase text-bold q-mb-xs">Importe a registrar</div>
             <q-input
               v-model.number="form.monto"
-              label="Importe a registrar"
               type="number"
-              filled
+              borderless
               dark
-              color="primary"
-              label-color="primary"
-              input-class="text-h3 text-bold text-center text-primary"
-              class="amount-input"
+              input-class="text-h2 text-bold text-center font-mono amount-text"
+              class="premium-input-amount"
               @focus="$event.target.select()"
-              :rules="[val => val > 0 || 'El monto debe ser mayor a 0']"
+              :rules="[val => val > 0 || 'Monto requerido']"
               autofocus
             >
               <template v-slot:prepend>
-                <q-icon name="attach_money" color="primary" size="lg" />
+                <span class="text-h4 text-grey-6">$</span>
               </template>
             </q-input>
           </div>
 
-          <q-input
-            v-model="form.concepto"
-            label="Descripción del movimiento *"
-            placeholder="Ej. Pago de fletes, reposición de cambio..."
-            type="textarea"
-            filled
-            dark
-            color="primary"
-            rows="2"
-            class="concepto-input"
-            :rules="[val => !!val || 'Debe especificar un motivo']"
-          />
+          <div class="concept-container">
+            <q-input
+              v-model="form.concepto"
+              label="Motivo o Concepto *"
+              placeholder="Describa el origen o destino del efectivo..."
+              type="textarea"
+              filled
+              dark
+              color="cyan-5"
+              rows="2"
+              class="premium-textarea"
+              :rules="[val => !!val || 'Campo obligatorio']"
+            />
+          </div>
 
           <div class="row q-col-gutter-md q-pt-md">
             <div class="col-12 col-sm-6">
-              <q-btn label="Cancelar" flat color="grey-5" class="full-width border-radius-12" v-close-popup />
+              <q-btn label="Cancelar" flat color="grey-6" class="full-width btn-rounded" v-close-popup />
             </div>
             <div class="col-12 col-sm-6">
               <q-btn
-                label="Confirmar"
-                color="primary"
+                :label="form.tipo === 'Retiro' ? 'Confirmar Retiro' : 'Confirmar Ingreso'"
+                :color="form.tipo === 'Retiro' ? 'orange-9' : 'cyan-9'"
                 unelevated
-                class="full-width text-bold border-radius-12 shadow-3"
+                class="full-width text-bold btn-rounded shadow-8"
                 type="submit"
                 :loading="loading"
                 size="lg"
               >
-                <q-icon right name="check_circle" class="q-ml-sm" />
+                <q-icon right :name="form.tipo === 'Retiro' ? 'logout' : 'login'" class="q-ml-sm" />
               </q-btn>
             </div>
           </div>
@@ -119,7 +131,6 @@
     set: (val) => emit('update:modelValue', val)
   })
 
-  // Retiro como opción por defecto [Petición del usuario]
   const form = reactive({
     tipo: 'Retiro',
     monto: 0,
@@ -128,48 +139,27 @@
 
   const handleSubmit = async () => {
     if (!posStore.turno?.id) {
-      $q.notify({ color: 'negative', message: 'Error: No se detectó un turno de caja activo.', icon: 'warning' })
+      $q.notify({ color: 'negative', message: 'No hay un turno activo.', icon: 'warning' })
       return
     }
 
     loading.value = true
     try {
-      const payload = {
-        ...form,
-        caja_turno_id: posStore.turno.id
-      }
-
-      // Registro en base de datos
+      const payload = { ...form, caja_turno_id: posStore.turno.id }
       await api.post('/api/caja/movimientos', payload)
 
-      // Impresión de comprobante físico
       try {
-        await PrintService.imprimirMovimientoCaja(
-          payload,
-          posStore.turno.id,
-          auth.user?.name
-        )
-        $q.notify({
-          color: 'positive',
-          message: `¡${form.tipo} registrado y ticket enviado!`,
-          icon: 'print',
-          position: 'top'
-        })
+        await PrintService.imprimirMovimientoCaja(payload, posStore.turno.id, auth.user?.name)
+        $q.notify({ color: 'positive', message: `¡${form.tipo} registrado y ticket enviado!`, icon: 'print', position: 'top' })
       } catch (printError) {
-        $q.notify({
-          color: 'warning',
-          message: 'Movimiento guardado, pero falló la impresión.',
-          caption: printError.message,
-          icon: 'priority_high'
-        })
+        $q.notify({ color: 'warning', message: 'Guardado, pero falló impresión.', icon: 'priority_high' })
       }
 
       resetForm()
       internalValue.value = false
       emit('success')
     } catch (error) {
-      const msg = error.response?.data?.message || 'Hubo un problema al procesar el movimiento.'
-      $q.notify({ color: 'negative', message: msg, icon: 'report_problem' })
+      $q.notify({ color: 'negative', message: 'Error al procesar movimiento.', icon: 'report_problem' })
     } finally {
       loading.value = false
     }
@@ -182,32 +172,91 @@
   }
 </script>
 
-<style scoped>
-  .border-radius-20 { border-radius: 20px; }
-  .border-radius-15 { border-radius: 15px; }
-  .border-radius-12 { border-radius: 12px; }
+<style lang="scss" scoped>
+  // PALETA DE COLORES SLATE/DARK
+  $dark-slate: #0f172a;
+  $card-inner: #1e293b;
+  $cyan-accent: #22d3ee;
+  $orange-accent: #f59e0b;
 
-  .border-primary-top {
-    border-top: 5px solid var(--q-primary);
+  .premium-cash-card {
+    width: 100%;
+    max-width: 500px;
+    border-radius: 28px;
+    background: $dark-slate;
+    border: 1px solid rgba(255,255,255,0.05);
   }
 
-  .tracking-tight { letter-spacing: -0.5px; }
-  .letter-spacing-1 { letter-spacing: 1px; }
-
-  /* Estilo premium para inputs dark */
-  .amount-input :deep(.q-field__control),
-  .concepto-input :deep(.q-field__control) {
-    border-radius: 15px;
-    background: rgba(255, 255, 255, 0.05) !important;
+  .header-gradient {
+    transition: background 0.5s ease;
+    &.bg-orange-gradient { background: linear-gradient(135deg, #7c2d12 0%, #0f172a 100%); }
+    &.bg-cyan-gradient { background: linear-gradient(135deg, #083344 0%, #0f172a 100%); }
   }
 
-  .amount-input :deep(.q-field__native) {
-    padding-top: 10px;
-    padding-bottom: 10px;
+  .icon-circle {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(5px);
+    padding: 12px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.1);
   }
 
-  /* Animación suave para el toggle */
-  .q-btn-toggle {
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  .bg-dark-slate { background: $dark-slate; }
+
+  // SELECTOR DE ACCIÓN PERSONALIZADO
+  .action-box {
+    padding: 16px;
+    border-radius: 20px;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+
+    &.inactive-box {
+      background: rgba(255,255,255,0.03);
+      color: #64748b;
+    }
+
+    &.active-withdrawal {
+      background: rgba(245, 158, 11, 0.1);
+      color: $orange-accent;
+      border-color: rgba(245, 158, 11, 0.4);
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+    }
+
+    &.active-income {
+      background: rgba(34, 211, 238, 0.1);
+      color: $cyan-accent;
+      border-color: rgba(34, 211, 238, 0.4);
+      box-shadow: 0 4px 15px rgba(34, 211, 238, 0.2);
+    }
   }
+
+  // INPUTS PREMIUM
+  .premium-input-amount {
+    .amount-text {
+      color: white;
+      text-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
+    }
+  }
+
+  .premium-textarea {
+    :deep(.q-field__control) {
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.03) !important;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      &:hover { background: rgba(255, 255, 255, 0.05) !important; }
+    }
+  }
+
+  .btn-rounded {
+    border-radius: 18px;
+    padding: 12px 0;
+  }
+
+  .font-mono { font-family: 'Roboto Mono', monospace; }
+  .transition-all { transition: all 0.3s ease; }
 </style>

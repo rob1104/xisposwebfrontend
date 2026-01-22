@@ -13,27 +13,35 @@
       <q-item-section class="text-weight-medium">Punto de Venta (POS)</q-item-section>
     </q-item>
 
+    <q-item v-if="auth.can('facturacion.ver')" clickable v-ripple to="/facturacion" active-class="custom-active-link" class="menu-item">
+      <q-item-section avatar><q-icon name="money" /></q-item-section>
+      <q-item-section class="text-weight-medium">Facturación</q-item-section>
+    </q-item>
+
     <q-expansion-item
       v-model="ventasExpanded"
       icon="receipt_long"
       label="Ventas y Clientes"
       header-class="menu-expansion-header"
     >
+
+      <q-item v-if="auth.can('clientes.ver')" clickable v-ripple to="/clientes" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="person_search" /></q-item-section>
+        <q-item-section>Cartera de Clientes</q-item-section>
+      </q-item>
+
       <q-item v-if="auth.can('ventas.ver')" clickable v-ripple to="/ventas" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="history" /></q-item-section>
         <q-item-section>Historial de Ventas</q-item-section>
       </q-item>
 
-      <q-item v-if="auth.can('clientes.ver')" clickable v-ripple to="/clientes" active-class="custom-active-link" class="menu-item-sub">
-        <q-item-section avatar><q-icon name="person_search" /></q-item-section>
-        <q-item-section>Clientes</q-item-section>
-      </q-item>
+
 
     </q-expansion-item>
 
-    <q-item v-if="auth.can('facturacion.ver')" clickable v-ripple to="/facturacion" active-class="custom-active-link" class="menu-item">
-      <q-item-section avatar><q-icon name="money" /></q-item-section>
-      <q-item-section class="text-weight-medium">Facturación</q-item-section>
+    <q-item v-if="auth.can('ventas.turnos')" clickable v-ripple to="/turnos" active-class="custom-active-link" class="menu-item">
+      <q-item-section avatar><q-icon name="offline_bolt" /></q-item-section>
+      <q-item-section class="text-weight-medium">Turnos</q-item-section>
     </q-item>
 
     <q-separator class="q-my-md opacity-20" />
@@ -113,8 +121,6 @@
         <q-item-section avatar><q-icon name="location_on" /></q-item-section>
         <q-item-section>Inventario por Sucursal</q-item-section>
       </q-item>
-
-
 
     <q-item
       v-if="auth.can('reportes.inventariohistorico')"
