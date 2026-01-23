@@ -104,10 +104,6 @@
             </div>
           </q-slide-transition>
         </div>
-
-
-
-
       </div>
     </template>
 
@@ -185,17 +181,71 @@
   const $q = useQuasar()
   const auth = useAuthStore()
   const posStore = usePosStore()
+  const router = useRouter()
+  const configStore = useConfigStore()
 
+  const dialogoApertura = ref(false)
+  const carrito = ref([])
+  const dialogoBuscador = ref(false)
+  const dialogoPago = ref(false)
+  const dialogoArqueo = ref(false)
+  const reimprimiendo = ref(false)
+  const showCashModal = ref(false)
   const dialogoVentasPausadas = ref(false)
-
   const dialogoCambiaPrecio = ref(false)
   const itemSeleccionadoParaPrecio = ref(null)
-
   const ultimoCambio = ref(0)
-
   const clienteSeleccionado = ref(null)
 
-  const router = useRouter()
+  const STORAGE_KEY = 'xispos_venta_backup'
+
+  let intervaloFoco = null
+
+  watch([carrito, clienteSeleccionado], ([nuevoCarrito, nuevoCliente]) => {
+      if (nuevoCarrito.length > 0) {
+        const estadoVenta = {
+          carrito: nuevoCarrito,
+          cliente: nuevoCliente
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(estadoVenta))
+      } else {
+        if (localStorage.getItem(STORAGE_KEY)) {
+          localStorage.removeItem(STORAGE_KEY)
+        }
+      }
+    },
+    { deep: true }
+  )
+
+  const restaurarSesionPrevia = () => {
+    const respaldo = localStorage.getItem(STORAGE_KEY)
+    if (respaldo) {
+      try {
+        const data = JSON.parse(respaldo)
+
+        if (data.carrito && data.carrito.length > 0) {
+          carrito.value = data.carrito
+
+          if (data.cliente) {
+            clienteSeleccionado.value = data.cliente
+            posStore.clienteSeleccionado = data.cliente
+          }
+
+          $q.notify({
+            message: 'VENTA RESTAURADA',
+            caption: 'Se recuperó una venta no finalizada.',
+            color: 'indigo-9',
+            icon: 'restore',
+            position: 'center',
+            timeout: 5000
+          })
+        }
+      } catch (e) {
+        console.error('Error al restaurar venta:', e)
+        localStorage.removeItem(STORAGE_KEY)
+      }
+    }
+  }
 
   const resetearCliente = async() => {
     try {
@@ -216,6 +266,7 @@
       persistent: true,
       ok: { label: 'Sí, Cancelar', color: 'negative' }
     }).onOk(async () => {
+      localStorage.removeItem(STORAGE_KEY)
       carrito.value = []
       await resetearCliente()
       $q.notify({ message: 'Venta cancelada y cliente reseteado', color: 'orange-9', icon: 'delete_sweep' })
@@ -267,21 +318,6 @@
     }
   }
 
-  const configStore = useConfigStore()
-
-  const dialogoApertura = ref(false)
-  const carrito = ref([])
-  const dialogoBuscador = ref(false)
-  const dialogoPago = ref(false)
-  const dialogoArqueo = ref(false)
-  const reimprimiendo = ref(false)
-  const showCashModal = ref(false)
-
-  let intervaloFoco = null
-
-  /**
-   * Recupera el foco hacia el input de escaneo si no hay diálogos bloqueando
-   */
   const recuperarFocoEscaner = () => {
     const ningunDialogoAbierto =
       !dialogoBuscador.value &&
@@ -305,10 +341,6 @@
     }
   })
 
-
-  /**
-   * Lógica de Cálculo de Totales
-   */
   const totalVenta = computed(() => {
     const inicial = { subtotal: 0, impuestos: 0, total: 0 }
     if (!carrito.value.length) return inicial
@@ -348,7 +380,38 @@
   }
 
   const agregarAlCarrito = (producto, cantidad = 1) => {
+
+    const stockDisponible = producto.stock_actual || 0
+    if (stockDisponible <= 0) {
+      $q.notify({
+        color: 'orange-9',
+        message: 'PRODUCTO AGOTADO',
+        caption: `El inventario actual es 0 para: ${producto.nombre}`,
+        icon: 'production_quantity_limits',
+        position: 'center',
+        timeout: 3000
+      })
+      return
+    }
+
     const index = carrito.value.findIndex(p => p.id === producto.id)
+
+    let cantidadFinalDeseada = Number(cantidad)
+    if (index !== -1) {
+      cantidadFinalDeseada += Number(carrito.value[index].cantidad)
+    }
+    if (cantidadFinalDeseada > stockDisponible) {
+      $q.notify({
+        color: 'orange-9',
+        message: 'INVENTARIO INSUFICIENTE',
+        caption: `Solo tienes ${stockDisponible} uds. Intentas vender ${cantidadFinalDeseada}.`,
+        icon: 'inventory',
+        position: 'center',
+        timeout: 3000
+      })
+      return
+    }
+
     if (index !== -1) {
       carrito.value[index].cantidad += Number(cantidad)
     } else {
@@ -412,6 +475,8 @@
             ultimoCambio.value = datosDesdeDialogo.cambio_calculado || 0
           }
 
+          localStorage.removeItem(STORAGE_KEY)
+
         carrito.value = []
         await resetearCliente()
         dialogoPago.value = false
@@ -427,7 +492,20 @@
     }
   }
 
-  const incrementar = (item) => item.cantidad++
+  const incrementar = (item) => {
+    if (item.cantidad + 1 > item.stock_actual) {
+      $q.notify({
+        message: 'Tope de inventario alcanzado',
+        color: 'orange-9',
+        icon: 'Pan_tool',
+        position: 'center',
+        timeout: 1000
+      })
+      return
+    }
+
+    item.cantidad++
+  }
 
   const decrementar = (item) => {
     if (item.cantidad > 1) item.cantidad--
@@ -551,6 +629,7 @@
     })
   }
 
+
   watch(dialogoCambiaPrecio, (val) => {
   if (!val) {
       nextTick(() => recuperarFocoEscaner())
@@ -576,6 +655,7 @@
     window.addEventListener('keydown', manejarTecladoGlobal)
     await posStore.verificarTurno()
     await resetearCliente()
+    restaurarSesionPrevia()
     if(!posStore.isTurnoAbierto) dialogoApertura.value = true
     intervaloFoco = setInterval(recuperarFocoEscaner, 2500)
   })

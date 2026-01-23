@@ -23,7 +23,7 @@
 
             <div class="text-h4 text-bold text-primary ls-2">{{ configStore.nombreTienda }}</div>
             <div class="text-subtitle1 text-grey-8 text-weight-bold" style="font-size: 16px;">Sistema de Punto de Venta</div>
-            <div class="text-caption text-grey-7 text-weight-light-5">Versión 0.1.17</div>
+            <div class="text-caption text-grey-7 text-weight-light-5">Versión 0.1.23</div>
           </q-card-section>
 
           <q-card-section class="q-px-xl q-pb-xl">

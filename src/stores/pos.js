@@ -46,7 +46,6 @@ export const usePosStore = defineStore('pos', {
         ...datos,
         sucursal_id: authStore.sucursalSeleccionada?.id,
       }
-      console.log("Hola desde el store POS, datos para abrir turno:", payload);
       try {
         const res = await api.post('/api/pos/abrir-turno', payload)
         this.turno = res.data.turno
