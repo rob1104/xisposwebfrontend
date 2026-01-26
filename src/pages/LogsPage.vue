@@ -69,7 +69,7 @@
             </q-td>
 
             <q-td key="actions" :props="props" class="text-center">
-              <q-btn flat round color="primary" icon="visibility" @click="viewDetails(props.row)">
+              <q-btn flat round color="cyan-9" icon="visibility" @click="viewDetails(props.row)">
                 <q-tooltip>Ver cambios realizados</q-tooltip>
               </q-btn>
             </q-td>
@@ -93,36 +93,55 @@
             <div class="col-6"><span class="text-caption text-grey-7">FECHA:</span><br><b>{{ selectedLog.fecha }}</b></div>
           </div>
 
-          <q-markup-table flat dense class="audit-table">
-            <thead class="bg-grey-3">
-              <tr>
-                <th class="text-left">CAMPO</th>
-                <th class="text-left">VALOR ANTERIOR</th>
-                <th class="text-left">VALOR NUEVO</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="!getChanges.length">
-                <td colspan="3" class="text-center q-pa-lg text-grey-6 italic">
-                  No hay cambios detallados de columnas para esta acción.
-                </td>
-              </tr>
-              <tr v-for="change in getChanges" :key="change.key">
-                <td class="text-bold text-blue-9">{{ formatKey(change.key) }}</td>
-                <td class="bg-red-1 text-negative">
-                  <strike v-if="change.old">{{ change.old }}</strike>
-                  <span v-else class="text-caption italic opacity-50">Nulo</span>
-                </td>
-                <td class="bg-green-1 text-positive text-bold">
-                  {{ change.new }}
-                </td>
-              </tr>
-            </tbody>
-          </q-markup-table>
+          <div v-if="getCustomInfo.length > 0">
+            <div class="q-px-md q-py-sm bg-blue-1 text-blue-9 text-bold text-caption">
+              DETALLES DEL EVENTO
+            </div>
+            <q-markup-table flat dense>
+              <tbody>
+                <tr v-for="info in getCustomInfo" :key="info.key">
+                  <td class="text-grey-8 text-weight-bold bg-grey-2" style="width: 30%">{{ formatKey(info.key) }}</td>
+                  <td class="text-black">{{ info.value }}</td>
+                </tr>
+              </tbody>
+            </q-markup-table>
+          </div>
+
+          <div v-if="getChanges.length > 0">
+            <div class="q-px-md q-py-sm bg-orange-1 text-orange-9 text-bold text-caption">
+              CAMBIOS EN REGISTROS
+            </div>
+            <q-markup-table flat dense class="audit-table">
+              <thead class="bg-grey-3">
+                <tr>
+                  <th class="text-left">CAMPO</th>
+                  <th class="text-left">ANTERIOR</th>
+                  <th class="text-left">NUEVO</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="change in getChanges" :key="change.key">
+                  <td class="text-bold text-blue-9">{{ formatKey(change.key) }}</td>
+                  <td class="bg-red-1 text-negative text-caption">
+                    <span v-if="change.old">{{ change.old }}</span>
+                    <span v-else class="italic opacity-50">--</span>
+                  </td>
+                  <td class="bg-green-1 text-positive text-bold text-caption">
+                    {{ change.new }}
+                  </td>
+                </tr>
+              </tbody>
+            </q-markup-table>
+          </div>
+
+          <div v-if="!getChanges.length && !getCustomInfo.length" class="text-center q-pa-xl text-grey-5">
+            <q-icon name="info" size="md" />
+            <div class="q-mt-sm">No hay detalles técnicos registrados para esta acción.</div>
+          </div>
         </q-card-section>
 
         <q-card-actions align="right" class="q-pa-md bg-grey-2">
-          <q-btn flat label="Cerrar Reporte" color="primary" v-close-popup class="text-bold" />
+          <q-btn flat label="Cerrar" color="primary" v-close-popup class="text-bold" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -171,23 +190,51 @@
     const props = selectedLog.value.propiedades || {}
     const changes = []
 
-    // Spatie guarda los nuevos valores en 'attributes' y los anteriores en 'old'
     const newVals = props.attributes || {}
     const oldVals = props.old || {}
 
-    // Iteramos sobre los campos que cambiaron
-    Object.keys(newVals).forEach(key => {
-      // Saltamos campos técnicos que no interesan al gerente
-      if (['updated_at', 'created_at', 'id'].includes(key)) return
+    // 1. OBTENER TODAS LAS LLAVES ÚNICAS (De ambos lados)
+    // Esto asegura que si algo se borró (solo está en old) o se creó (solo está en new), aparezca.
+    const allKeys = new Set([...Object.keys(newVals), ...Object.keys(oldVals)])
+
+    allKeys.forEach(key => {
+      // Filtramos campos técnicos
+      if (['updated_at', 'created_at', 'id', 'deleted_at'].includes(key)) return
 
       changes.push({
         key: key,
-        old: oldVals[key],
-        new: newVals[key]
+        old: oldVals[key], // Puede ser undefined si fue Created
+        new: newVals[key]  // Puede ser undefined si fue Deleted
       })
     })
 
     return changes
+  })
+
+  const getCustomInfo = computed(() => {
+    const props = selectedLog.value.propiedades || {}
+    const extras = []
+
+    // Claves reservadas de Spatie que NO queremos mostrar aquí
+    const ignored = ['attributes', 'old', 'laravel_through_key']
+
+    Object.keys(props).forEach(key => {
+      // Si la clave NO es atributos ni old, es info extra (IP, navegador, etc.)
+      if (!ignored.includes(key)) {
+        let value = props[key]
+
+        // Si es un array (ej: archivos_adjuntos), lo unimos con comas
+        if (Array.isArray(value)) {
+          value = value.join(', ')
+        }
+
+        extras.push({
+          key: key,
+          value: value
+        })
+      }
+    })
+    return extras
   })
 
   // Embellecedor de nombres de columnas (ej: 'razon_social' -> 'Razón Social')

@@ -144,6 +144,16 @@
                       <q-item-section avatar><q-icon name="code" color="green" /></q-item-section>
                       <q-item-section>Descargar XML</q-item-section>
                     </q-item>
+                    <q-item
+                      v-if="props.row.status === 'Cancelado'"
+                      clickable
+                      @click="downloadAcuse(props.row)"
+                    >
+                      <q-item-section avatar>
+                        <q-icon name="picture_as_pdf" color="negative" />
+                      </q-item-section>
+                      <q-item-section>Descargar Acuse Cancelación</q-item-section>
+                    </q-item>
                   </q-list>
                 </q-menu>
               </q-btn>
@@ -172,8 +182,11 @@
         </template>
       </q-table>
     </q-card>
-
     <NuevaFacturaDialog v-model="showNuevaFactura" @saved="loadFacturas" />
+    <CancelacionCfdiDialog
+      v-model="showCancelacionDialog"
+      :cfdi="cfdiACancelar"
+      @success="loadFacturas" />
   </q-page>
 </template>
 
@@ -183,6 +196,8 @@
   import { useQuasar, copyToClipboard } from 'quasar'
   import { useAuthStore } from 'src/stores/auth'
   import NuevaFacturaDialog from 'src/components/Facturacion/NuevaFacturaDialog.vue'
+  import CancelacionCfdiDialog from 'src/components/Facturacion/CancelacionCfdiDialog.vue'
+
 
   const $q = useQuasar()
   const auth = useAuthStore()
@@ -192,6 +207,8 @@
   const sucursales = ref([])
   const sucursalFiltro = ref(auth.sucursalSeleccionada?.id)
   const showNuevaFactura = ref(false)
+  const showCancelacionDialog = ref(false)
+  const cfdiACancelar = ref(null)
 
   const nuevaFactura = () => {
     showNuevaFactura.value = true
@@ -201,7 +218,7 @@
   const getStatusClass = (status) => {
   const map = {
     'Vigente': 'positive',
-    'Cancelada': 'negative',
+    'Cancelado': 'negative',
     'Pendiente': 'orange',
     'ERROR': 'negative'
   }
@@ -298,7 +315,7 @@
       },
       {
         label: 'Canceladas',
-        value: facturas.value.filter(f => f.status === 'Cancelada').length.toString(),
+        value: facturas.value.filter(f => f.status === 'Cancelado').length.toString(),
         color: 'negative',
         icon: 'dangerous'
       },
@@ -314,7 +331,7 @@
   const formatCurrency = (val) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(val)
 
   const getStatusColor = (status) => {
-    const map = { 'Vigente': 'positive', 'Cancelada': 'negative', 'Pendiente': 'orange', 'ERROR': 'black' }
+    const map = { 'Vigente': 'positive', 'Cancelado': 'negative', 'Pendiente': 'orange', 'ERROR': 'black' }
     return map[status] || 'grey'
   }
 
@@ -410,14 +427,81 @@
       $q.loading.hide();
     }
   }
-  const resendEmail = (row) => { $q.notify({ message: `Reenviando factura a cliente...`, color: 'orange' }) }
+
+  const resendEmail = (row) => {
+    // Preguntar confirmación (opcional pero recomendado)
+    $q.dialog({
+      title: 'Enviar Factura',
+      message: `¿Deseas enviar los archivos al correo del cliente (${row.cliente?.email || 'No registrado'})?`,
+      cancel: true,
+      persistent: true
+    }).onOk(async () => {
+      try {
+        $q.loading.show({ message: 'Adjuntando y enviando correo...' })
+
+        // Llamada a la API que creamos
+        const { data } = await api.post(`/api/cfdis/${row.id}/enviar-correo`)
+
+        $q.notify({
+          type: 'positive',
+          message: data.message,
+          icon: 'mark_email_read',
+          timeout: 4000
+        })
+
+      } catch (e) {
+        // Manejo de errores
+        $q.notify({
+          type: 'negative',
+          message: e.response?.data?.message || 'Error al enviar el correo',
+          caption: e.response?.data?.error || '',
+          icon: 'unsubscribe'
+        })
+      } finally {
+        $q.loading.hide()
+      }
+    })
+  }
+
+
   const cancelFactura = (row) => {
     $q.dialog({
       title: 'Confirmar Cancelación',
       message: `¿Estás seguro de cancelar el folio ${row.folio}?`,
       cancel: true,
       persistent: true
-    }).onOk(() => { /* Lógica de cancelación */ })
+    }).onOk(() => {
+      showCancelacionDialog.value = true
+      cfdiACancelar.value = row
+    })
+  }
+
+  const downloadAcuse = async (row) => {
+    try {
+      $q.loading.show({ message: 'Generando Acuse...' })
+
+      // Petición blob para descargar PDF
+      const response = await api.get(`/api/cfdis/${row.id}/acuse`, {
+        responseType: 'blob'
+      })
+
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `Acuse_${row.uuid}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+
+    } catch (e) {
+      $q.notify({
+        type: 'negative',
+        message: 'No se encontró el acuse de cancelación.',
+        caption: 'Es posible que esta factura se cancelara antes de implementar el guardado de acuses.'
+      })
+    } finally {
+      $q.loading.hide()
+    }
   }
 
   onMounted(async() => {

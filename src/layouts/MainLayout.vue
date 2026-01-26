@@ -103,7 +103,7 @@
 
             <div class="row items-center justify-center q-gutter-x-xs q-mt-xs">
               <q-badge style="font-size: 18px;" color="blue-grey-1" text-color="blue-grey-7" label="PUNTO DE VENTA" class="text-bold" />
-              <div class="text-caption text-grey-9">Versión 0.1.23</div>
+              <div class="text-caption text-grey-9">Versión 0.1.24</div>
             </div>
           </div>
 
