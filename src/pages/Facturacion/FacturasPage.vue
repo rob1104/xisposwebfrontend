@@ -63,14 +63,39 @@
                 <template v-slot:prepend><q-icon name="search" color="grey-6" /></template>
               </q-input>
 
-              <q-btn
-                color="indigo-10"
-                icon="add"
-                label="Emitir CFDI 4.0"
+              <q-btn-dropdown
+                color="primary"
+                icon="add_circle"
+                label="Nuevo CFDI"
                 class="q-px-md text-weight-bold shadow-5"
                 unelevated
-                @click="nuevaFactura"
-              />
+                content-class="bg-white text-indigo-10"
+              >
+                <q-list style="min-width: 220px">
+                  <q-item clickable v-close-popup @click="nuevaFactura">
+                    <q-item-section avatar>
+                      <q-avatar icon="person" color="indigo-1" text-color="indigo-10" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-weight-bold">Cliente Individual</q-item-label>
+                      <q-item-label caption>Factura 4.0</q-item-label>
+                    </q-item-section>
+                  </q-item>
+
+                  <q-separator />
+
+                  <q-item clickable v-close-popup @click="showFacturaGlobal = true">
+                    <q-item-section avatar>
+                      <q-avatar icon="public" color="pink-1" text-color="pink-8" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-weight-bold">Factura Global</q-item-label>
+                      <q-item-label caption>Público en General (Tickets)</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-btn-dropdown>
+
             </div>
           </div>
         </template>
@@ -187,6 +212,7 @@
       v-model="showCancelacionDialog"
       :cfdi="cfdiACancelar"
       @success="loadFacturas" />
+    <FacturaGlobalDialog v-model="showFacturaGlobal" @success="loadFacturas" />
   </q-page>
 </template>
 
@@ -197,7 +223,7 @@
   import { useAuthStore } from 'src/stores/auth'
   import NuevaFacturaDialog from 'src/components/Facturacion/NuevaFacturaDialog.vue'
   import CancelacionCfdiDialog from 'src/components/Facturacion/CancelacionCfdiDialog.vue'
-
+  import FacturaGlobalDialog from 'src/components/Facturacion/FacturaGlobalDialog.vue'
 
   const $q = useQuasar()
   const auth = useAuthStore()
@@ -209,6 +235,7 @@
   const showNuevaFactura = ref(false)
   const showCancelacionDialog = ref(false)
   const cfdiACancelar = ref(null)
+  const showFacturaGlobal = ref(false)
 
   const nuevaFactura = () => {
     showNuevaFactura.value = true

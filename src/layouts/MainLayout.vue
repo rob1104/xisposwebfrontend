@@ -103,7 +103,7 @@
 
             <div class="row items-center justify-center q-gutter-x-xs q-mt-xs">
               <q-badge style="font-size: 18px;" color="blue-grey-1" text-color="blue-grey-7" label="PUNTO DE VENTA" class="text-bold" />
-              <div class="text-caption text-grey-9">Versión 0.1.24</div>
+              <div class="text-caption text-grey-9">Versión 0.1.25</div>
             </div>
           </div>
 
@@ -170,13 +170,11 @@
       backgroundColor: 'primary'
     })
 
-    // 1. Actualizamos el store (esto ya afecta a todos los componentes reactivos)
     auth.sucursalSeleccionada = nuevaSucursal
 
-    // 2. Opcional: Recargar la página para limpiar estados de tablas o reportes
     setTimeout(() => {
       $q.loading.hide()
-      // Si quieres que todas las tablas se refresquen forzosamente:
+
       window.location.reload()
     }, 500)
   }
