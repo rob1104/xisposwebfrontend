@@ -84,7 +84,28 @@
                 <q-icon name="gavel" color="primary" class="q-mr-xs" /> Especificaciones Fiscales (SAT)
               </div>
               <div class="col-12 col-md-4">
-                <q-input v-bind="inputProps" v-model="form.clave_prod_serv" label="Clave SAT *" mask="########" :rules="[val => val?.length === 8 || 'Debe tener 8 dígitos']" />
+                <q-input
+                  v-bind="inputProps"
+                  v-model="form.clave_prod_serv"
+                  label="Clave SAT *"
+                  mask="########"
+                  :loading="buscandoSat"
+                  debounce="500"
+                  @update:model-value="buscarDescripcionSat"
+                  :rules="[
+                    val => val?.length === 8 || 'Debe tener 8 dígitos',
+                    val => !!satDescripcion || 'Clave no encontrada en catálogo SAT'
+                  ]"
+                  >
+                    <template v-slot:hint>
+                      <span v-if="satDescripcion" class="text-positive text-bold text-caption">
+                        <q-icon name="check_circle" /> {{ satDescripcion }}
+                      </span>
+                      <span v-else class="text-grey-6 text-caption">
+                        Ingrese los 8 dígitos para validar
+                      </span>
+                    </template>
+                  </q-input>
               </div>
               <div class="col-12 col-md-4">
                 <q-select
@@ -163,6 +184,7 @@
               input-debounce="300"
               label="Buscar componentes por nombre o c{odigo de barras}..."
               :options="searchOptions"
+              option-label="nombre"
               @filter="filterProducts"
               @update:model-value="addComponent"
               ref="refKitSearch"
@@ -257,6 +279,27 @@
   const isEdit = computed(() => !!props.editData)
   const show = computed({ get: () => props.modelValue, set: (val) => emit('update:modelValue', val) })
 
+  const satDescripcion = ref('')
+  const buscandoSat = ref(false)
+
+  const buscarDescripcionSat = async (val) => {
+    // Solo buscamos si tiene 8 dígitos para no saturar
+    if (!val || val.length !== 8) {
+      satDescripcion.value = ''
+      return
+    }
+
+    buscandoSat.value = true
+    try {
+      const { data } = await api.get(`/api/catalogos/claves-sat/producto/${val}`)
+      satDescripcion.value = data.descripcion
+    } catch (e) {
+      satDescripcion.value = '' // No encontrado o error
+    } finally {
+      buscandoSat.value = false
+    }
+  }
+
   const form = reactive({
     nombre: '',
     status: true,
@@ -308,6 +351,10 @@
     if (!prod || form.componentes.some(c => c.id === prod.id)) return
     form.componentes.push({ id: prod.id, nombre: prod.nombre, codigo_barras: prod.codigo_barras, cantidad: 1 })
     selectedHijo.value = null
+    nextTick(() => {
+      refKitSearch.value?.updateInputValue('')
+      refKitSearch.value?.focus()
+    })
   }
 
   // --- CATEGORÍA RÁPIDA ---
@@ -379,8 +426,16 @@
           })
         }
         Object.assign(form, data)
+
+        if(form.clave_prod_serv) {
+          buscarDescripcionSat(form.clave_prod_serv)
+        }
+
       } finally { loading.value = false }
-    } else { resetForm() }
+    } else {
+      resetForm()
+      satDescripcion.value = ''
+    }
     nextTick(() => refGeneral.value?.focus())
   }
 

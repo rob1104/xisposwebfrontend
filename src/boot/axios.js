@@ -5,7 +5,7 @@ import { useAuthStore } from 'src/stores/auth'
 
 // Definir la URL base según el entorno
 const apiURL = import.meta.env.PROD
-  ? "https://lanacional.xiserp.mx/backend/public"
+  ? "https://posdemo.xiserp.mx/backend/public"
   : "http://localhost:8000"
 
 // Crear instancia de Axios
