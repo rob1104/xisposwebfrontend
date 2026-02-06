@@ -1,40 +1,42 @@
 <template>
   <div class="row fit full-height bg-dark-surface">
 
+    <!-- Panel de Productos (Izquierda en Desktop, Full en Mobile) -->
     <div class="col-12 col-md-8 col-lg-8 column full-height relative-position border-right-dark">
 
-      <div class="row items-center q-pa-md bg-header shadow-1" style="height: 70px;">
+      <!-- Header con controles adaptables -->
+      <div class="row items-center q-pa-sm q-pa-md-md bg-header shadow-1 header-container">
 
-        <div class="col-auto q-mr-md">
-        <q-btn
-            push
-            color="grey-9"
-            text-color="white"
-            icon="arrow_back"
-            label="MESAS"
-            class="text-bold border-white"
-            @click="$emit('finalizar')"
-        />
-        </div>
 
-        <div v-if="categoriaSeleccionada || busqueda" class="col-auto q-mr-md animate-pop">
+
+        <!-- Botón volver a menú principal - adaptable -->
+        <div v-if="categoriaSeleccionada || busqueda" class="col-auto q-mr-xs q-mr-md-md animate-pop">
           <q-btn
-            push color="deep-orange" icon="arrow_back" label="MENÚ PRINCIPAL"
-            class="text-bold" size="md"
+            push
+            color="deep-orange"
+            icon="arrow_back"
+            :label="$q.screen.gt.sm ? 'MENÚ PRINCIPAL' : $q.screen.gt.xs ? 'MENÚ' : ''"
+            class="text-bold"
+            :size="$q.screen.gt.xs ? 'md' : 'sm'"
             @click="limpiarNavegacion"
           />
         </div>
 
-        <div class="col text-h6 text-white text-bold text-uppercase ellipsis">
+        <!-- Título - oculto en pantallas muy pequeñas cuando hay búsqueda -->
+        <div
+          class="col text-subtitle1 text-md-h6 text-white text-bold text-uppercase ellipsis"
+          :class="{ 'gt-xs': busqueda }"
+        >
           <q-icon name="restaurant_menu" color="amber" class="q-mr-sm" />
-          {{ tituloActual }}
+          <span class="gt-xs">{{ tituloActual }}</span>
         </div>
 
-        <div class="col-4">
+        <!-- Buscador - adaptable -->
+        <div class="col-12 col-sm-5 col-md-4 q-mt-sm q-mt-sm-none">
           <q-input
             dark dense outlined rounded
             v-model="busqueda"
-            placeholder="Buscar producto..."
+            placeholder="Buscar..."
             class="bg-dark-input"
           >
             <template v-slot:append><q-icon name="search" color="grey" /></template>
@@ -42,29 +44,32 @@
         </div>
       </div>
 
-      <q-scroll-area class="col q-pa-md">
+      <!-- Área de scroll con productos/categorías -->
+      <q-scroll-area class="col q-pa-sm q-pa-md-md">
 
-        <div v-if="!categoriaSeleccionada && !busqueda" class="row q-col-gutter-lg">
+        <!-- Vista de Categorías -->
+        <div v-if="!categoriaSeleccionada && !busqueda" class="row q-col-gutter-sm q-col-gutter-md-lg">
           <div
             v-for="cat in categorias"
             :key="cat.id"
-            class="col-xs-6 col-sm-4 col-md-3"
+            class="col-6 col-sm-4 col-md-3"
           >
             <q-card
               v-ripple
               class="category-card column flex-center cursor-pointer shadow-3"
               @click="entrarCategoria(cat)"
             >
-              <q-icon :name="cat.icono || 'lunch_dining'" size="3.5em" color="white" class="q-mb-sm opacity-80" />
-              <div class="text-h6 text-bold text-center text-white text-uppercase leading-tight q-px-sm">
+              <q-icon :name="cat.icono || 'lunch_dining'" :size="$q.screen.gt.xs ? '3.5em' : '2.5em'" color="white" class="q-mb-sm opacity-80" />
+              <div class="text-subtitle2 text-md-h6 text-bold text-center text-white text-uppercase leading-tight q-px-sm">
                 {{ cat.nombre }}
               </div>
-              <div class="text-caption text-amber q-mt-xs">{{ contarProductos(cat.id) }} items</div>
+              <div class="text-caption text-amber q-mt-xs">{{ contarProductos(cat.id) }} productos</div>
             </q-card>
           </div>
         </div>
 
-        <div v-else class="row q-col-gutter-md animate-fade">
+        <!-- Vista de Productos -->
+        <div v-else class="row q-col-gutter-sm q-col-gutter-md-md animate-fade">
 
           <div v-if="productosVisibles.length === 0" class="col-12 text-center text-grey q-mt-xl">
             <q-icon name="no_food" size="4em" />
@@ -74,7 +79,7 @@
           <div
             v-for="prod in productosVisibles"
             :key="prod.id"
-            class="col-xs-6 col-sm-4 col-md-3"
+            class="col-6 col-sm-4 col-md-3"
           >
             <q-card
               class="product-card column full-height cursor-pointer"
@@ -92,13 +97,13 @@
                    </div>
                 </template>
 
-                <div class="absolute-bottom-right text-subtitle1 text-bold bg-amber text-black q-px-sm" style="border-top-left-radius: 8px;">
+                <div class="absolute-bottom-right text-caption text-md-subtitle1 text-bold bg-amber text-black q-px-sm product-price">
                    $ {{ parseFloat(prod.precio).toFixed(2) }}
                 </div>
               </q-img>
 
-              <q-card-section class="q-pa-sm text-center col flex flex-center bg-card-body">
-                <div class="text-subtitle2 text-white text-uppercase leading-tight">
+              <q-card-section class="q-pa-xs q-pa-sm-sm text-center col flex flex-center bg-card-body">
+                <div class="text-caption text-md-subtitle2 text-white text-uppercase leading-tight">
                   {{ prod.nombre }}
                 </div>
               </q-card-section>
@@ -108,45 +113,67 @@
       </q-scroll-area>
     </div>
 
-    <div class="col-12 col-md-4 col-lg-4 bg-ticket column shadow-left">
+    <!-- Panel de Ticket (Derecha en Desktop, Drawer en Mobile) -->
+    <div
+      class="col-12 col-md-4 col-lg-4 bg-ticket column shadow-left ticket-panel"
+      :class="{ 'mobile-ticket': $q.screen.lt.md }"
+    >
 
-      <div class="q-pa-md bg-dark-header text-white border-bottom-dark">
+      <div class="q-pa-sm q-pa-md-md bg-dark-header text-white border-bottom-dark">
         <div class="row justify-between items-center">
-          <div class="text-h5 text-bold text-amber">{{ mesa ? mesa.nombre : 'PARA LLEVAR' }}</div>
-          <q-badge color="blue-grey" class="q-py-xs">{{ mesero?.name || 'S/A' }}</q-badge>
+          <div class="text-subtitle1 text-md-h5 text-bold text-amber">{{ mesa ? mesa.nombre : 'PARA LLEVAR' }}</div>
+          <q-badge color="blue-grey" class="q-py-xs text-caption">{{ mesero?.name || 'S/A' }}</q-badge>
         </div>
         <div class="text-caption text-grey-4" v-if="clienteNombre">
           <q-icon name="person" /> {{ clienteNombre }}
         </div>
       </div>
 
-      <q-scroll-area class="col q-pa-sm bg-ticket-body">
+      <!-- Área de items del carrito -->
+      <q-scroll-area class="col q-pa-xs q-pa-sm-sm bg-ticket-body">
         <q-list separator dark>
 
+          <!-- Items nuevos (por enviar) -->
           <div v-if="carritoNuevos.length > 0" class="q-mb-md">
-            <q-item-label header class="text-amber text-bold text-uppercase q-pl-none">
+            <q-item-label header class="text-amber text-bold text-uppercase q-pl-none text-caption text-md-body2">
               <q-icon name="edit_note" /> Por Enviar
             </q-item-label>
 
             <transition-group name="list">
-              <q-item v-for="(item, idx) in carritoNuevos" :key="'new-'+item.uniqueId" class="bg-item-new q-mb-xs rounded-borders">
+              <q-item
+                v-for="(item, idx) in carritoNuevos"
+                :key="'new-'+item.uniqueId"
+                class="bg-item-new q-mb-xs rounded-borders q-pa-xs q-pa-sm-sm"
+              >
                 <q-item-section>
-                  <q-item-label class="text-white text-bold">{{ item.nombre }}</q-item-label>
+                  <q-item-label class="text-white text-bold text-caption text-md-body2">{{ item.nombre }}</q-item-label>
                   <q-item-label caption class="text-orange-3" v-if="item.notas">
                     <q-icon name="comment" size="xs" /> {{ item.notas }}
                   </q-item-label>
                 </q-item-section>
 
                 <q-item-section side>
-                  <div class="row items-center bg-dark-transparent rounded-borders">
-                    <q-btn flat round dense icon="remove" color="grey-4" size="sm" @click="restarCantidad(idx)" />
-                    <span class="q-mx-sm text-bold text-white">{{ item.cantidad }}</span>
-                    <q-btn flat round dense icon="add" color="amber" size="sm" @click="sumarCantidad(idx)" />
+                  <div class="row items-center bg-dark-transparent rounded-borders q-pa-xs">
+                    <q-btn
+                      flat round dense
+                      icon="remove"
+                      color="grey-4"
+                      :size="$q.screen.gt.xs ? 'sm' : 'xs'"
+                      @click="restarCantidad(idx)"
+                    />
+                    <span class="q-mx-xs q-mx-sm-sm text-bold text-white text-caption text-md-body2">{{ item.cantidad }}</span>
+                    <q-btn
+                      flat round dense
+                      icon="add"
+                      color="amber"
+                      :size="$q.screen.gt.xs ? 'sm' : 'xs'"
+                      @click="sumarCantidad(idx)"
+                    />
                   </div>
                 </q-item-section>
 
                 <q-item-section side>
-                   <div class="text-white text-bold">$ {{ (item.precio * item.cantidad).toFixed(2) }}</div>
+                   <div class="text-white text-bold text-caption text-md-body2">$ {{ (item.precio * item.cantidad).toFixed(2) }}</div>
                 </q-item-section>
 
                 <q-menu context-menu>
@@ -160,19 +187,24 @@
             </transition-group>
           </div>
 
+          <!-- Items enviados (en cocina) -->
           <div v-if="carritoEnviados.length > 0">
              <q-separator color="grey-8" class="q-mb-sm" />
-             <q-item-label header class="text-green text-bold text-uppercase q-pl-none">
+             <q-item-label header class="text-green text-bold text-uppercase q-pl-none text-caption text-md-body2">
                <q-icon name="soup_kitchen" /> En Cocina
              </q-item-label>
 
-             <q-item v-for="item in carritoEnviados" :key="'sent-'+item.id" class="opacity-60">
+             <q-item
+               v-for="item in carritoEnviados"
+               :key="'sent-'+item.id"
+               class="opacity-60 q-pa-xs q-pa-sm-sm"
+             >
                <q-item-section>
-                 <q-item-label class="text-white">{{ item.cantidad }} x {{ item.producto.nombre }}</q-item-label>
+                 <q-item-label class="text-white text-caption text-md-body2">{{ item.cantidad }} x {{ item.producto.nombre }}</q-item-label>
                  <q-item-label caption class="text-grey-5" v-if="item.notas">Nota: {{ item.notas }}</q-item-label>
                </q-item-section>
                <q-item-section side>
-                 <div class="text-grey-5">$ {{ (item.precio * item.cantidad).toFixed(2) }}</div>
+                 <div class="text-grey-5 text-caption text-md-body2">$ {{ (item.precio * item.cantidad).toFixed(2) }}</div>
                </q-item-section>
              </q-item>
           </div>
@@ -180,19 +212,20 @@
         </q-list>
       </q-scroll-area>
 
-      <div class="q-pa-md bg-dark-header border-top-dark">
-        <div class="row justify-between text-h4 text-bold text-white q-mb-lg">
-          <span class="text-h6 self-end text-grey">TOTAL:</span>
-          <span class="text-amber">$ {{ granTotal.toFixed(2) }}</span>
+      <!-- Footer con total y botones -->
+      <div class="q-pa-sm q-pa-md-md bg-dark-header border-top-dark">
+        <div class="row justify-between text-bold text-white q-mb-sm q-mb-md-lg items-end">
+          <span class="text-caption text-md-h6 text-grey">TOTAL:</span>
+          <span class="text-h6 text-md-h4 text-amber">$ {{ granTotal.toFixed(2) }}</span>
         </div>
 
-        <div class="row q-gutter-md">
+        <div class="row q-gutter-xs q-gutter-md-md">
           <q-btn
-            class="col-6"
+            class="col"
             push color="deep-orange"
-            size="lg"
+            :size="$q.screen.gt.xs ? 'lg' : 'md'"
             icon="soup_kitchen"
-            label="COCINA"
+            :label="$q.screen.gt.sm ? 'COCINA' : 'ENVIAR'"
             :disable="carritoNuevos.length === 0"
             @click="enviarACocina"
             :loading="enviando"
@@ -200,7 +233,7 @@
           <q-btn
             class="col"
             push color="positive"
-            size="lg"
+            :size="$q.screen.gt.xs ? 'lg' : 'md'"
             icon="receipt"
             label="CUENTA"
             @click="pedirCuenta"
@@ -210,38 +243,71 @@
       </div>
     </div>
 
+    <!-- Modal de producto -->
     <q-dialog v-model="showProductDialog" persistent transition-show="scale" transition-hide="scale">
       <q-card style="width: 500px; max-width: 90vw;" class="bg-dark-surface text-white border-amber">
 
-        <q-card-section class="bg-amber text-black row items-center">
-          <div class="text-h6 text-bold">{{ tempProducto?.nombre }}</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup color="black" />
+        <q-card-section class="bg-amber text-black row items-center q-pa-sm q-pa-md-md">
+          <div class="text-subtitle1 text-md-h6 text-bold col">{{ productoActual?.nombre }}</div>
+          <q-btn flat round dense icon="close" v-close-popup />
         </q-card-section>
 
-        <q-card-section class="q-pt-lg">
-          <div class="row justify-center items-center q-mb-lg">
-             <q-btn round color="grey-8" icon="remove" size="lg" @click="tempCantidad > 1 ? tempCantidad-- : null" />
-             <div class="text-h2 text-bold q-mx-lg text-amber">{{ tempCantidad }}</div>
-             <q-btn round color="amber" text-color="black" icon="add" size="lg" @click="tempCantidad++" />
+        <q-card-section class="q-pa-sm q-pa-md-md">
+          <q-img
+            v-if="productoActual?.imagen"
+            :src="productoActual.imagen"
+            ratio="16/9"
+            class="rounded-borders"
+          />
+
+          <div class="text-h5 text-md-h4 text-amber text-bold q-mt-md text-center">
+            $ {{ parseFloat(productoActual?.precio || 0).toFixed(2) }}
           </div>
 
-          <div class="text-subtitle2 text-grey-4 q-mb-xs">Notas de preparación (Opcional):</div>
-          <q-input
-            v-model="tempNotas"
-            filled dark
-            type="textarea"
-            rows="3"
-            placeholder="Ej: Sin cebolla, Salsa aparte..."
-            class="text-h6"
-          />
+          <div class="q-mt-md">
+            <div class="text-caption text-md-body2 text-grey-4 q-mb-xs">Cantidad:</div>
+            <div class="row items-center justify-center">
+              <q-btn
+                push round
+                color="grey-8"
+                icon="remove"
+                :size="$q.screen.gt.xs ? 'lg' : 'md'"
+                @click="cantidadModal > 1 ? cantidadModal-- : null"
+              />
+              <div class="text-h4 text-md-h3 text-white q-mx-md q-mx-lg-lg">{{ cantidadModal }}</div>
+              <q-btn
+                push round
+                color="amber"
+                icon="add"
+                :size="$q.screen.gt.xs ? 'lg' : 'md'"
+                @click="cantidadModal++"
+              />
+            </div>
+          </div>
+
+          <div class="q-mt-md">
+            <div class="text-caption text-md-body2 text-grey-4 q-mb-xs">Notas especiales:</div>
+            <q-input
+              v-model="notasModal"
+              dark outlined
+              type="textarea"
+              rows="2"
+              placeholder="Ej: Sin cebolla, picante aparte..."
+              class="bg-dark-input"
+            />
+          </div>
         </q-card-section>
 
-        <q-card-actions align="right" class="q-pa-md bg-dark-header">
-           <div class="text-h5 text-bold q-mr-md text-grey">
-             Sub: $ {{ ((tempProducto?.precio || 0) * tempCantidad).toFixed(2) }}
-           </div>
-           <q-btn label="AGREGAR A ORDEN" color="positive" size="lg" icon="check" @click="confirmarAgregarProducto" />
+        <q-card-actions class="q-pa-sm q-pa-md-md">
+          <q-btn
+            push
+            color="positive"
+            icon="add_shopping_cart"
+            label="AGREGAR"
+            class="full-width"
+            :size="$q.screen.gt.xs ? 'lg' : 'md'"
+            @click="agregarAlCarrito"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -251,70 +317,70 @@
 
 <script setup>
   import { ref, computed, onMounted } from 'vue'
-  import { api } from 'src/boot/axios'
   import { useQuasar } from 'quasar'
+  import { api } from 'src/boot/axios'
 
-  const props = defineProps(['mesa', 'ordenId', 'mesero'])
+  const props = defineProps({
+    mesa: Object,
+    ordenId: Number,
+    mesero: Object
+  })
+
   const emit = defineEmits(['finalizar'])
   const $q = useQuasar()
 
-  // --- DATA ---
+  // State
   const categorias = ref([])
   const productos = ref([])
+  const categoriaSeleccionada = ref(null)
+  const busqueda = ref('')
   const carritoNuevos = ref([])
   const carritoEnviados = ref([])
-  const ordenActualId = ref(props.ordenId)
+  const ordenActualId = ref(props.ordenId || null)
   const clienteNombre = ref('')
-
-  // --- UI STATE ---
-  const categoriaSeleccionada = ref(null) // Si es null, muestra grid categorías
-  const busqueda = ref('')
   const enviando = ref(false)
 
-  // --- MODAL PRODUCTO ---
+  // Modal producto
   const showProductDialog = ref(false)
-  const tempProducto = ref(null)
-  const tempCantidad = ref(1)
-  const tempNotas = ref('')
+  const productoActual = ref(null)
+  const cantidadModal = ref(1)
+  const notasModal = ref('')
 
-  // --- COMPUTED ---
+  // Computeds
   const tituloActual = computed(() => {
-    if (busqueda.value) return `Resultados: "${busqueda.value}"`
+    if (busqueda.value) return 'Resultados de búsqueda'
     if (categoriaSeleccionada.value) return categoriaSeleccionada.value.nombre
     return 'Menú Principal'
   })
 
   const productosVisibles = computed(() => {
-    let lista = productos.value
-
-    // 1. Filtro por búsqueda global
     if (busqueda.value) {
       const q = busqueda.value.toLowerCase()
-      return lista.filter(p => p.nombre.toLowerCase().includes(q) || p.codigo_barras.includes(q))
+      return productos.value.filter(p =>
+        p.nombre.toLowerCase().includes(q) ||
+        p.codigo?.toLowerCase().includes(q)
+      )
     }
-
-    // 2. Filtro por categoría seleccionada
     if (categoriaSeleccionada.value) {
-      return lista.filter(p => p.categoria_id === categoriaSeleccionada.value.id)
+      return productos.value.filter(p => p.categoria_id === categoriaSeleccionada.value.id)
     }
-
-    return [] // Si estamos en menú principal, no mostramos productos sueltos
+    return []
   })
 
   const granTotal = computed(() => {
-    const totalNuevos = carritoNuevos.value.reduce((acc, i) => acc + (i.precio * i.cantidad), 0)
-    const totalEnviados = carritoEnviados.value.reduce((acc, i) => acc + (parseFloat(i.precio) * parseFloat(i.cantidad)), 0)
+    const totalNuevos = carritoNuevos.value.reduce((sum, i) => sum + (i.precio * i.cantidad), 0)
+    const totalEnviados = carritoEnviados.value.reduce((sum, i) => sum + (i.precio * i.cantidad), 0)
     return totalNuevos + totalEnviados
   })
 
-  // --- METHODS NAVEGACIÓN ---
+  // Métodos
   const contarProductos = (catId) => {
     return productos.value.filter(p => p.categoria_id === catId).length
   }
 
   const entrarCategoria = (cat) => {
     categoriaSeleccionada.value = cat
-    busqueda.value = '' // Limpiar búsqueda al navegar
+    busqueda.value = ''
   }
 
   const limpiarNavegacion = () => {
@@ -322,66 +388,48 @@
     busqueda.value = ''
   }
 
-  // --- METHODS CARRITO & MODAL ---
-
-  // Paso 1: Abrir Modal
   const abrirModalProducto = (prod) => {
-    tempProducto.value = prod
-    tempCantidad.value = 1
-    tempNotas.value = ''
+    productoActual.value = prod
+    cantidadModal.value = 1
+    notasModal.value = ''
     showProductDialog.value = true
   }
 
-  // Paso 2: Confirmar del Modal
-  const confirmarAgregarProducto = async() => {
-    if (!tempProducto.value) return
+  const agregarAlCarrito = async () => {
+    if (!productoActual.value) return
 
-    // Buscar si ya existe EXACTAMENTE el mismo producto con las MISMAS notas
-    const existe = carritoNuevos.value.find(i =>
-      i.id === tempProducto.value.id &&
-      i.notas.trim() === tempNotas.value.trim()
-    )
-
-    if (existe) {
-      existe.cantidad += tempCantidad.value
-    } else {
-      carritoNuevos.value.push({
-        id: tempProducto.value.id,
-        nombre: tempProducto.value.nombre,
-        precio: parseFloat(tempProducto.value.precios?.[0]?.precio || 0),
-        cantidad: tempCantidad.value,
-        uniqueId: Date.now(),
-        notas: tempNotas.value
-      })
-    }
-
+    // Si no hay orden, crearla primero
     if (!ordenActualId.value) {
-       const { data } = await api.post('/api/restaurante/abrir-orden', {
+      try {
+        const { data } = await api.post('/api/restaurante/abrir-orden', {
           mesa_id: props.mesa?.id || null,
           nombre_cliente: clienteNombre.value
-       })
-       ordenActualId.value = data.id
+        })
+        ordenActualId.value = data.id
+      } catch (e) {
+        $q.notify({ message: 'Error al crear orden', color: 'negative' })
+        return
+      }
     }
 
+    carritoNuevos.value.push({
+      id: productoActual.value.id,
+      nombre: productoActual.value.nombre,
+      precio: productoActual.value.precio,
+      cantidad: cantidadModal.value,
+      notas: notasModal.value,
+      uniqueId: Date.now() + Math.random()
+    })
+
     showProductDialog.value = false
+    $q.notify({ message: 'Producto agregado', color: 'positive', position: 'top', timeout: 500 })
 
     await sincronizarBorrador()
-
-
-    // Opcional: Feedback visual o sonido
-    $q.notify({
-      message: 'Agregado',
-      color: 'positive',
-      position: 'center',
-      timeout: 500,
-      icon: 'check'
-    })
   }
 
-  // Operaciones en lista
   const sumarCantidad = (idx) => {
     carritoNuevos.value[idx].cantidad++
-    sincronizarBorrador() // <--- Guardar cambio
+    sincronizarBorrador()
   }
 
   const restarCantidad = (idx) => {
@@ -389,21 +437,19 @@
         carritoNuevos.value[idx].cantidad--
     } else {
         eliminarItem(idx)
-        return // eliminarItem ya llama a sincronizar
+        return
     }
-    sincronizarBorrador() // <--- Guardar cambio
+    sincronizarBorrador()
   }
 
   const eliminarItem = (idx) => {
       carritoNuevos.value.splice(idx, 1)
-      sincronizarBorrador() // <--- Guardar cambio (esto borrará el item de la BD)
+      sincronizarBorrador()
   }
 
-  // --- LOGICA BACKEND (Igual que antes) ---
   const enviarACocina = async () => {
       enviando.value = true
       try {
-        // 1. Si no existe orden, crearla primero
         if (!ordenActualId.value) {
           const { data } = await api.post('/api/restaurante/abrir-orden', {
             mesa_id: props.mesa?.id || null,
@@ -412,17 +458,14 @@
           ordenActualId.value = data.id
         }
 
-        // 2. Guardar items nuevos
         const itemsPayload = carritoNuevos.value.map(i => ({
           id: i.id,
           cantidad: i.cantidad,
           precio: i.precio,
-          notas: i.notas // ENVIAMOS LAS NOTAS
+          notas: i.notas
         }))
 
         await api.post(`/api/restaurante/orden/${ordenActualId.value}/actualizar`, { items: itemsPayload })
-
-        // 3. Disparar impresión a cocina
         await api.post(`/api/restaurante/orden/${ordenActualId.value}/enviar-cocina`)
 
         $q.notify({ message: 'Enviado a cocina', color: 'positive', icon: 'check' })
@@ -468,26 +511,21 @@
       try {
         const { data } = await api.get(`/api/restaurante/orden/${ordenActualId.value}`)
 
-        // 1. Limpiamos ambas listas para evitar duplicados al recargar
         carritoEnviados.value = []
         carritoNuevos.value = []
 
-        // 2. Separamos lo que ya se cocinó de lo pendiente
-        // Los detalles con impreso_cocina = 1 van directos a la lista de lectura (Verde)
         carritoEnviados.value = data.detalles.filter(d => d.impreso_cocina == 1)
 
-        // 3. Los detalles con impreso_cocina = 0 los recuperamos como "Nuevos" (Amarillo)
-        // Necesitamos mapearlos para que tengan la estructura que usa el carrito frontend (uniqueId, etc)
         const pendientes = data.detalles.filter(d => d.impreso_cocina == 0)
 
         pendientes.forEach(det => {
             carritoNuevos.value.push({
-                id: det.producto.id,      // ID del Producto Real
+                id: det.producto.id,
                 nombre: det.producto.nombre,
                 precio: parseFloat(det.precio),
                 cantidad: parseFloat(det.cantidad),
                 notas: det.notas || '',
-                uniqueId: Date.now() + Math.random() // Generamos un ID temporal para que Vue lo maneje
+                uniqueId: Date.now() + Math.random()
             })
         })
 
@@ -500,7 +538,6 @@
     }
 
     const sincronizarBorrador = async () => {
-      // Si no hay orden creada aún, no hacemos nada (se creará al primer agregar)
       if (!ordenActualId.value) return
 
       try {
@@ -511,7 +548,6 @@
             notas: i.notas
         }))
 
-        // Llamamos al backend pero SIN esperar respuesta visual (sin loading) para que sea fluido
         await api.post(`/api/restaurante/orden/${ordenActualId.value}/actualizar`, { items: itemsPayload })
 
       } catch (e) {
@@ -520,7 +556,6 @@
     }
 
     onMounted(async () => {
-      // Carga de datos inicial
       const [resCat, resProd] = await Promise.all([
         api.get('/api/catalogos/categorias'),
         api.get('/api/pos/buscar-filtro?q=%')
@@ -533,7 +568,7 @@
 
         return {
           ...p,
-          precio: parseFloat(precioEncontrado) // Creamos la propiedad .precio directa
+          precio: parseFloat(precioEncontrado)
         }
       })
 
@@ -564,17 +599,53 @@
   .border-top-dark { border-top: 1px solid #333; }
   .border-amber { border: 2px solid #ffc107; }
 
+  /* ADAPTACIONES PARA MÓVIL */
+  .header-container {
+    min-height: 60px;
+  }
+
+  @media (max-width: 599px) {
+    .header-container {
+      flex-wrap: wrap;
+    }
+  }
+
+  /* Panel de ticket en móvil */
+  @media (max-width: 1023px) {
+    .mobile-ticket {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 50vh;
+      max-height: 500px;
+      z-index: 1000;
+      border-top: 2px solid #ffc107;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+    }
+  }
+
   /* TARJETAS */
   .category-card {
+    min-height: 120px;
     height: 140px;
     border-radius: 16px;
-    background: linear-gradient(145deg, #2c3e50, #1f2a36); /* Azul oscuro elegante */
+    background: linear-gradient(145deg, #2c3e50, #1f2a36);
     transition: transform 0.1s;
     border: 1px solid rgba(255,255,255,0.05);
   }
+
+  @media (max-width: 599px) {
+    .category-card {
+      min-height: 100px;
+      height: 110px;
+    }
+  }
+
   .category-card:active { transform: scale(0.96); }
 
   .product-card {
+    min-height: 160px;
     height: 180px;
     border-radius: 12px;
     overflow: hidden;
@@ -582,8 +653,20 @@
     transition: transform 0.1s;
     border: 1px solid rgba(255,255,255,0.05);
   }
+
+  @media (max-width: 599px) {
+    .product-card {
+      min-height: 140px;
+      height: 150px;
+    }
+  }
+
   .product-card:active { transform: scale(0.96); }
   .bg-card-body { background: #252525; }
+
+  .product-price {
+    border-top-left-radius: 8px;
+  }
 
   /* UTILIDADES */
   .opacity-80 { opacity: 0.8; }
@@ -596,4 +679,17 @@
 
   .animate-fade { animation: fadeIn 0.4s ease; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Transiciones de lista */
+  .list-enter-active, .list-leave-active {
+    transition: all 0.3s ease;
+  }
+  .list-enter-from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  .list-leave-to {
+    opacity: 0;
+    transform: translateX(30px);
+  }
 </style>

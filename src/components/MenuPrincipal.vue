@@ -223,11 +223,11 @@
     const path = route.path
 
     ventasExpanded.value = ['/ventas', '/clientes'].some(p => path.includes(p))
-    inventarioExpanded.value = ['/productos', '/transferencias', '/recibir', '/movimientosinventario'].some(p => path.includes(p))
+    inventarioExpanded.value = ['/productos', '/transferencias', '/recibir', '/movimientosinventario', 'auditoriahistorial'].some(p => path.includes(p))
     comprasExpanded.value = ['/compras', '/proveedores'].some(p => path.includes(p))
-    seguridadExpanded.value = ['/sucursales', '/catalogos', '/configuracion'].some(p => path.includes(p))
+    seguridadExpanded.value = ['/sucursales', '/catalogos', '/configuracion', 'restaurante/admin'].some(p => path.includes(p))
     accesoExpanded.value = ['/usuarios', '/roles', '/auditoria'].some(p => path.includes(p))
-    reportesExpanded.value = ['/inventarioglobal', '/inventarioxsucursal', '/inventariohistorico'].some(p => path.includes(p))
+    reportesExpanded.value = ['/inventarioglobal', '/inventarioxsucursal', '/inventariohistorico', 'reportes/ventasdetalladas'].some(p => path.includes(p))
   }
 
   watch(() => route.path, () => checkRoute())

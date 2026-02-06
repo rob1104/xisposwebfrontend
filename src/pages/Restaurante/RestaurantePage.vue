@@ -1,45 +1,51 @@
 <template>
 <q-page class="bg-dark-restaurante column overflow-hidden window-height">
-    <div class="row items-center q-px-md q-py-sm bg-header shadow-2">
+    <div class="row items-center q-px-md q-py-sm bg-header shadow-2" style="min-height: 60px;">
       <div class="col">
-        <div class="text-h6 text-white text-bold row items-center">
-          <q-icon name="restaurant_menu" color="amber" class="q-mr-sm" />
-          Módulo Restaurante
+        <div class="row text-white text-bold row items-center">
+          <q-icon name="restaurant_menu" color="amber" class="q-mr-sm" size="sm" />
+          <span :class="$q.screen.gt.xs ? 'text-h6' : 'text-subtitle1'">
+            Restaurante
+          </span>
         </div>
-        <div class="text-caption text-grey-4">
+        <div class="text-caption text-grey-4" v-if="$q.screen.gt.xs">
           {{ sucursalNombre }} | {{ fechaActual }}
+        </div>
+        <div class="text-caption text-grey-4" v-else>
+          {{ sucursalNombre }}
         </div>
       </div>
 
       <div class="col-auto row items-center q-gutter-x-sm">
-
-    <q-btn
-      v-if="vistaActual === 'comanda'"
-      flat icon="arrow_back" label="Volver a Mesas"
-      color="white"
-      @click="cerrarComanda"
-    />
-
-    <q-btn
-      flat
-      round
-      icon="apps"
-      color="white"
-      @click="router.push('/dashboard')"
-    >
-      <q-tooltip>Salir al Dashboard</q-tooltip>
-    </q-btn>
-    <q-btn
-      flat
-      round
-      :icon="$q.fullscreen.isActive ? 'fullscreen_exit' : 'fullscreen'"
-      :color="$q.fullscreen.isActive ? 'negative' : 'white'"
-      @click="$q.fullscreen.toggle()"
-    >
-      <q-tooltip>Pantalla Completa</q-tooltip>
-    </q-btn>
-
-  </div>
+        <q-btn
+              v-if="vistaActual === 'comanda'"
+              flat
+              :round="$q.screen.lt.sm"
+              icon="arrow_back"
+              :label="$q.screen.gt.xs ? 'Mesas' : ''"
+              color="white"
+              @click="cerrarComanda">
+              <q-tooltip>Volver a Mesas</q-tooltip>
+            </q-btn>
+        <q-btn
+          flat
+          round
+          icon="apps"
+          color="white"
+          @click="router.push('/dashboard')"
+        >
+          <q-tooltip>Salir al Dashboard</q-tooltip>
+        </q-btn>
+        <q-btn
+              flat
+              round
+              :icon="$q.fullscreen.isActive ? 'fullscreen_exit' : 'fullscreen'"
+              :color="$q.fullscreen.isActive ? 'negative' : 'white'"
+              @click="$q.fullscreen.toggle()"
+              class="gt-xs">
+              <q-tooltip>Pantalla Completa</q-tooltip>
+        </q-btn>
+      </div>
 
     </div>
 

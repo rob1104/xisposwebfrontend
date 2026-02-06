@@ -144,7 +144,7 @@
   }
 
   onMounted(() => {
-    // Opcional: precargar si quieres que sea instantáneo
+
   })
 </script>
 

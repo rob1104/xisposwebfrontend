@@ -7,7 +7,7 @@
           <q-icon name="history" color="white" size="md" />
         </div>
         <div>
-          <div class="text-h5 text-bold text-grey-9 tracking-tight">Historial de Auditorías</div>
+          <div class="text-h5 text-bold text-grey-9 tracking-tight">Historial de Conteo Fisico</div>
           <div class="text-caption text-primary text-bold text-uppercase letter-spacing-1">
             Gestión de Existencias y Control de Mermas
           </div>
@@ -130,7 +130,6 @@
   const detalleSeleccionado = ref(null)
   const filtro = ref('')
 
-  // HELPERS DE FORMATO DE FECHA PROFESIONAL
   const formatOnlyDate = (val) => date.formatDate(val, 'DD [de] MMMM, YYYY')
   const formatOnlyTime = (val) => date.formatDate(val, 'hh:mm A')
 
