@@ -85,6 +85,7 @@
               </div>
               <div class="col-12 col-md-4">
                 <q-input
+                  ref="refSatInput"
                   v-bind="inputProps"
                   v-model="form.clave_prod_serv"
                   label="Clave SAT *"
@@ -92,6 +93,7 @@
                   :loading="buscandoSat"
                   debounce="500"
                   @update:model-value="buscarDescripcionSat"
+                  @blur="buscarDescripcionSat(form.clave_prod_serv)"
                   :rules="[
                     val => val?.length === 8 || 'Debe tener 8 dígitos',
                     val => !!satDescripcion || 'Clave no encontrada en catálogo SAT'
@@ -281,6 +283,7 @@
 
   const satDescripcion = ref('')
   const buscandoSat = ref(false)
+  const refSatInput = ref(null)
 
   const buscarDescripcionSat = async (val) => {
     // Solo buscamos si tiene 8 dígitos para no saturar
@@ -293,8 +296,12 @@
     try {
       const { data } = await api.get(`/api/catalogos/claves-sat/producto/${val}`)
       satDescripcion.value = data.descripcion
+      setTimeout(() => {
+        refSatInput.value?.validate()
+      }, 100)
     } catch (e) {
-      satDescripcion.value = '' // No encontrado o error
+      satDescripcion.value = ''
+      refSatInput.value?.validate()// No encontrado o error
     } finally {
       buscandoSat.value = false
     }

@@ -527,6 +527,52 @@
     let cantidadEscaneada = 1
     let codigoLimpio = input.trim()
 
+    // DETECTAR ORDEN DE RESTAURANTE (CMD-XXXXXX)
+    if(codigoLimpio.startsWith('CMD-')) {
+    try {
+      $q.loading.show({ message: 'Cargando orden...' })
+
+      const { data: orden } = await api.get(`/api/restaurante/scan/${codigoLimpio}`)
+
+      // Llenamos el carrito del POS
+      if (carrito.value.length > 0) {
+        // Opcional: Podrías preguntar antes de borrar
+        carrito.value = []
+      }
+
+      // Ahora sí, 'orden' existe gracias al renombrado en la const
+      orden.detalles.forEach(det => {
+        carrito.value.push({
+          id: det.producto.id,
+          nombre: det.producto.nombre,
+          codigo_barras: det.producto.codigo_barras,
+          precio: parseFloat(det.precio),
+          cantidad: parseFloat(det.cantidad),
+          uniqueId: Date.now() + Math.random(),
+          // Importante: Asegúrate de que el backend envíe el ID de la orden en la respuesta
+          origen_restaurante_id: orden.id
+        })
+      })
+
+      $q.notify({
+        // Usamos orden.codigo_cobro o orden.id para mostrar
+        message: `Orden ${orden.codigo_cobro} cargada`,
+        color: 'positive',
+        icon: 'restaurant_menu',
+        position: 'center'
+      })
+
+    }
+    catch (e) {
+      console.error(e)
+      $q.notify({ message: 'Orden no encontrada o ya pagada: ' + e.message, color: 'negative' })
+    }
+    finally {
+      $q.loading.hide()
+    }
+    return; // Importante salir para que no siga buscando productos normales
+}
+
     // DETECTAR TARJETA DE CLIENTE (Ejem: CTE-0000001)
     if (codigoLimpio.startsWith('CTE-')) {
       try {

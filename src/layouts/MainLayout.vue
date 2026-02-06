@@ -1,121 +1,121 @@
 <template>
-  <q-layout view="lHh Lpr lFf" class="bg-grey-2">
-    <q-header v-if="!$route.meta.hideLayout" elevated class="bg-primary text-white header-shadow">
-      <q-toolbar class="q-py-md q-px-lg">
-        <q-btn flat dense round icon="menu" @click="toggleLeftDrawer" class="q-mr-sm" />
+  <q-layout view="lHh Lpr lFf" class="bg-grey-1">
+
+    <q-header
+      v-if="!$route.meta.hideLayout"
+      class="bg-white text-grey-9 header-premium"
+    >
+      <q-toolbar class="q-py-sm q-px-lg">
+
+        <q-btn flat dense round icon="menu" color="grey-7" @click="toggleLeftDrawer" class="q-mr-md" />
 
         <q-toolbar-title>
-          <div class="text-h6 text-bold ls-1">PUNTO DE VENTA - {{ configStore.nombreTienda }}</div>
-          <div class="text-caption text-red-2 text-uppercase text-weight-bolder">
-            {{ auth.currentBranchName || 'Administración global' }}
+          <div class="row items-center">
+            <div class="text-h6 text-bold ls-1 text-primary">
+              {{ configStore.nombreTienda }}
+              <span class="text-weight-light text-grey-6">POS</span>
+            </div>
+
+            <q-badge
+              v-if="auth.currentBranchName"
+              color="red-1" text-color="red-9"
+              class="q-ml-md text-weight-bold q-py-xs q-px-sm"
+              rounded
+            >
+              {{ auth.currentBranchName }}
+            </q-badge>
           </div>
         </q-toolbar-title>
 
-        <q-separator dark vertical inset class="q-mx-md" v-if="auth.can('sucursales.ver')" />
+        <div v-if="auth.can('sucursales.ver')" class="row items-center q-gutter-sm q-mr-lg gt-xs">
+          <q-select
+            v-model="auth.sucursalSeleccionada"
+            :options="sucursales"
+            option-label="nombre"
+            dense borderless
+            options-dense
+            color="primary"
+            class="branch-select"
+            @update:model-value="cambiarSucursal"
+          >
+            <template v-slot:prepend>
+              <q-icon name="storefront" size="xs" color="primary" />
+            </template>
+            <template v-slot:selected>
+              <div class="text-weight-bold text-grey-8">{{ auth.sucursalSeleccionada?.nombre || 'Seleccionar' }}</div>
+            </template>
+          </q-select>
+        </div>
 
-      <div v-if="auth.can('sucursales.ver')" class="row items-center q-gutter-sm">
-        <q-icon name="storefront" size="xs" color="white" />
-        <q-select
-          v-model="auth.sucursalSeleccionada"
-          :options="sucursales"
-          option-label="nombre"
-          dense
-          borderless
-          dark
-          options-dark
-          style="min-width: 200px"
-          @update:model-value="cambiarSucursal"
-          class="text-weight-bold"
-        >
-          <template v-slot:prepend>
-            <div class="text-caption text-uppercase opacity-70" style="font-size: 10px">Sucursal:</div>
-          </template>
-        </q-select>
-      </div>
-      <q-space />
+        <q-separator vertical inset class="q-mx-md opacity-20 gt-xs" />
 
-        <q-btn flat no-caps class="user-profile-btn q-px-md">
+        <q-btn flat no-caps class="q-pl-sm q-pr-xs rounded-borders hover-effect">
           <div class="row items-center no-wrap">
-            <div class="column items-start q-ml-md gt-xs">
-              <div class="text-subtitle2 text-bold lh-1">{{ auth.user?.name }}</div>
-              <q-badge color="white" text-color="primary" class="text-bold" size="sm">
-                {{ auth.roles[0] }}
-                </q-badge>
+            <q-avatar size="36px" class="bg-primary text-white shadow-2">
+              {{ auth.user?.name?.charAt(0).toUpperCase() }}
+            </q-avatar>
+
+            <div class="column items-start q-ml-sm gt-xs">
+              <div class="text-subtitle2 text-bold lh-1 text-dark">{{ auth.user?.name }}</div>
+              <div class="text-caption text-grey-6" style="font-size: 10px;">{{ auth.roles[0] }}</div>
             </div>
-            <q-icon name="keyboard_arrow_down" size="sm" class="q-ml-sm" />
+            <q-icon name="keyboard_arrow_down" size="xs" color="grey-6" class="q-ml-xs" />
           </div>
 
-          <q-menu transition-show="jump-down" transition-hide="jump-up" class="shadow-10 menu-radius">
-            <q-list style="min-width: 250px">
-              <q-item class="bg-primary text-white q-py-lg">
-                <q-item-section avatar>
-                  <q-avatar size="60px" class="bg-white text-primary text-bold shadow-5">
-                    {{ auth.user?.name?.charAt(0).toUpperCase() }}
-                  </q-avatar>
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label class="text-h6 text-bold">{{ auth.user?.name }}</q-item-label>
-                  <q-item-label class="text-caption text-red-1">{{ auth.user?.email }}</q-item-label>
-                </q-item-section>
-              </q-item>
+          <q-menu transition-show="jump-down" transition-hide="jump-up" class="menu-premium" :offset="[0, 10]">
+            <div class="row no-wrap q-pa-md">
+              <div class="column">
+                <div class="text-h6 q-mb-xs">{{ auth.user?.name }}</div>
+                <div class="text-caption text-grey-6 q-mb-md">{{ auth.user?.email }}</div>
 
-              <q-separator />
+                <q-separator class="q-mb-md" />
 
-              <q-item clickable v-ripple to="/perfil" class="q-py-md">
-                <q-item-section avatar><q-icon name="manage_accounts" color="primary" /></q-item-section>
-                <q-item-section class="text-bold">Mi Perfil</q-item-section>
-              </q-item>
-
-              <q-item clickable v-ripple @click="onLogout" class="text-negative q-py-md">
-                <q-item-section avatar><q-icon name="power_settings_new" color="negative" /></q-item-section>
-                <q-item-section class="text-bold">Finalizar Sesión</q-item-section>
-              </q-item>
-            </q-list>
+                <q-btn
+                  to="/perfil"
+                  align="left" flat dense icon="manage_accounts" label="Mi Perfil"
+                  class="text-grey-8 q-mb-sm"
+                />
+                <q-btn
+                  clickable @click="onLogout"
+                  align="left" flat dense icon="logout" label="Cerrar Sesión"
+                  class="text-negative"
+                />
+              </div>
+            </div>
           </q-menu>
         </q-btn>
       </q-toolbar>
     </q-header>
 
     <q-drawer
-        v-if="!$route.meta.hideLayout"
-        v-model="leftDrawerOpen"
-        show-if-above
-        bordered
-        class="bg-white drawer-shadow"
-        :width="280"
-      >
-        <q-scroll-area class="fit">
-          <div class="brand-section q-pa-lg text-center">
-            <div class="logo-container q-mx-auto q-mb-lg shadow-2">
-              <q-img
-                :src="configStore.logoUrl || 'assets/no-logo.png'"
-                alt="Logo"
-                spinner-color="primary"
-                style="max-width: 80px"
-                fit="contain"
-              />
-            </div>
-
-            <div class="brand-title">
-              <span class="text-h4 text-bold text-blue-grey-10">Xis</span>
-              <span class="text-h4 text-weight-light text-primary">POS</span>
-            </div>
-
-            <div class="row items-center justify-center q-gutter-x-xs q-mt-xs">
-              <q-badge style="font-size: 18px;" color="blue-grey-1" text-color="blue-grey-7" label="PUNTO DE VENTA" class="text-bold" />
-              <div class="text-caption text-grey-9">Versión 0.1.26</div>
-            </div>
+      v-if="!$route.meta.hideLayout"
+      v-model="leftDrawerOpen"
+      show-if-above
+      class="bg-grey-2 drawer-premium"
+      :width="260"
+    >
+      <q-scroll-area class="fit">
+        <div class="brand-section q-pa-lg text-center">
+          <div class="logo-wrapper q-mx-auto q-mb-md">
+            <q-img
+              :src="configStore.logoUrl || 'assets/no-logo.png'"
+              alt="Logo"
+              fit="contain"
+              class="logo-img"
+            />
           </div>
 
-          <q-separator inset class="q-mx-md q-mb-md opacity-50" />
+          <div class="text-h5 text-bold text-blue-grey-10 ls-tighter">Xis<span class="text-primary">PosWeb</span></div>
+          <div class="text-caption text-blue-grey-5 q-mt-xs">v1.0.1</div>
+        </div>
 
-          <MenuPrincipal />
+        <div class="q-mb-md"></div>
 
+        <MenuPrincipal />
+      </q-scroll-area>
+    </q-drawer>
 
-        </q-scroll-area>
-      </q-drawer>
-
-    <q-page-container>
+    <q-page-container class="bg-grey-1">
       <router-view v-slot="{ Component }">
         <transition name="fade-slide" mode="out-in">
           <component :is="Component" :key="$route.path" />
@@ -132,10 +132,7 @@
   import { useConfigStore } from 'stores/config'
   import { useQuasar } from 'quasar'
   import { api } from 'src/boot/axios'
-
-
   import MenuPrincipal from 'components/MenuPrincipal.vue'
-
 
   const auth = useAuthStore()
   const $q = useQuasar()
@@ -154,31 +151,22 @@
   })
 
   const cargarSucursales = async () => {
-  if (auth.can('sucursales.ver')) {
-    try {
-      const { data } = await api.get('/api/sucursales')
-      sucursales.value = data
-    } catch (e) {
-      console.error('Error al cargar sucursales: ' + e.message)
+    if (auth.can('sucursales.ver')) {
+      try {
+        const { data } = await api.get('/api/sucursales')
+        sucursales.value = data
+      } catch (e) { console.error(e) }
     }
   }
-}
 
   const cambiarSucursal = (nuevaSucursal) => {
-    $q.loading.show({
-      message: `Cambiando a sucursal: ${nuevaSucursal.nombre}...`,
-      backgroundColor: 'primary'
-    })
-
+    $q.loading.show({ message: `Cambiando a ${nuevaSucursal.nombre}...` })
     auth.sucursalSeleccionada = nuevaSucursal
-
     setTimeout(() => {
       $q.loading.hide()
-
       window.location.reload()
     }, 500)
   }
-
 
   const onLogout = async () => {
     await auth.logout()
@@ -187,68 +175,79 @@
 </script>
 
 <style lang="scss" scoped>
-  .ls-1 {
-    letter-spacing: 1px
+  /* 1. Header  (Efecto Vidrio Más Pronunciado) */
+  .header-premium {
+    /* Hacemos el borde casi imperceptible */
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+    /* Sombra muy suave para que "flote" */
+    box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+    /* IMPORTANTE: Bajamos la opacidad del blanco al 85%.
+      Esto permite que el color del sidebar y del fondo se "filtren"
+      un poco, quitando la sensación de blanco sólido.
+    */
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px); /* Soporte Safari */
   }
 
-  /* Estilos para la transición Fade-Slide */
-
-  // 1. Estado de entrada (cuando llega la página)
-  .fade-slide-enter-from {
-    opacity: 0;
-    transform: translateX(-20px); // Desliza desde la izquierda
+  /* 2. Drawer Premium (Barra lateral) */
+  .drawer-premium {
+    /* El borde derecho ayuda a definir el área sin ser brusco */
+    border-right: 1px solid rgba(0,0,0,0.06);
   }
 
-  // 2. Estado de salida (cuando se va la página)
-  .fade-slide-leave-to {
-    opacity: 0;
-    transform: translateX(-20px); // Se desliza hacia la izquierda
-  }
-
-  // 3. Configuración de la animación (duración y suavizado)
-  .fade-slide-enter-active,
-  .fade-slide-leave-active {
-    transition: all 0.3s ease-out;
-  }
-
+  /* 3. Logo y Marca */
   .brand-section {
-    position: relative;
-    background: linear-gradient(to bottom, #ffffff 0%, #fafafa 100%);
+    /* Nuevo degradado que se adapta al fondo gris.
+      Va de un gris un poco más luminoso arriba hacia el gris del sidebar.
+    */
+    background: linear-gradient(to bottom, #ffffff 0%, #f1f3f5 100%);
+    border-bottom: 1px solid rgba(0,0,0,0.03);
   }
 
-  .logo-container {
-    width: 100px;
-    height: 100px;
-    background: white;
-    border-radius: 24px; // Bordes tipo app moderna
-    border: 1px solid rgba(0,0,0,0.05);
+  .logo-wrapper {
+    width: 80px;
+    height: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Sombra más suave para el logo */
+    filter: drop-shadow(0 8px 12px rgba(0,0,0,0.06));
     transition: transform 0.3s ease;
+  }
+  .logo-wrapper:hover { transform: scale(1.05); }
 
-    &:hover {
-      transform: rotate(-3deg) scale(1.05);
-    }
+  /* 4. Utilidades y Menús */
+  .ls-1 { letter-spacing: 1px; }
+  .ls-tighter { letter-spacing: -1px; }
+  .opacity-20 { opacity: 0.2; }
+  .lh-1 { line-height: 1; }
+
+  .menu-premium {
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.05);
   }
 
-  .brand-title {
-    letter-spacing: -1.5px; // Interletrado apretado para look premium
-    line-height: 1;
+  .hover-effect {
+    transition: background 0.2s;
+    border-radius: 8px;
+  }
+  .hover-effect:hover {
+    /* Un hover un poco más oscuro para contrastar con el header */
+    background: rgba(0,0,0,0.05);
   }
 
-  .drawer-shadow {
-    box-shadow: 10px 0 30px rgba(0,0,0,0.02) !important;
+  /* 5. Animaciones de Página (Suavizadas) */
+  .fade-slide-enter-from {
+    opacity: 0;
+    transform: translateY(15px); /* Entra desde un poco más abajo */
   }
-
-  .font-mono {
-    font-family: 'Roboto Mono', monospace;
+  .fade-slide-leave-to {
+    opacity: 0;
+    transform: translateY(-10px); /* Sale un poco hacia arriba */
   }
-
-  // Suavizar la opacidad de los separadores
-  .opacity-50 {
-    opacity: 0.5;
+  .fade-slide-enter-active, .fade-slide-leave-active {
+    transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); /* Curva de animación más suave */
   }
-
-
 </style>

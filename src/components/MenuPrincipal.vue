@@ -13,6 +13,16 @@
       <q-item-section class="text-weight-medium">Punto de Venta (POS)</q-item-section>
     </q-item>
 
+    <q-item v-if="auth.can('restaurante.ver')" clickable v-ripple to="/restaurante" active-class="custom-active-link" class="menu-item">
+      <q-item-section avatar><q-icon name="restaurant" /></q-item-section>
+      <q-item-section class="text-weight-medium">Restaurante</q-item-section>
+    </q-item>
+
+     <q-item v-if="auth.can('restaurante.ordenes')" clickable v-ripple to="/restaurante/ordenes" active-class="custom-active-link" class="menu-item">
+      <q-item-section avatar><q-icon name="restaurant_menu" /></q-item-section>
+      <q-item-section class="text-weight-medium">Ordenes</q-item-section>
+    </q-item>
+
     <q-item v-if="auth.can('facturacion.ver')" clickable v-ripple to="/facturacion" active-class="custom-active-link" class="menu-item">
       <q-item-section avatar><q-icon name="money" /></q-item-section>
       <q-item-section class="text-weight-medium">Facturación</q-item-section>
@@ -160,6 +170,12 @@
         <q-item-section avatar><q-icon name="tune" /></q-item-section>
         <q-item-section>Ajustes Generales</q-item-section>
       </q-item>
+
+       <q-item v-if="auth.can('restaurante.config')" clickable v-ripple to="/restaurante/admin" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="restaurant" /></q-item-section>
+        <q-item-section>Ajustes Restaurante</q-item-section>
+      </q-item>
+
     </q-expansion-item>
 
     <q-expansion-item

@@ -30,6 +30,9 @@ const routes = [
       { path: 'auditoriahistorial', component: () => import('pages/Inventario/AuditoriaHistorial.vue'), name: 'auditoriahistorial', meta: { permission: 'inventario.verconteofisico' } },
       { path: 'reportes/ventasdetalladas', component: () => import('pages/Reportes/VentasDetalladas.vue'), name: 'ventasdetalladas', meta: { permission: 'reportes.ventasdetalladas' } },
       { path: 'turnos', component: () => import('pages/Ventas/TurnosPage.vue'), name: 'turnos', meta: { permission: 'ventas.ver' } },
+      { path: 'restaurante/admin', component: () => import('pages/Restaurante/RestAdminPage.vue'), name: 'restaurante.admin', meta: { permission: 'restaurante.config' } },
+      { path: 'restaurante/ordenes', component: () => import('pages/Restaurante/RestReportesPage.vue'), name: 'restaurante.ordenes', meta: { permission: 'restaurante.ordenes' } },
+      { path: 'restaurante', component: () => import('pages/Restaurante/RestaurantePage.vue'), name: 'restaurante', meta: { hideLayout: true, permission: 'restaurante.ver' } },
     ]
   },
   {
