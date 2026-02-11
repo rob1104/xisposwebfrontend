@@ -29,13 +29,12 @@
 
       <q-form @submit="handleSubmit">
         <q-tab-panels v-model="tab" animated class="bg-grey-1">
-
           <q-tab-panel name="general" class="q-pa-lg">
-            <div class="row q-col-gutter-lg">
+            <div class="row q-col-gutter-sm">
               <div class="col-12 text-subtitle2 text-bold text-grey-8 row items-center">
                 <q-icon name="fingerprint" color="primary" class="q-mr-xs" /> Identidad del Producto
               </div>
-              <div class="col-lg-8 col-md-12">
+              <div class="col-12 col-lg-8 col-md-12 col-sm-12">
                 <q-input
                   v-bind="inputProps"
                   v-model="form.nombre"
@@ -46,7 +45,7 @@
                   @update:model-value="val => (form.nombre = val.toUpperCase())"
                   :rules="[val => !!val || 'El nombre es requerido']" />
               </div>
-              <div class="col-lg-4 col-md-12">
+              <div class="col-12 col-lg-4 col-md-12">
                   <q-item tag="label" v-ripple class="border-radius-10 bg-blue-1">
                   <q-item-section>
                     <q-item-label class="text-bold text-primary">Estado del Producto</q-item-label>
@@ -80,7 +79,7 @@
                 </q-select>
               </div>
 
-              <div class="col-12 text-subtitle2 text-bold text-grey-8 q-mt-md row items-center">
+              <div class="col-12 text-subtitle2 text-bold text-grey-8 q-mt-sm row items-center">
                 <q-icon name="gavel" color="primary" class="q-mr-xs" /> Especificaciones Fiscales (SAT)
               </div>
               <div class="col-12 col-md-4">
@@ -125,7 +124,43 @@
               <div class="col-12 col-md-4">
                 <q-select v-bind="inputProps" v-model="form.tipo_producto" :options="['Inventariable', 'Compuesto', 'Servicio']" label="Naturaleza del Producto" bg-color="blue-1" />
               </div>
+
+              <div class="row items-center q-col-gutter-md">
+              <div class="col-auto">
+                <q-avatar square size="80px" class="shadow-1 rounded-borders bg-grey-3">
+                  <q-img
+                    :src="imagenPreview || form.imagen || 'placeholder_food.png'"
+                    class="fit"
+                  >
+                    <template v-slot:error>
+                      <q-icon name="image" color="grey-5" size="md" />
+                    </template>
+                  </q-img>
+                </q-avatar>
+              </div>
+              <div class="col">
+                <q-file
+                  v-model="archivoImagen"
+                  label="Imagen del Producto"
+                  outlined dense
+                  accept=".jpg, .png, image/*"
+                  class="bg-white"
+                  @update:model-value="actualizarPreview"
+                >
+                  <template v-slot:prepend><q-icon name="cloud_upload" color="primary" /></template>
+                  <template v-slot:append>
+                    <q-icon
+                      v-if="archivoImagen" name="close"
+                      class="cursor-pointer" @click.stop="limpiarImagen"
+                    />
+                  </template>
+                </q-file>
+                <div class="text-caption text-grey">Visible en el módulo de Restaurante (Máx 2MB)</div>
+              </div>
             </div>
+
+            </div>
+
           </q-tab-panel>
 
           <q-tab-panel name="precios" class="q-pa-lg">
@@ -285,6 +320,18 @@
   const buscandoSat = ref(false)
   const refSatInput = ref(null)
 
+  const archivoImagen = ref(null)
+  const imagenPreview = ref('')
+
+  const actualizarPreview = (val) => {
+    imagenPreview.value = val ? URL.createObjectURL(val) : ''
+  }
+
+  const limpiarImagen = () => {
+    archivoImagen.value = null
+    imagenPreview.value = ''
+  }
+
   const buscarDescripcionSat = async (val) => {
     // Solo buscamos si tiene 8 dígitos para no saturar
     if (!val || val.length !== 8) {
@@ -319,7 +366,8 @@
     ultimo_costo_compra: 0,
     precios: [{ nombre_lista: 'PRECIO PUBLICO', precio: 0, utilidad_porcentaje: 0 }],
     componentes: [],
-    impuestos: []
+    impuestos: [],
+    imagen: null
   })
 
   // --- VALIDACIÓN FISCAL: SOLO UN IVA ---
@@ -402,6 +450,7 @@
 
   const onDialogOpen = async () => {
     tab.value = 'general'
+    limpiarImagen()
     if (isEdit.value) {
       loading.value = true
       try {
@@ -450,17 +499,66 @@
     if (!form.nombre || !form.categoria_id || !form.clave_unidad) {
       $q.notify({
         color: 'negative',
-        message: 'Faltan datos obligatorios en la pestaña de Información General',
+        message: 'Faltan datos requeridos en la pestaña de Información General',
         icon: 'warning'
       })
-      tab.value = 'general' // Regresamos al usuario a la pestaña donde está el error
+      tab.value = 'general'
       return
     }
     loading.value = true
     try {
-      const url = isEdit.value ? `/api/productos/${props.editData.id}` : '/api/productos'
-      await api[isEdit.value ? 'put' : 'post'](url, { ...form })
-      $q.notify({ color: 'positive', message: 'Producto guardado con éxito', icon: 'check_circle' })
+      // 1. Crear FormData
+      const formData = new FormData()
+
+      // 2. Campos Simples
+      formData.append('nombre', form.nombre)
+      formData.append('codigo_barras', form.codigo_barras)
+      formData.append('categoria_id', form.categoria_id)
+      formData.append('status', form.status ? '1' : '0') // Importante enviar como 1/0
+      formData.append('tipo_producto', form.tipo_producto)
+      formData.append('clave_prod_serv', form.clave_prod_serv)
+      formData.append('clave_unidad', form.clave_unidad)
+      formData.append('objeto_imp', form.objeto_imp)
+
+      // 3. Archivo de Imagen (Solo si hay uno nuevo seleccionado)
+      if (archivoImagen.value) {
+        formData.append('imagen_file', archivoImagen.value)
+      }
+
+      // 4. Arrays Complejos (Laravel espera notación de array `key[]` o `key[i][prop]`)
+
+      // Impuestos (Array simple)
+      form.impuestos.forEach((impId, i) => {
+        formData.append(`impuestos[${i}]`, impId)
+      })
+
+      // Precios (Array de objetos)
+      form.precios.forEach((p, i) => {
+        formData.append(`precios[${i}][nombre_lista]`, p.nombre_lista)
+        formData.append(`precios[${i}][precio]`, p.precio)
+        formData.append(`precios[${i}][utilidad_porcentaje]`, p.utilidad_porcentaje || 0)
+      })
+
+      // Componentes (Kit)
+      if (form.tipo_producto === 'Compuesto') {
+        form.componentes.forEach((c, i) => {
+           formData.append(`componentes[${i}][id]`, c.id)
+           formData.append(`componentes[${i}][cantidad]`, c.cantidad)
+        })
+      }
+
+      // 5. Envío
+      if (isEdit.value) {
+        formData.append('_method', 'PUT')
+        await api.post(`/api/productos/${props.editData.id}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+      } else {
+        await api.post('/api/productos', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+      }
+      $q.notify({ color: 'positive', message: 'Producto guardado', icon: 'check_circle' })
       emit('saved'); show.value = false
     } catch (e) {
       $q.notify({ color: 'negative', message: e.response?.data?.message || 'Error al guardar', icon: 'warning' })
@@ -468,6 +566,7 @@
   }
 
   const resetForm = () => {
+    limpiarImagen()
     Object.assign(form, {
                     nombre: '',
                     status: true,
@@ -480,11 +579,16 @@
                     ultimo_costo_compra: 0,
                     precios: [{ nombre_lista: 'PRECIO PUBLICO', precio: 0, utilidad_porcentaje: 0 }],
                     componentes: [],
-                    impuestos: []
+                    impuestos: [],
+                    imagen: null
                   })
   }
 
-  onMounted(() => { loadCategorias(); loadImpuestos(); loadUnidades(); })
+  onMounted(() => {
+    loadCategorias()
+    loadImpuestos()
+    loadUnidades()
+  })
 </script>
 
 <style scoped>

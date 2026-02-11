@@ -56,14 +56,37 @@
           >
             <q-card
               v-ripple
-              class="category-card column flex-center cursor-pointer shadow-3"
+              class="category-card column cursor-pointer shadow-3 overflow-hidden relative-position"
               @click="entrarCategoria(cat)"
             >
-              <q-icon :name="cat.icono || 'lunch_dining'" :size="$q.screen.gt.xs ? '3.5em' : '2.5em'" color="white" class="q-mb-sm opacity-80" />
-              <div class="text-subtitle2 text-md-h6 text-bold text-center text-white text-uppercase leading-tight q-px-sm">
-                {{ cat.nombre }}
+              <q-img
+                v-if="cat.imagen"
+                :src="cat.imagen"
+                class="fit"
+                style="transition: transform 0.3s;"
+              >
+                <div class="absolute-full column flex-center bg-dimmed">
+                  <div class="text-subtitle1 text-md-h5 text-bold text-center text-white text-uppercase leading-tight text-shadow">
+                    {{ cat.nombre }}
+                  </div>
+                  <div class="text-caption text-amber q-mt-xs">{{ contarProductos(cat.id) }} productos</div>
+                </div>
+
+                <template v-slot:error>
+                   <div class="absolute-full column flex-center bg-gradient-default">
+                      <q-icon :name="cat.icono || 'lunch_dining'" size="3em" color="white" class="opacity-80" />
+                      <div class="text-subtitle2 text-bold text-center text-white q-mt-sm">{{ cat.nombre }}</div>
+                   </div>
+                </template>
+              </q-img>
+
+              <div v-else class="column flex-center fit bg-gradient-default">
+                <q-icon :name="cat.icono || 'lunch_dining'" :size="$q.screen.gt.xs ? '3.5em' : '2.5em'" color="white" class="q-mb-sm opacity-80" />
+                <div class="text-subtitle2 text-md-h6 text-bold text-center text-white text-uppercase leading-tight q-px-sm">
+                  {{ cat.nombre }}
+                </div>
+                <div class="text-caption text-amber q-mt-xs">{{ contarProductos(cat.id) }} productos</div>
               </div>
-              <div class="text-caption text-amber q-mt-xs">{{ contarProductos(cat.id) }} productos</div>
             </q-card>
           </div>
         </div>
@@ -244,68 +267,81 @@
     </div>
 
     <!-- Modal de producto -->
-    <q-dialog v-model="showProductDialog" persistent transition-show="scale" transition-hide="scale">
-      <q-card style="width: 500px; max-width: 90vw;" class="bg-dark-surface text-white border-amber">
+    <q-dialog v-model="showProductDialog" persistent transition-show="slide-up" transition-hide="slide-down">
+      <q-card style="width: 500px; max-width: 95vw;" class="bg-dark-surface text-white border-amber shadow-24 overflow-hidden">
 
-        <q-card-section class="bg-amber text-black row items-center q-pa-sm q-pa-md-md">
-          <div class="text-subtitle1 text-md-h6 text-bold col">{{ productoActual?.nombre }}</div>
+        <q-img
+          v-if="productoActual?.imagen"
+          :src="productoActual.imagen"
+          style="height: 220px;"
+          class="bg-grey-9"
+        >
+          <div class="absolute-top-right q-pa-sm">
+            <q-btn round dense color="black" text-color="white" icon="close" v-close-popup style="opacity: 0.7;" />
+          </div>
+
+          <div class="absolute-bottom column q-pa-md bg-gradient-modal">
+            <div class="text-h5 text-bold text-white text-shadow leading-tight">
+              {{ productoActual?.nombre }}
+            </div>
+          </div>
+        </q-img>
+
+        <q-card-section v-else class="bg-amber text-black row items-center q-pa-md">
+          <div class="text-h6 text-bold col leading-tight">{{ productoActual?.nombre }}</div>
           <q-btn flat round dense icon="close" v-close-popup />
         </q-card-section>
 
-        <q-card-section class="q-pa-sm q-pa-md-md">
-          <q-img
-            v-if="productoActual?.imagen"
-            :src="productoActual.imagen"
-            ratio="16/9"
-            class="rounded-borders"
-          />
+        <q-card-section class="q-pa-md">
 
-          <div class="text-h5 text-md-h4 text-amber text-bold q-mt-md text-center">
-            $ {{ parseFloat(productoActual?.precio || 0).toFixed(2) }}
+          <div class="row justify-center items-center q-mb-lg">
+             <q-badge color="amber" text-color="black" class="text-h4 text-bold q-py-xs q-px-md shadow-2">
+                $ {{ parseFloat(productoActual?.precio || 0).toFixed(2) }}
+             </q-badge>
           </div>
 
-          <div class="q-mt-md">
-            <div class="text-caption text-md-body2 text-grey-4 q-mb-xs">Cantidad:</div>
-            <div class="row items-center justify-center">
-              <q-btn
-                push round
-                color="grey-8"
-                icon="remove"
-                :size="$q.screen.gt.xs ? 'lg' : 'md'"
-                @click="cantidadModal > 1 ? cantidadModal-- : null"
-              />
-              <div class="text-h4 text-md-h3 text-white q-mx-md q-mx-lg-lg">{{ cantidadModal }}</div>
-              <q-btn
-                push round
-                color="amber"
-                icon="add"
-                :size="$q.screen.gt.xs ? 'lg' : 'md'"
-                @click="cantidadModal++"
-              />
+          <div class="row items-center justify-center q-mb-lg">
+            <q-btn
+              push round
+              color="grey-8"
+              icon="remove"
+              size="lg"
+              @click="cantidadModal > 1 ? cantidadModal-- : null"
+            />
+            <div class="text-h3 text-bold text-white q-mx-lg" style="min-width: 60px; text-align: center;">
+              {{ cantidadModal }}
             </div>
+            <q-btn
+              push round
+              color="amber"
+              text-color="black"
+              icon="add"
+              size="lg"
+              @click="cantidadModal++"
+            />
           </div>
 
-          <div class="q-mt-md">
-            <div class="text-caption text-md-body2 text-grey-4 q-mb-xs">Notas especiales:</div>
+          <div class="bg-dark-input rounded-borders q-pa-sm">
+            <div class="text-caption text-grey-5 q-mb-xs q-ml-xs">Notas de preparación:</div>
             <q-input
               v-model="notasModal"
-              dark outlined
+              dark borderless dense
               type="textarea"
               rows="2"
-              placeholder="Ej: Sin cebolla, picante aparte..."
-              class="bg-dark-input"
+              placeholder="Ej: Sin cebolla, salsa aparte..."
+              class="text-body1"
             />
           </div>
         </q-card-section>
 
-        <q-card-actions class="q-pa-sm q-pa-md-md">
+        <q-card-actions class="q-pa-md bg-dark-header">
           <q-btn
             push
             color="positive"
             icon="add_shopping_cart"
-            label="AGREGAR"
-            class="full-width"
-            :size="$q.screen.gt.xs ? 'lg' : 'md'"
+            :label="`AGREGAR  -  $ ${(parseFloat(productoActual?.precio || 0) * cantidadModal).toFixed(2)}`"
+            class="full-width text-bold q-py-sm"
+            size="lg"
             @click="agregarAlCarrito"
           />
         </q-card-actions>
@@ -691,5 +727,13 @@
   .list-leave-to {
     opacity: 0;
     transform: translateX(30px);
+  }
+
+  .bg-gradient-modal {
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 60%, transparent 100%);
+  }
+
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
   }
 </style>

@@ -50,6 +50,16 @@
                         </q-input>
                       <q-btn color="primary" icon="add" label="Nueva Categoría" rounded @click="abrirDialogo('categoria')" />
                     </template>
+
+                    <template v-slot:body-cell-imagen="props">
+                      <q-td :props="props">
+                        <q-avatar size="30px" square class="bg-grey-3">
+                          <img v-if="props.row.imagen" :src="props.row.imagen">
+                          <q-icon v-else name="image" color="grey" />
+                        </q-avatar>
+                      </q-td>
+                    </template>
+
                     <template v-slot:body-cell-acciones="props">
                       <q-td :props="props" class="q-gutter-xs">
                         <q-btn flat round dense color="primary" icon="edit" @click="editarItem('categoria', props.row)" />
@@ -196,14 +206,57 @@
             :rules="[val => !!val || 'Requerido']"
           />
 
-          <q-input
-            v-if="tab === 'categorias'"
-            v-model="form.descripcion"
-            type="textarea"
-            label="Descripción"
-            outlined dense rows="3"
-            class="custom-focus"
-          />
+          <div v-if="tab === 'categorias'" class="column q-gutter-y-md">
+            <q-input
+              v-model="form.descripcion"
+              type="textarea"
+              label="Descripción"
+              outlined dense rows="3"
+              class="custom-focus" />
+
+              <div class="row items-center q-gutter-md">
+                <div class="col-auto">
+                  <q-avatar square size="80px" class="shadow-1 rounded-borders bg-grey-3">
+                    <q-img
+                      :src="imagenPreview || form.imagen || 'placeholder_cat.png'"
+                      class="fit"
+                    >
+                      <template v-slot:error>
+                        <div class="absolute-full flex flex-center text-grey-5">
+                          <q-icon name="image" size="md" />
+                        </div>
+                      </template>
+                    </q-img>
+                  </q-avatar>
+                </div>
+
+                <div class="col">
+                  <q-file
+                    v-model="archivoImagen"
+                    label="Imagen"
+                    outlined dense
+                    accept=".jpg, .png, image/*"
+                    class="custom-focus"
+                    @update:model-value="actualizarPreview"
+                  >
+                    <template v-slot:prepend>
+                      <q-icon name="cloud_upload" color="primary" />
+                    </template>
+                    <template v-slot:append>
+                      <q-icon
+                        v-if="archivoImagen"
+                        name="close"
+                        class="cursor-pointer"
+                        @click.stop.prevent="limpiarImagen"
+                      />
+                    </template>
+                  </q-file>
+                  <div class="text-caption text-grey">Opcional. Máx 2MB</div>
+                </div>
+              </div>
+
+          </div>
+
 
           <div v-if="tab === 'impuestos'" class="row q-col-gutter-sm">
             <q-input
@@ -273,10 +326,28 @@
 
   const tipoCatalogo = ref('')
 
+  const archivoImagen = ref(null)
+  const imagenPreview = ref('')
+
+  const actualizarPreview = (file) => {
+    if (file) {
+      // Crea una URL temporal local para el archivo seleccionado
+      imagenPreview.value = URL.createObjectURL(file)
+    } else {
+      imagenPreview.value = ''
+    }
+  }
+
+  const limpiarImagen = () => {
+    archivoImagen.value = null
+    imagenPreview.value = ''
+  }
+
   // Columnas
   const colsCategorias = [
     { name: 'nombre', label: 'Categoría', field: 'nombre', align: 'left', sortable: true },
     { name: 'descripcion', label: 'Descripción', field: 'descripcion', align: 'left' },
+    { name: 'imagen', label: 'Img', align: 'center' },
     { name: 'acciones', label: 'Acciones', align: 'center' }
   ]
 
@@ -326,13 +397,16 @@
     esEdicion.value = false
     tipoCatalogo.value = tipo === 'categoria' ? 'Categoría' : 'Impuesto'
 
+    limpiarImagen()
+
     // Reseteamos el formulario a valores limpios según las tablas
     form.value = {
       id: null,
       nombre: '',
       descripcion: '', // Para Categorías
       porcentaje: 0,   // Para Impuestos
-      tipo: 'Traslado' // Para Impuestos
+      tipo: 'Traslado', // Para Impuestos
+      imagen: null
     }
 
     dialogo.value = true
@@ -342,13 +416,14 @@
     esEdicion.value = true
     tipoCatalogo.value = tipo === 'categoria' ? 'Categoría' : 'Impuesto'
 
+    limpiarImagen()
+
     // Clonamos el objeto para no modificar la tabla directamente antes de guardar
     form.value = { ...item }
     dialogo.value = true
   }
 
   const guardar = async () => {
-    // Validación básica manual antes de enviar
     if (!form.value.nombre) {
       $q.notify({ color: 'warning', message: 'El nombre es obligatorio' })
       return
@@ -356,26 +431,55 @@
 
     guardando.value = true
 
-    // Determinamos el endpoint basado en la pestaña activa
-    // Si tab.value es 'categorias', el endpoint será /api/catalogos/categorias
-    const endpointBase = `/api/catalogos/${tab.value}`
-
     try {
-      if (esEdicion.value) {
-        // Actualización (PUT)
-        await api.put(`${endpointBase}/${form.value.id}`, form.value)
-        $q.notify({ color: 'positive', message: `${tipoCatalogo.value} actualizada correctamente`, icon: 'edit' })
-      } else {
-        // Creación (POST)
-        await api.post(endpointBase, form.value)
-        $q.notify({ color: 'positive', message: `${tipoCatalogo.value} creada con éxito`, icon: 'check' })
+      // --- LÓGICA ESPECIAL PARA CATEGORÍAS (Con Imagen) ---
+      if (tab.value === 'categorias') {
+
+        const formData = new FormData()
+        formData.append('nombre', form.value.nombre)
+        formData.append('descripcion', form.value.descripcion || '')
+        formData.append('en_restaurante', form.value.en_restaurante ? 1 : 0) // Si agregaste el campo
+
+        // Solo adjuntamos archivo si el usuario seleccionó uno nuevo
+        if (archivoImagen.value) {
+          formData.append('imagen_file', archivoImagen.value)
+        }
+
+        if (esEdicion.value) {
+          // Laravel requiere _method: PUT cuando se envían archivos por POST
+          formData.append('_method', 'PUT')
+          await api.post(`/api/catalogos/categorias/${form.value.id}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          })
+          $q.notify({ color: 'positive', message: 'Categoría actualizada', icon: 'edit' })
+
+        } else {
+          // Creación normal
+          await api.post('/api/catalogos/categorias', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          })
+          $q.notify({ color: 'positive', message: 'Categoría creada', icon: 'check' })
+        }
+
+      }
+      // --- LÓGICA NORMAL PARA LOS DEMÁS (Impuestos, Medidas) ---
+      else {
+        const endpointBase = `/api/catalogos/${tab.value}`
+        if (esEdicion.value) {
+          await api.put(`${endpointBase}/${form.value.id}`, form.value)
+          $q.notify({ color: 'positive', message: 'Actualizado correctamente', icon: 'edit' })
+        } else {
+          await api.post(endpointBase, form.value)
+          $q.notify({ color: 'positive', message: 'Creado con éxito', icon: 'check' })
+        }
       }
 
-      dialogo.value = false // Cerramos el modal
-      await cargarDatos()   // Recargamos la lista
+      dialogo.value = false
+      await cargarDatos()
+
     } catch (error) {
       console.error(error)
-      const errorMsg = error.response?.data?.message || `Error al procesar la ${tipoCatalogo.value}`
+      const errorMsg = error.response?.data?.message || 'Error al procesar'
       $q.notify({ color: 'negative', message: errorMsg, icon: 'report_problem' })
     } finally {
       guardando.value = false
