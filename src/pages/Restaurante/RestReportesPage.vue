@@ -241,7 +241,7 @@
             <q-badge
               rounded
               class="q-py-xs q-px-sm shadow-1"
-              :color="props.row.estatus === 'Pagada' ? 'positive' : 'blue-grey'"
+              :color="props.row.estatus === 'Cobrada' ? 'positive' : 'blue-grey'"
               :label="props.row.estatus"
             />
           </q-td>

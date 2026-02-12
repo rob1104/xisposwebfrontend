@@ -196,12 +196,15 @@
   const itemSeleccionadoParaPrecio = ref(null)
   const ultimoCambio = ref(0)
   const clienteSeleccionado = ref(null)
+  const referenciaOrdenActual = ref(null)
+  const inicializando = ref(true)
 
   const STORAGE_KEY = 'xispos_venta_backup'
 
   let intervaloFoco = null
 
   watch([carrito, clienteSeleccionado], ([nuevoCarrito, nuevoCliente]) => {
+      if (inicializando.value) return
       if (nuevoCarrito.length > 0) {
         const estadoVenta = {
           carrito: nuevoCarrito,
@@ -440,7 +443,8 @@
       })),
       subtotal: totalVenta.value.subtotal,
       iva: totalVenta.value.iva,
-      total: totalVenta.value.total
+      total: totalVenta.value.total,
+      referencia_orden: referenciaOrdenActual.value
     }
 
     try {
@@ -478,6 +482,7 @@
           localStorage.removeItem(STORAGE_KEY)
 
         carrito.value = []
+        referenciaOrdenActual.value = null
         await resetearCliente()
         dialogoPago.value = false
       }
@@ -518,6 +523,7 @@
   }
 
   const vaciarCarrito = () => {
+    referenciaOrdenActual.value = null
     if (carrito.value.length === 0) return
     $q.dialog({ title: 'Limpiar', message: '¿Vaciar carrito?', cancel: true })
       .onOk(() => { carrito.value = [] })
@@ -529,6 +535,7 @@
 
     // DETECTAR ORDEN DE RESTAURANTE (CMD-XXXXXX)
     if(codigoLimpio.startsWith('CMD-')) {
+      referenciaOrdenActual.value = codigoLimpio
     try {
       $q.loading.show({ message: 'Cargando orden...' })
 
@@ -565,6 +572,7 @@
     }
     catch (e) {
       console.error(e)
+      referenciaOrdenActual.value = null
       $q.notify({ message: 'Orden no encontrada o ya pagada: ' + e.message, color: 'negative' })
     }
     finally {
@@ -662,7 +670,39 @@
 
   const abrirMovimientoCaja = () => { showCashModal.value = true }
 
-  const confirmarCierreTurno = () => { dialogoArqueo.value = true }
+  const confirmarCierreTurno = () => {
+
+    // 1. VALIDAR SI HAY VENTA EN CURSO (Carrito no vacío)
+    if (carrito.value.length > 0) {
+      $q.dialog({
+        title: '⚠️ Imposible Cerrar Turno',
+        message: 'Tienes productos cargados en la venta actual.<br>Debes <b>cobrarla o vaciar el carrito</b> antes de realizar el corte.',
+        html: true, // Para que se vean las negritas
+        ok: { label: 'Entendido', color: 'negative' },
+        persistent: true
+      })
+      // Hacemos foco en el carrito o botón de borrar para guiar al usuario
+      return
+    }
+
+    // 2. VALIDAR SI HAY VENTAS EN ESPERA (Pausadas)
+    if (posStore.ventasEnEspera && posStore.ventasEnEspera.length > 0) {
+      $q.dialog({
+        title: '⚠️ Ventas Pendientes',
+        message: `Tienes <b>${posStore.ventasEnEspera.length} venta(s) en espera</b>.<br>No puedes cerrar caja hasta procesar o eliminar esas ventas.`,
+        html: true,
+        ok: { label: 'Ver Pendientes', color: 'indigo-9' },
+        cancel: true
+      }).onOk(() => {
+        // Abrimos el modal de pausadas automáticamente para ayudar al cajero
+        dialogoVentasPausadas.value = true
+      })
+      return
+    }
+
+    // 3. SI PASA LAS VALIDACIONES, ABRIMOS EL ARQUEO
+    dialogoArqueo.value = true
+  }
 
   const onTurnoCerrado = () => {
     carrito.value = []
@@ -704,6 +744,10 @@
     restaurarSesionPrevia()
     if(!posStore.isTurnoAbierto) dialogoApertura.value = true
     intervaloFoco = setInterval(recuperarFocoEscaner, 2500)
+
+    nextTick(() => {
+      inicializando.value = false
+    })
   })
 
   onUnmounted(() => {

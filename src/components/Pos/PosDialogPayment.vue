@@ -325,6 +325,8 @@
   const auth = useAuthStore()
   const posStore = usePosStore()
 
+
+
   // Variables para el buscador
   const clienteLocal = ref(null)
   const filterOptions = ref([])

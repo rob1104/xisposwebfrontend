@@ -355,6 +355,7 @@
   import { ref, computed, onMounted } from 'vue'
   import { useQuasar } from 'quasar'
   import { api } from 'src/boot/axios'
+  import { PrintService } from 'src/services/PrintService'
 
   const props = defineProps({
     mesa: Object,
@@ -486,6 +487,7 @@
   const enviarACocina = async () => {
       enviando.value = true
       try {
+        // 1. Asegurar que existe la orden en BD
         if (!ordenActualId.value) {
           const { data } = await api.post('/api/restaurante/abrir-orden', {
             mesa_id: props.mesa?.id || null,
@@ -494,6 +496,7 @@
           ordenActualId.value = data.id
         }
 
+        // 2. Preparar payload para API (Backend Laravel)
         const itemsPayload = carritoNuevos.value.map(i => ({
           id: i.id,
           cantidad: i.cantidad,
@@ -501,16 +504,31 @@
           notas: i.notas
         }))
 
+        // 3. Guardar en Base de Datos
         await api.post(`/api/restaurante/orden/${ordenActualId.value}/actualizar`, { items: itemsPayload })
         await api.post(`/api/restaurante/orden/${ordenActualId.value}/enviar-cocina`)
 
-        $q.notify({ message: 'Enviado a cocina', color: 'positive', icon: 'check' })
+        // --- IMPRESIÓN A COCINA (NUEVO) ---
+        // Usamos una copia de los items nuevos antes de limpiar la variable
+        const itemsParaImprimir = [...carritoNuevos.value]
 
+        await PrintService.imprimirTicketCocina(
+            props.mesa ? props.mesa.nombre : `LLEVAR - ${clienteNombre.value || ''}`,
+            props.mesero?.name,
+            ordenActualId.value,
+            itemsParaImprimir
+        )
+        // ----------------------------------
+
+        $q.notify({ message: 'Enviado a cocina e impreso', color: 'positive', icon: 'check' })
+
+        // 4. Refrescar UI
         await cargarOrdenActual()
-        carritoNuevos.value = []
+        carritoNuevos.value = [] // Limpiamos el carrito local
 
       } catch (e) {
-        $q.notify({ message: 'Error enviando orden', color: 'negative' })
+        console.error(e)
+        $q.notify({ message: 'Error procesando la orden', color: 'negative' })
       } finally {
         enviando.value = false
       }
@@ -518,10 +536,47 @@
 
     const pedirCuenta = async () => {
       if (carritoNuevos.value.length > 0) {
-        $q.dialog({ title: 'Items sin enviar', message: 'Tienes items sin enviar a cocina. ¿Enviarlos primero?', cancel: true })
-          .onOk(() => enviarACocina().then(cerrarCuentaReal))
+        $q.dialog({
+          title: 'Items pendientes',
+          message: 'Hay productos sin enviar a cocina. ¿Desea enviarlos y sacar la cuenta?',
+          cancel: true
+        }).onOk(async () => {
+          await enviarACocina()
+          await procesarImpresionCuenta()
+        })
       } else {
-        cerrarCuentaReal()
+        await procesarImpresionCuenta()
+      }
+    }
+
+    const procesarImpresionCuenta = async () => {
+      $q.loading.show({ message: 'Imprimiendo cuenta...' })
+      try {
+        const { data: orden } = await api.get(`/api/restaurante/orden/${ordenActualId.value}`)
+
+        // VALIDACIÓN EXTRA: Si el codigo viene null, ponemos un fallback
+        const folioVisual = orden.codigo_cobro
+                      || orden.folio
+                      || `CMD-${String(ordenActualId.value).padStart(6, '0')}`
+
+        orden.codigo = folioVisual
+
+        await PrintService.imprimirCuenta(
+            orden,
+            props.mesa ? props.mesa.nombre : 'PARA LLEVAR',
+            props.mesero?.name
+            // Nota: El PrintService ya toma orden.codigo, pero asegúrate
+            // que tu ordenActualizada traiga el campo 'codigo' desde Laravel.
+        )
+
+        $q.notify({ message: 'Estado de cuenta impreso', color: 'positive', icon: 'receipt' })
+        await cerrarCuentaReal()
+
+      } catch (e) {
+        console.error(e)
+        $q.notify({ message: 'Error al imprimir cuenta', color: 'negative' })
+      } finally {
+        $q.loading.hide()
       }
     }
 
@@ -532,7 +587,7 @@
           title: 'Cuenta Cerrada',
           message: `<div class="text-center">Ticket Generado:<br><strong class="text-h4 text-primary">${data.codigo}</strong></div>`,
           html: true,
-          ok: 'Entendido'
+          ok: 'Aceptar'
         }).onDismiss(() => {
           emit('finalizar')
         })
@@ -590,6 +645,8 @@
         console.error("Error sincronizando borrador", e)
       }
     }
+
+
 
     onMounted(async () => {
       const [resCat, resProd] = await Promise.all([

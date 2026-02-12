@@ -152,6 +152,61 @@ export const PrintService = {
     }
   },
 
+  async imprimirCuenta(orden, mesaNombre, meseroNombre) {
+    const configStore = useConfigStore() // Para obtener el logo
+    try {
+      // Calculamos totales si no vienen calculados
+      const productosMap = orden.detalles.map(d => ({
+        cantidad: d.cantidad,
+        nombre: d.producto.nombre,
+        subtotal: parseFloat(d.total)
+      }))
+
+      console.log(orden.codigo)
+
+      const payload = {
+        logo_url: configStore.logoUrl,
+        mesa: mesaNombre || 'PARA LLEVAR',
+        mesero: meseroNombre || 'Sin Asignar',
+        folio: orden.codigo,
+        fecha: new Date().toLocaleString(),
+        total: orden.total,
+        productos: productosMap
+      }
+
+      await axios.post('http://localhost:5000/print-precuenta', payload)
+      return true
+    } catch (error) {
+      console.error("Error imprimiendo cuenta:", error)
+      throw new Error("No se pudo imprimir el estado de cuenta.")
+    }
+  },
+
+  async imprimirTicketCocina(mesaNombre, meseroNombre, folioOrden, itemsParaCocina) {
+    try {
+      const payload = {
+        mesa: mesaNombre || 'PARA LLEVAR',
+        mesero: meseroNombre || 'Sin Asignar',
+        folio: folioOrden || '---',
+        fecha: new Date().toLocaleString(),
+        productos: itemsParaCocina.map(item => ({
+          cantidad: item.cantidad,
+          nombre: item.nombre,
+          notas: item.notas || ''
+        }))
+      }
+
+      // Enviamos al nuevo endpoint de Python
+      await axios.post('http://localhost:5000/print-cocina', payload)
+      return true
+    } catch (error) {
+      console.error("Error al imprimir comanda:", error)
+      // No lanzamos error fatal para no detener el flujo de la app, solo avisamos en consola
+      return false
+    }
+  },
+
+
   async imprimirCorteCaja(turnoId) {
     try {
       const configStore = useConfigStore()
