@@ -431,6 +431,7 @@
     const payload = {
       tipo_pago: datosDesdeDialogo.tipo_pago,
       cliente_id: datosDesdeDialogo.cliente_id,
+      via_venta: datosDesdeDialogo.via_venta,
       pagos: datosDesdeDialogo.pagos,
       items: carrito.value.map(item => ({
         id: item.id,

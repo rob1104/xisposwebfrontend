@@ -8,29 +8,48 @@
   >
     <q-card style="width: 950px; max-width: 95vw; border-radius: 20px;" class="bg-blue-grey-10 text-white shadow-24 overflow-hidden premium-border">
 
-      <q-card-section class="q-py-sm q-px-md bg-blue-grey-9 border-bottom-subtle row items-center justify-between">
-        <div class="row items-center">
-          <q-icon name="person_pin" color="cyan" size="sm" class="q-mr-sm" />
-          <div class="text-overline text-grey-4 q-mr-md">CLIENTE ASIGNADO:</div>
-        </div>
+      <q-card-section class="q-py-sm q-px-md bg-blue-grey-9 border-bottom-subtle">
+  <div class="row q-col-gutter-md">
 
-        <div style="min-width: 300px;">
-          <q-select
-            v-model="clienteLocal"
-            :options="filterOptions"
-            use-input
-            outlined dark dense flat
-            hide-selected fill-input
-            input-debounce="300"
-            @filter="filterFn"
-            option-label="nombre_comercial"
-            option-value="id"
-            bg-color="transparent"
-            color="cyan"
-            class="compact-select"
-            placeholder="Buscar cliente (Nombre/RFC)..."
-          >
-            <template v-slot:no-option>
+    <div class="col-12 col-md-4">
+      <div class="row items-center q-mb-xs">
+        <q-icon name="alt_route" color="yellow-8" size="xs" class="q-mr-sm" />
+        <div class="text-overline text-grey-4">VIA DE VENTA:</div>
+      </div>
+      <q-select
+        v-model="viaVentaSeleccionada"
+        :options="opcionesViaVenta"
+        outlined dark dense flat
+        bg-color="transparent"
+        color="yellow-8"
+        class="compact-select"
+      >
+        <template v-slot:prepend>
+          <q-icon name="point_of_sale" size="xs" />
+        </template>
+      </q-select>
+    </div>
+
+    <div class="col-12 col-md-8">
+      <div class="row items-center q-mb-xs">
+        <q-icon name="person_pin" color="cyan" size="xs" class="q-mr-sm" />
+        <div class="text-overline text-grey-4">CLIENTE ASIGNADO:</div>
+      </div>
+      <q-select
+        v-model="clienteLocal"
+        :options="filterOptions"
+        use-input outlined dark dense flat
+        hide-selected fill-input
+        input-debounce="300"
+        @filter="filterFn"
+        option-label="nombre_comercial"
+        option-value="id"
+        bg-color="transparent"
+        color="cyan"
+        class="compact-select"
+        placeholder="Buscar cliente (Nombre/RFC)..."
+      >
+        <template v-slot:no-option>
               <q-item><q-item-section class="text-grey">No hay resultados</q-item-section></q-item>
             </template>
              <template v-slot:prepend>
@@ -42,7 +61,6 @@
                     <q-btn v-if="clienteLocal.id !== 1" round dense flat icon="cancel" size="sm" color="grey-5" @click.stop="resetClient" />
                  </div>
               </template>
-
             <template v-slot:option="scope">
               <q-item v-bind="scope.itemProps" class="text-white" dense>
                 <q-item-section avatar>
@@ -57,9 +75,10 @@
                 </q-item-section>
               </q-item>
             </template>
-          </q-select>
-        </div>
-      </q-card-section>
+      </q-select>
+    </div>
+  </div>
+</q-card-section>
 
       <div class="row no-wrap" style="min-height: 550px;">
 
@@ -325,6 +344,8 @@
   const auth = useAuthStore()
   const posStore = usePosStore()
 
+  const viaVentaSeleccionada = ref('MOSTRADOR')
+  const opcionesViaVenta = ['MOSTRADOR', 'WHATSAPP', 'INTERNET', 'A DOMICILIO', 'TELEFONO', 'DELIVERY', 'OTRO']
 
 
   // Variables para el buscador
@@ -538,6 +559,7 @@
       // Usamos 'Crédito' con acento para coincidir con el ENUM de tu DB
       tipo_pago: tipoPagoTab.value === 'credito' ? 'Crédito' : 'Contado',
       cliente_id: clienteLocal.value?.id || null, // ID del buscador interno
+      via_venta: viaVentaSeleccionada.value,
       cambio_calculado: cambio.value,
       // Lógica de pagos: Mapeamos la lista solo si es Contado
       pagos: tipoPagoTab.value === 'credito' ? [] : listaPagos.value.map(p => ({
@@ -590,6 +612,7 @@ watch(() => pagoActual.value.moneda, () => {
    */
   const onShowDialog = () => {
     focoPago();
+    viaVentaSeleccionada.value = 'MOSTRADOR'
 
     if(props.clienteSeleccionado) {
       clienteLocal.value = props.clienteSeleccionado

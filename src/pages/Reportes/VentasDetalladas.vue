@@ -85,9 +85,29 @@
               </div>
             </div>
           </q-td>
-            <q-td>{{ props.row.sucursal?.nombre }}</q-td>
-            <q-td>{{ props.row.cliente?.nombre_comercial || 'Público En General' }}</q-td>
-            <q-td class="text-right text-bold text-grey-9">${{ Number(props.row.total).toFixed(2) }}</q-td>
+          <q-td class="text-bold text-center text-purple text-bold">
+            <div class="column">
+              <div>
+                {{ props.row.user?.name }}
+              </div>
+              <div class="text-caption text-purple-6 text-italic">
+                Turno: {{ props.row.caja_turno_id }}
+              </div>
+            </div>
+
+          </q-td>
+            <q-td>
+              <q-badge color="primary" outline>
+                {{ props.row.sucursal?.nombre }}
+              </q-badge>
+            </q-td>
+            <q-td class="text-bold">{{ props.row.cliente?.nombre_comercial || 'Público En General' }}</q-td>
+            <q-td class="text-center">
+              <q-badge color="blue-grey text-bold">
+                {{ props.row.via_venta || 'Mostrador' }}
+              </q-badge>
+            </q-td>
+            <q-td class="text-right text-bold text-green-9" style="font-size: 16px;">${{ Number(props.row.total).toFixed(2) }}</q-td>
           </q-tr>
 
           <q-tr v-show="props.expand" :props="props" class="bg-blue-grey-1 expansion-row">
@@ -187,8 +207,10 @@
   const columns = [
     { name: 'folio', label: 'FOLIO', align: 'left' },
     { name: 'fecha', label: 'FECHA', align: 'left' },
+    { name: 'user.name', label: 'CAJERO/TURNO', align: 'center' },
     { name: 'sucursal', label: 'SUCURSAL', align: 'left' },
     { name: 'cliente', label: 'CLIENTE', align: 'left' },
+    { name: 'via_venta', label: 'VÍA', align: 'center' },
     { name: 'total', label: 'TOTAL VENTA', align: 'right' }
   ]
 

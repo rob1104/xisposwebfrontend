@@ -12,11 +12,18 @@ export const useAuthStore = defineStore('auth', {
     permissions: JSON.parse(localStorage.getItem('permissions')) || []
   }),
   getters: {
-    isAdmin: (state) => state.roles[0] === 'Administrador',
+    isAdmin: (state) => {
+      return Array.isArray(state.roles) &&
+             state.roles.length > 0 &&
+             state.roles[0] === 'Administrador'
+    },
     currentBranchName: (state) => state.sucursalSeleccionada ? state.sucursalSeleccionada.nombre: 'Administración global',
     can: (state) => (permissionName) => {
+      if (!state.roles[0] || state.roles.length === 0) return false;
       // 1. SI ES ADMIN, SIEMPRE TRUE
-      if (state.roles[0].includes('Administrador')) return true;
+      if (state.roles[0] && state.roles[0].includes('Administrador')) {
+        return true;
+      }
 
         // 2. Si no, verificamos el permiso específico
         return state.permissions?.includes(permissionName) || false;

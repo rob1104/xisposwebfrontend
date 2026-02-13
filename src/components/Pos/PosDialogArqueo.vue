@@ -6,8 +6,16 @@
   >
     <q-card
         style="width: 100%; max-width: 1000px; max-height: 90vh;"
-        class="bg-blue-grey-10 text-white overflow-hidden shadow-24 column no-wrap"
->
+        class="bg-blue-grey-10 text-white overflow-hidden shadow-24 column no-wrap">
+
+        <transition name="fade">
+        <div v-if="cargandoDatos" class="absolute-full column flex-center bg-blue-grey-10 z-max text-center">
+          <q-spinner-orbit color="cyan-4" size="5em" class="q-mb-md" />
+          <div class="text-h4 text-bold text-white tracking-widest animate-pulse">PREPARANDO CIERRE DE TURNO</div>
+          <div class="text-subtitle1 text-grey-5 q-mt-sm">Calculando tootales y procesando ventas...</div>
+          <div class="text-caption text-grey-6 q-mt-lg text-uppercase">Por favor espere, no cierre esta página</div>
+        </div>
+      </transition>
 
       <q-card-section class="bg-blue-grey-9 q-pa-lg row items-center border-bottom-white-10">
         <q-avatar color="primary" text-color="white" icon="analytics" size="50px" class="shadow-5" />
@@ -125,7 +133,7 @@
                     outlined
                     dense
                     oninput="if(this.value < 0) this.value = 0;"
-                    style="width: 100px; background-color:rosybrown";
+                    style="width: 100px; background-color:rosybrown"
                     input-class="text-center text-bold font-mono"
                     @focus="$event.target.select()"
                   />
@@ -291,6 +299,8 @@
 
   const dialogMovimientosLista = ref(false)
 
+  const cargandoDatos = ref(false)
+
   const internalValue = computed({
     get: () => props.modelValue,
     set: (val) => emit('update:modelValue', val)
@@ -344,7 +354,11 @@
   }
 
   const cargarBalanceEsperado = async () => {
+    cargandoDatos.value = true
     try {
+
+      await new Promise(resolve => setTimeout(resolve, 2500))
+
       const { data } = await api.get(`/api/pos/balance-turno/${posStore.turno.id}`)
 
       ventasEfectivo.value = data.ventas_efectivo
@@ -356,7 +370,9 @@
       totalEsperado.value = efectivoEsperado.value + tarjetaEsperado.value
 
     } catch (e) {
-      console.error("Error al obtener balance: " + e.message)
+      $q.notify({message: 'Error al calcular balance', color: 'negative'})
+    } finally {
+      cargandoDatos.value = false
     }
   }
 
@@ -448,4 +464,26 @@
     border: 1px solid rgba(242, 192, 55, 0.4) !important;
     background: linear-gradient(135deg, rgba(242, 192, 55, 0.05) 0%, rgba(30, 40, 44, 1) 100%) !important;
   }
+
+  .z-max { z-index: 9999; }
+
+  /* Animación de palpitación para el texto */
+  .animate-pulse {
+    animation: pulse-text 2s infinite;
+  }
+
+  @keyframes pulse-text {
+    0% { opacity: 1; text-shadow: 0 0 10px rgba(0,229,255,0.5); }
+    50% { opacity: 0.7; text-shadow: none; }
+    100% { opacity: 1; text-shadow: 0 0 10px rgba(0,229,255,0.5); }
+  }
+
+  /* Transición suave al desaparecer */
+  .fade-leave-active {
+    transition: opacity 0.5s;
+  }
+  .fade-leave-to {
+    opacity: 0;
+  }
+
 </style>

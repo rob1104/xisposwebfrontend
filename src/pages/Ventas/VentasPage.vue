@@ -168,8 +168,7 @@
           dense
           square
           class="text-bold"
-          size="sm"
-        >
+          size="sm">
           <q-icon :name="getMetodoInfo(props.row.pagos).icon" size="14px" class="q-mr-xs" />
           {{ getMetodoInfo(props.row.pagos).label }}
         </q-chip>
@@ -186,6 +185,13 @@
           >
             {{ props.value.toUpperCase() }}
           </q-chip>
+        </q-td>
+      </template>
+
+      <template v-slot:body-cell-user="props">
+        <q-td :props="props">
+          <div class="text-blue-grey text-bold">{{ props.row.user.name }}</div>
+          <div class="text-caption text-blue-grey-6">Turno: {{ props.row.caja_turno_id }}</div>
         </q-td>
       </template>
 
@@ -367,6 +373,7 @@
     { name: 'tipo_pago', label: 'TIPO PAGO', field: 'tipo_pago', align: 'center', sortable: true },
     { name: 'metodo', label: 'Método de pago', align: 'center' },
     { name: 'status', label: 'Estatus', field: 'status', align: 'center' },
+    { name: 'user', label: 'Cajero/Turno', field: 'user', align: 'center' },
     { name: 'total', label: 'Total', field: 'total', align: 'right', sortable: true },
     { name: 'acciones', label: 'Acciones', align: 'center' }
   ]
