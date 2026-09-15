@@ -507,7 +507,8 @@
           id: i.id,
           cantidad: i.cantidad,
           precio: i.precio,
-          notas: i.notas
+          notas: i.notas,
+          modificadores: i.modificadores || null
         }))
 
         // 3. Guardar en Base de Datos
@@ -694,7 +695,8 @@
             id: i.id,
             cantidad: i.cantidad,
             precio: i.precio,
-            notas: i.notas
+            notas: i.notas,
+            modificadores: i.modificadores || null
         }))
 
         await api.post(`/api/restaurante/orden/${ordenActualId.value}/actualizar`, { items: itemsPayload })
