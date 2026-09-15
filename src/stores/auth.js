@@ -57,6 +57,9 @@ export const useAuthStore = defineStore('auth', {
             // Opcional: Persistir el ID en localStorage para el interceptor de axios.js
             localStorage.setItem('sucursalSeleccionada', sucursalDefault.id)
           }
+        } else if (this.sucursales.length === 1) {
+          this.setSucursal(this.sucursales[0])
+          localStorage.setItem('sucursalSeleccionada', this.sucursales[0].id)
         }
         // --------------------------------------------
 

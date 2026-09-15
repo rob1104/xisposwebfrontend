@@ -154,6 +154,11 @@
         :ventas="posStore.ventasEnEspera"
         @recuperar="recuperarVenta"
       />
+    <PosModalModificadores 
+        v-model="dialogoModificadores" 
+        :producto="productoParaModificadores" 
+        @confirm="agregarConModificadores" 
+      />
   </q-page>
 </template>
 
@@ -176,6 +181,7 @@
   import PosDialogPriceChange from 'src/components/Pos/PosDialogPriceChange.vue'
   import CashMovementModal from 'src/components/Pos/CashMovementModal.vue'
   import PosDialogoPausadas from 'src/components/Pos/PosDialogoPausadas.vue'
+  import PosModalModificadores from 'src/components/Pos/PosModalModificadores.vue'
   import { PrintService } from 'src/services/PrintService'
 
   const $q = useQuasar()
@@ -193,6 +199,9 @@
   const showCashModal = ref(false)
   const dialogoVentasPausadas = ref(false)
   const dialogoCambiaPrecio = ref(false)
+  const dialogoModificadores = ref(false)
+  const productoParaModificadores = ref(null)
+  const cantidadParaModificadores = ref(1)
   const itemSeleccionadoParaPrecio = ref(null)
   const ultimoCambio = ref(0)
   const clienteSeleccionado = ref(null)
@@ -397,6 +406,13 @@
       return
     }
 
+    if (producto.modificadores && producto.modificadores.length > 0) {
+      productoParaModificadores.value = producto
+      cantidadParaModificadores.value = cantidad
+      dialogoModificadores.value = true
+      return // Esperar a que el usuario confirme en el modal
+    }
+
     const index = carrito.value.findIndex(p => p.id === producto.id)
 
     let cantidadFinalDeseada = Number(cantidad)
@@ -427,6 +443,26 @@
     }
   }
 
+  const agregarConModificadores = ({ producto, opciones }) => {
+    const precioExtra = opciones.reduce((sum, op) => sum + Number(op.precio_adicional), 0)
+    const precioBaseOriginal = Number(producto.precio)
+    const precioBaseFinal = precioBaseOriginal + precioExtra
+    
+    // Crear nombre enriquecido con modificadores para el frontend
+    const nombresOpciones = opciones.map(o => o.nombre).join(', ')
+    const nombreEnriquecido = opciones.length > 0 ? `${producto.nombre} (${nombresOpciones})` : producto.nombre
+
+    carrito.value.unshift({
+      ...producto,
+      nombre: nombreEnriquecido, // Mostrar en el carrito y ticket
+      precio: precioBaseFinal,
+      cantidad: Number(cantidadParaModificadores.value),
+      uniqueId: Date.now() + Math.random(),
+      precio_catalogo: precioBaseOriginal,
+      modificadores: opciones // Se envían al backend
+    })
+  }
+
   const confirmarVenta = async (datosDesdeDialogo) => {
     const payload = {
       tipo_pago: datosDesdeDialogo.tipo_pago,
@@ -440,7 +476,8 @@
         total: item.precio * item.cantidad,
         precio_original: item.precio_catalogo,
         motivo_cambio: item.motivo_cambio_precio || null,
-        autorizado_por: item.autorizado_por || null
+        autorizado_por: item.autorizado_por || null,
+        modificadores: item.modificadores || null
       })),
       subtotal: totalVenta.value.subtotal,
       iva: totalVenta.value.iva,
@@ -454,13 +491,15 @@
       if (ventaExitosa.id) {
         try {
 
+          const qrGenerado = ventaExitosa.qr_data
           await PrintService.imprimirTicketReal(
             ventaExitosa,
             carrito.value,
             totalVenta.value,
             ventaExitosa.configticket,
             ventaExitosa.cliente,
-            datosDesdeDialogo.pagos)
+            datosDesdeDialogo.pagos,
+            qrGenerado)
 
             $q.notify({
               color: 'positive',
@@ -550,12 +589,19 @@
 
       // Ahora sí, 'orden' existe gracias al renombrado en la const
       orden.detalles.forEach(det => {
+        let nombreEnriquecido = det.producto.nombre
+        if (det.modificadores_json && Array.isArray(det.modificadores_json) && det.modificadores_json.length > 0) {
+          const nombresOpciones = det.modificadores_json.map(o => o.nombre).join(', ')
+          nombreEnriquecido = `${det.producto.nombre} (${nombresOpciones})`
+        }
+
         carrito.value.push({
           id: det.producto.id,
-          nombre: det.producto.nombre,
+          nombre: nombreEnriquecido,
           codigo_barras: det.producto.codigo_barras,
           precio: parseFloat(det.precio),
           cantidad: parseFloat(det.cantidad),
+          modificadores: det.modificadores_json || null,
           uniqueId: Date.now() + Math.random(),
           // Importante: Asegúrate de que el backend envíe el ID de la orden en la respuesta
           origen_restaurante_id: orden.id

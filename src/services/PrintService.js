@@ -5,6 +5,7 @@ import { api } from 'src/boot/axios'
 
 export const PrintService = {
   async imprimirTicketPruebaPython() {
+    const configStore = useConfigStore()
     try {
       // Definimos datos de prueba genéricos para validar la impresora
       const datosPrueba = {
@@ -17,7 +18,8 @@ export const PrintService = {
       }
 
       // Enviamos la petición al puente de Python (Flask)
-      const response = await axios.post('http://localhost:5000/printtest', datosPrueba)
+      const baseUrl = configStore.impresoraGeneralUrl || 'http://localhost:5000'
+      const response = await axios.post(`${baseUrl}/printtest`, datosPrueba)
 
       return response.data
     } catch (error) {
@@ -27,7 +29,7 @@ export const PrintService = {
     }
   },
 
-  async imprimirTicketReal(venta, items, resumen, configticket, cliente, pagosEfectuados = []) {
+  async imprimirTicketReal(venta, items, resumen, configticket, cliente, pagosEfectuados = [], qrData = null) {
     const configStore = useConfigStore()
     const auth = useAuthStore()
     const header_custom = configticket.header_lines || []
@@ -36,7 +38,7 @@ export const PrintService = {
     try {
       const listaSeguraPagos = Array.isArray(pagosEfectuados) ? pagosEfectuados : [];
       const payload = {
-        logo_url: configStore.logoUrl, // URL del logo definida en tu config
+        logo_url: configStore.logoUrl,
         empresa: {
           nombre: configStore.nombreTienda || 'MI EMPRESA S.A.',
           rfc: configStore.config?.rfc || 'XAXX010101000',
@@ -57,7 +59,7 @@ export const PrintService = {
           monto: p.monto,
           tarjeta_ultimos_4: p.tarjeta_ultimos_4,
           referencia_pago: p.referencia_pago,
-          moneda: p.moneda ||'MXN',
+          moneda: p.moneda || 'MXN',
           monto_original: p.monto_original || p.monto,
           tipo_cambio_usado: p.tc_aplicado || p.tipo_cambio_usado || 1,
           nota: p.moneda_original === 'USD' ? `(${p.monto_original} USD a ${p.tc_aplicado || p.tipo_cambio_usado || 1})` : ''
@@ -66,11 +68,14 @@ export const PrintService = {
           nombre: item.nombre,
           cantidad: item.cantidad,
           precio: item.precio,
-          subtotal: item.precio * item.cantidad
-        }))
+          subtotal: item.precio * item.cantidad,
+          modificadores: item.modificadores || null
+        })),
+        qr_data: qrData
       }
 
-      await axios.post('http://localhost:5000/print', payload)
+      const baseUrl = configStore.impresoraGeneralUrl || 'http://localhost:5000'
+      await axios.post(`${baseUrl}/print`, payload)
     } catch (error) {
       console.error("Error de impresión profesional:", error)
       throw new Error("Venta guardada. Error al conectar con la impresora.")
@@ -78,16 +83,22 @@ export const PrintService = {
   },
 
   async reimprimirUltimoTicket(config) {
+    const configStore = useConfigStore()
     try {
       // 1. Obtener datos de la última venta desde Laravel
       const { data: venta } = await api.get('/api/pos/ultimo-ticket')
 
       if (!venta) throw new Error("No se encontraron ventas recientes.")
 
-        console.log(venta)
-
       const header_custom = venta.sucursal.ticket.header_lines || []
       const footer_custom = venta.sucursal.ticket.footer_lines || []
+
+      // Asegurarse de parsear modificadores_json de backend
+      const parseModificadores = (jsonStr) => {
+        try {
+          return typeof jsonStr === 'string' ? JSON.parse(jsonStr) : (jsonStr || null)
+        } catch { return null }
+      }
 
       // 2. Mapear los datos al formato que espera Python
       const payload = {
@@ -120,12 +131,14 @@ export const PrintService = {
           cantidad: d.cantidad,
           nombre: d.producto.nombre,
           precio: d.precio_unitario,
-          subtotal: d.total
+          subtotal: d.total,
+          modificadores: parseModificadores(d.modificadores_json)
         }))
       }
 
       // 3. Enviar al script de Python
-      await axios.post('http://localhost:5000/print', payload)
+      const baseUrl = configStore.impresoraGeneralUrl || 'http://localhost:5000'
+      await axios.post(`${baseUrl}/print`, payload)
       return true
     } catch (error) {
       console.error("Error al reimprimir:", error)
@@ -134,6 +147,7 @@ export const PrintService = {
   },
 
   async imprimirMovimientoCaja(movimiento, turnoId, cajeroNombre) {
+    const configStore = useConfigStore()
     try {
       const payload = {
         tipo: movimiento.tipo,
@@ -142,11 +156,12 @@ export const PrintService = {
         turno: turnoId || '---',
         fecha: new Date().toLocaleString(),
         cajero: cajeroNombre || 'Desconocido',
-        logo_url: "" // Opcional: puedes obtenerlo del configStore si es necesario
+        logo_url: configStore.logoUrl
       };
 
       // Enviamos a la ruta específica creada en el print_bridge.pyw
-      await axios.post('http://localhost:5000/print-movement', payload);
+      const baseUrl = configStore.impresoraGeneralUrl || 'http://localhost:5000'
+      await axios.post(`${baseUrl}/print-movement`, payload);
       return true;
     } catch (error) {
       console.error("Error al imprimir movimiento de caja:", error);
@@ -158,13 +173,18 @@ export const PrintService = {
     const configStore = useConfigStore() // Para obtener el logo
     try {
       // Calculamos totales si no vienen calculados
-      const productosMap = orden.detalles.map(d => ({
-        cantidad: d.cantidad,
-        nombre: d.producto.nombre,
-        subtotal: parseFloat(d.total)
-      }))
-
-      console.log(orden.codigo)
+      const productosMap = orden.detalles.map(d => {
+        // En backend, RestOrdenDetalle guarda el array en modificadores_json
+        const mods = Array.isArray(d.modificadores_json) ? d.modificadores_json : 
+                     (typeof d.modificadores_json === 'string' ? JSON.parse(d.modificadores_json) : null)
+                     
+        return {
+          cantidad: d.cantidad,
+          nombre: d.producto.nombre,
+          subtotal: parseFloat(d.precio) * parseFloat(d.cantidad),
+          modificadores: mods
+        }
+      })
 
       const payload = {
         logo_url: configStore.logoUrl,
@@ -176,7 +196,8 @@ export const PrintService = {
         productos: productosMap
       }
 
-      await axios.post('http://localhost:5000/print-precuenta', payload)
+      const baseUrl = configStore.impresoraGeneralUrl || 'http://localhost:5000'
+      await axios.post(`${baseUrl}/print-precuenta`, payload)
       return true
     } catch (error) {
       console.error("Error imprimiendo cuenta:", error)
@@ -185,6 +206,7 @@ export const PrintService = {
   },
 
   async imprimirTicketCocina(mesaNombre, meseroNombre, folioOrden, itemsParaCocina) {
+    const configStore = useConfigStore()
     try {
       const payload = {
         mesa: mesaNombre || 'PARA LLEVAR',
@@ -194,12 +216,14 @@ export const PrintService = {
         productos: itemsParaCocina.map(item => ({
           cantidad: item.cantidad,
           nombre: item.nombre,
-          notas: item.notas || ''
+          notas: item.notas || '',
+          modificadores: item.modificadores || null
         }))
       }
 
       // Enviamos al nuevo endpoint de Python
-      await axios.post('http://localhost:5000/print-cocina', payload)
+      const baseUrl = configStore.impresoraCocinaUrl || 'http://localhost:5000'
+      await axios.post(`${baseUrl}/print-cocina`, payload)
       return true
     } catch (error) {
       console.error("Error al imprimir comanda:", error)
@@ -210,13 +234,17 @@ export const PrintService = {
 
 
   async imprimirCorteCaja(turnoId) {
+    const configStore = useConfigStore()
     try {
-      const configStore = useConfigStore()
       const { data } = await api.get(`/api/pos/print-corte/${turnoId}`)
-      await axios.post('http://localhost:5000/print-corte', data, {
+      
+      const payload = {
         ...data,
         logo_url: configStore.logoUrl
-      })
+      }
+      
+      const baseUrl = configStore.impresoraGeneralUrl || 'http://localhost:5000'
+      await axios.post(`${baseUrl}/print-corte`, payload)
       return true
     }
     catch (error) {

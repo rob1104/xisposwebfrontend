@@ -238,7 +238,7 @@
   .menu-header {
     text-transform: uppercase;
     font-weight: 800;
-    color: $red-9;
+    color: #93c5fd; /* Light blue for better contrast against dark background */
     letter-spacing: 1.2px;
     font-size: 0.75rem;
     padding-top: 10px;
@@ -247,15 +247,15 @@
   .menu-item {
     border-radius: 10px;
     margin-bottom: 4px;
-    color: #444;
+    color: #e2e8f0;
     transition: all 0.2s ease;
-    &:hover { background: rgba(142, 0, 0, 0.04); color: $primary; }
+    &:hover { background: rgba(255, 255, 255, 0.1); color: white; }
   }
 
   .menu-expansion-header {
     border-radius: 10px;
     font-weight: 600;
-    color: #444;
+    color: #e2e8f0;
   }
 
   .menu-item-sub {
@@ -264,17 +264,17 @@
     margin-right: 8px;
     margin-bottom: 2px;
     font-size: 0.92em;
-    color: #666;
+    color: #94a3b8;
     &:hover {
-      background: rgba(142, 0, 0, 0.04);
-      color: $primary;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
     }
   }
 
   .custom-active-link {
     background: $primary !important;
     color: white !important;
-    box-shadow: 0 4px 10px rgba(142, 0, 0, 0.2);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
     .q-icon { color: white !important; }
   }
 

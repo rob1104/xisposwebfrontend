@@ -130,8 +130,15 @@
                   <q-tooltip>Historial de Movimientos (Kardex)</q-tooltip>
                 </q-btn>
 
-              <q-btn :disabled="!auth.can('productos.editar')" flat round color="indigo" icon="edit" @click="openEdit(props.row)" />
-              <q-btn :disabled="!auth.can('productos.borrar')" flat round color="negative" icon="delete" @click="confirmDelete(props.row)" />
+              <q-btn :disabled="!auth.can('productos.editar')" flat round color="indigo" icon="edit" @click="openEdit(props.row)">
+                <q-tooltip>Editar Producto</q-tooltip>
+              </q-btn>
+              <q-btn :disabled="!auth.can('productos.editar')" flat round color="teal" icon="tune" @click="openModificadores(props.row)">
+                <q-tooltip>Gestionar Modificadores</q-tooltip>
+              </q-btn>
+              <q-btn :disabled="!auth.can('productos.borrar')" flat round color="negative" icon="delete" @click="confirmDelete(props.row)">
+                <q-tooltip>Eliminar Producto</q-tooltip>
+              </q-btn>
             </q-td>
           </q-tr>
         </template>
@@ -142,6 +149,7 @@
       :producto="productoSeleccionado"
     />
     <ProductForm v-model="showDialog" :editData="selectedItem" @saved="loadData" />
+    <GestorModificadores v-model="showModificadores" :producto="productoSeleccionadoParaMods" @saved="loadData" />
   </q-page>
 </template>
 
@@ -149,10 +157,10 @@
   import { ref, onMounted } from 'vue'
   import { api } from 'boot/axios'
   import ProductForm from 'components/Productos/ProductosForm.vue'
+  import GestorModificadores from 'components/Productos/GestorModificadores.vue'
   import { useQuasar } from 'quasar'
   import KardexDialog from 'src/components/Productos/KardexDialog.vue'
   import { useAuthStore } from 'src/stores/auth'
-
 
   const $q = useQuasar()
   const auth = useAuthStore()
@@ -163,10 +171,17 @@
   const selectedItem = ref(null)
   const showKardex = ref(false)
   const productoSeleccionado = ref(null)
+  const showModificadores = ref(false)
+  const productoSeleccionadoParaMods = ref(null)
 
   const verKardex = (producto) => {
     productoSeleccionado.value = { ...producto }
     showKardex.value = true
+  }
+
+  const openModificadores = (producto) => {
+    productoSeleccionadoParaMods.value = { ...producto }
+    showModificadores.value = true
   }
 
 

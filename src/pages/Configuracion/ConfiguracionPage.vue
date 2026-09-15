@@ -78,6 +78,41 @@
 
             <q-separator class="q-my-xl" />
 
+            <div class="row q-col-gutter-xl">
+              <div class="col-12">
+                <div class="text-subtitle1 text-bold q-mb-md">Servidores de Impresión (XisPOS Bridge)</div>
+                <div class="text-caption text-grey-7 q-mb-md">
+                  Rutas donde el sistema enviará los comandos de impresión. 
+                  Si dejas esto en blanco o como "http://127.0.0.1:5000", se imprimirá en la computadora actual. 
+                  Si usas tablets, pon la IP local de la caja (Ej: http://192.168.1.10:5000).
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model="form.impresora_general_url"
+                  label="URL Servidor General (Tickets) *"
+                  outlined
+                  stack-label
+                  placeholder="Ej: http://127.0.0.1:5000"
+                >
+                  <template v-slot:prepend><q-icon name="receipt_long" /></template>
+                </q-input>
+              </div>
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model="form.impresora_cocina_url"
+                  label="URL Servidor Cocina (Comandas) *"
+                  outlined
+                  stack-label
+                  placeholder="Ej: http://192.168.1.100:5000"
+                >
+                  <template v-slot:prepend><q-icon name="restaurant_menu" /></template>
+                </q-input>
+              </div>
+            </div>
+
+            <q-separator class="q-my-xl" />
+
             <div class="row justify-end">
               <q-btn
                 label="Guardar Configuración"
@@ -140,14 +175,22 @@
 
   const form = reactive({
     nombre_tienda: '',
-    logo_file: null
+    logo_file: null,
+    impresora_general_url: 'http://127.0.0.1:5000',
+    impresora_cocina_url: 'http://127.0.0.1:5000'
   })
 
-  watch(() => configStore.nombreTienda, (nuevoNombre) => {
-    if (nuevoNombre && nuevoNombre !== 'Cargando...') {
-      form.nombre_tienda = nuevoNombre
+  watch(() => configStore, (store) => {
+    if (store.nombreTienda && store.nombreTienda !== 'Cargando...') {
+      form.nombre_tienda = store.nombreTienda
     }
-  }, { immediate: true })
+    if (store.impresoraGeneralUrl) {
+      form.impresora_general_url = store.impresoraGeneralUrl
+    }
+    if (store.impresoraCocinaUrl) {
+      form.impresora_cocina_url = store.impresoraCocinaUrl
+    }
+  }, { deep: true, immediate: true })
 
   const onLogoSelected = (file) => {
     if (file) previewLogo.value = URL.createObjectURL(file)
@@ -158,6 +201,8 @@
     try {
       const formData = new FormData()
       formData.append('nombre_tienda', form.nombre_tienda)
+      formData.append('impresora_general_url', form.impresora_general_url)
+      formData.append('impresora_cocina_url', form.impresora_cocina_url)
       if (form.logo_file) formData.append('logo', form.logo_file)
 
       await api.post('/api/config/update', formData, {

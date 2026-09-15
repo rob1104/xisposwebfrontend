@@ -115,7 +115,6 @@ export default defineBoot(({ app, router }) => {
       if (error.response?.status === 422) {
         const errors = error.response.data.errors
         const message = errors ? Object.values(errors)[0][0] : 'Error de validación'
-        // Descomenta si quieres mostrar errores de validación
         // Notify.create({ color: 'orange', message: message, icon: 'warning' })
       }
 

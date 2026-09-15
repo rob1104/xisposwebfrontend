@@ -262,88 +262,70 @@
             @click="pedirCuenta"
             :disable="granTotal <= 0"
           />
+          <q-btn
+            v-if="ordenActualId && carritoEnviados.length === 0"
+            class="col-auto"
+            push color="negative"
+            :size="$q.screen.gt.xs ? 'lg' : 'md'"
+            icon="cancel"
+            @click="solicitarCancelacion"
+          >
+            <q-tooltip>Cancelar Orden</q-tooltip>
+          </q-btn>
         </div>
       </div>
     </div>
 
-    <!-- Modal de producto -->
-    <q-dialog v-model="showProductDialog" persistent transition-show="slide-up" transition-hide="slide-down">
-      <q-card style="width: 500px; max-width: 95vw;" class="bg-dark-surface text-white border-amber shadow-24 overflow-hidden">
+      <!-- Modal de producto -->
+      <PosModalModificadores 
+        v-model="showProductDialog" 
+        :producto="productoActual" 
+        :permitirCantidad="true"
+        :permitirNotas="true"
+        @confirm="agregarAlCarrito" 
+      />
 
-        <q-img
-          v-if="productoActual?.imagen"
-          :src="productoActual.imagen"
-          style="height: 220px;"
-          class="bg-grey-9"
-        >
-          <div class="absolute-top-right q-pa-sm">
-            <q-btn round dense color="black" text-color="white" icon="close" v-close-popup style="opacity: 0.7;" />
-          </div>
-
-          <div class="absolute-bottom column q-pa-md bg-gradient-modal">
-            <div class="text-h5 text-bold text-white text-shadow leading-tight">
-              {{ productoActual?.nombre }}
-            </div>
-          </div>
-        </q-img>
-
-        <q-card-section v-else class="bg-amber text-black row items-center q-pa-md">
-          <div class="text-h6 text-bold col leading-tight">{{ productoActual?.nombre }}</div>
-          <q-btn flat round dense icon="close" v-close-popup />
+    <!-- Modal de Cancelación -->
+    <q-dialog v-model="showCancelDialog" persistent>
+      <q-card style="min-width: 350px;" class="bg-dark text-white border-amber shadow-24">
+        <q-card-section class="bg-negative row items-center">
+          <div class="text-h6 text-bold text-white"><q-icon name="cancel" class="q-mr-sm" /> Cancelar Orden</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
-        <q-card-section class="q-pa-md">
-
-          <div class="row justify-center items-center q-mb-lg">
-             <q-badge color="amber" text-color="black" class="text-h4 text-bold q-py-xs q-px-md shadow-2">
-                $ {{ parseFloat(productoActual?.precio || 0).toFixed(2) }}
-             </q-badge>
-          </div>
-
-          <div class="row items-center justify-center q-mb-lg">
-            <q-btn
-              push round
-              color="grey-8"
-              icon="remove"
-              size="lg"
-              @click="cantidadModal > 1 ? cantidadModal-- : null"
-            />
-            <div class="text-h3 text-bold text-white q-mx-lg" style="min-width: 60px; text-align: center;">
-              {{ cantidadModal }}
-            </div>
-            <q-btn
-              push round
-              color="amber"
-              text-color="black"
-              icon="add"
-              size="lg"
-              @click="cantidadModal++"
-            />
-          </div>
-
-          <div class="bg-dark-input rounded-borders q-pa-sm">
-            <div class="text-caption text-grey-5 q-mb-xs q-ml-xs">Notas de preparación:</div>
-            <q-input
-              v-model="notasModal"
-              dark borderless dense
-              type="textarea"
-              rows="2"
-              placeholder="Ej: Sin cebolla, salsa aparte..."
-              class="text-body1"
-            />
-          </div>
-        </q-card-section>
-
-        <q-card-actions class="q-pa-md bg-dark-header">
-          <q-btn
-            push
-            color="positive"
-            icon="add_shopping_cart"
-            :label="`AGREGAR  -  $ ${(parseFloat(productoActual?.precio || 0) * cantidadModal).toFixed(2)}`"
-            class="full-width text-bold q-py-sm"
-            size="lg"
-            @click="agregarAlCarrito"
+        <q-card-section class="q-pt-md">
+          <div class="text-caption text-grey-4 q-mb-sm">Autorización de Gerente o Admin requerida.</div>
+          
+          <q-select
+            v-model="gerenteSeleccionado"
+            :options="listaGerentes"
+            option-value="id"
+            option-label="name"
+            label="Seleccione un gerente"
+            dark outlined dense class="q-mb-md"
+            emit-value map-options
           />
+
+          <q-input
+            v-model="passwordCancelacion"
+            label="Contraseña"
+            type="password"
+            dark outlined dense class="q-mb-md"
+          />
+
+          <q-input
+            v-model="motivoCancelacion"
+            label="Motivo de cancelación"
+            type="textarea"
+            rows="2"
+            dark outlined dense
+          />
+        </q-card-section>
+
+        <q-card-actions align="right" class="bg-dark-header">
+          <q-btn flat label="Salir" color="white" v-close-popup />
+          <q-btn flat label="Confirmar Cancelación" color="negative" @click="procesarCancelacion" :loading="cancelando" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -356,6 +338,7 @@
   import { useQuasar } from 'quasar'
   import { api } from 'src/boot/axios'
   import { PrintService } from 'src/services/PrintService'
+  import PosModalModificadores from 'src/components/Pos/PosModalModificadores.vue'
 
   const props = defineProps({
     mesa: Object,
@@ -380,8 +363,14 @@
   // Modal producto
   const showProductDialog = ref(false)
   const productoActual = ref(null)
-  const cantidadModal = ref(1)
-  const notasModal = ref('')
+
+  // Modal Cancelación
+  const showCancelDialog = ref(false)
+  const listaGerentes = ref([])
+  const gerenteSeleccionado = ref(null)
+  const passwordCancelacion = ref('')
+  const motivoCancelacion = ref('')
+  const cancelando = ref(false)
 
   // Computeds
   const tituloActual = computed(() => {
@@ -427,13 +416,16 @@
 
   const abrirModalProducto = (prod) => {
     productoActual.value = prod
-    cantidadModal.value = 1
-    notasModal.value = ''
     showProductDialog.value = true
   }
 
-  const agregarAlCarrito = async () => {
-    if (!productoActual.value) return
+  const agregarAlCarrito = async (payload) => {
+    const prod = payload.producto
+    const opciones = payload.opciones || []
+    const cantidad = payload.cantidad || 1
+    const notasForm = payload.notas || ''
+
+    if (!prod) return
 
     // Si no hay orden, crearla primero
     if (!ordenActualId.value) {
@@ -449,12 +441,26 @@
       }
     }
 
+    // Calcular nuevo precio sumando los modificadores
+    let precioBase = parseFloat(prod.precio)
+    opciones.forEach(op => {
+      precioBase += parseFloat(op.precio_adicional || 0)
+    })
+
+    // Construir nota combinada
+    let extraNotas = opciones.map(o => `+ ${o.nombre}`).join(', ')
+    let notaFinal = notasForm
+    if (extraNotas) {
+      notaFinal = notaFinal ? `${notaFinal} | ${extraNotas}` : extraNotas
+    }
+
     carritoNuevos.value.push({
-      id: productoActual.value.id,
-      nombre: productoActual.value.nombre,
-      precio: productoActual.value.precio,
-      cantidad: cantidadModal.value,
-      notas: notasModal.value,
+      id: prod.id,
+      nombre: prod.nombre,
+      precio: precioBase,
+      cantidad: cantidad,
+      notas: notaFinal,
+      modificadores: opciones, // Guardar el JSON puro para la API
       uniqueId: Date.now() + Math.random()
     })
 
@@ -625,6 +631,58 @@
       } catch (e) {
         console.error("Error cargando la orden", e)
         $q.notify({ message: 'Error al recuperar el detalle de la mesa', color: 'negative' })
+      }
+    }
+
+    const solicitarCancelacion = async () => {
+      passwordCancelacion.value = ''
+      motivoCancelacion.value = ''
+      gerenteSeleccionado.value = null
+      
+      try {
+        const { data } = await api.get('/api/auth/gerentes')
+        listaGerentes.value = data
+        showCancelDialog.value = true
+      } catch (e) {
+        $q.notify({ message: 'Error al cargar gerentes', color: 'negative' })
+      }
+    }
+
+    const procesarCancelacion = async () => {
+      if (!gerenteSeleccionado.value || !passwordCancelacion.value) {
+        $q.notify({ message: 'Seleccione un gerente e ingrese la clave', color: 'warning' })
+        return
+      }
+
+      if (!motivoCancelacion.value) {
+        $q.notify({ message: 'Debe ingresar un motivo de cancelación', color: 'warning' })
+        return
+      }
+
+      cancelando.value = true
+      try {
+        // Verificar credenciales
+        await api.post('/api/auth/verificar-gerente', { 
+          user_id: gerenteSeleccionado.value,
+          password: passwordCancelacion.value 
+        })
+
+        // Ejecutar cancelación
+        await api.post(`/api/restaurante/orden/${ordenActualId.value}/cancelar`, { 
+          motivo: motivoCancelacion.value 
+        })
+
+        $q.notify({ message: 'Orden cancelada exitosamente', color: 'positive' })
+        showCancelDialog.value = false
+        emit('finalizar')
+      } catch (error) {
+        if (error.response?.status === 422) {
+          $q.notify({ message: error.response.data.message || 'Error de validación', color: 'negative' })
+        } else {
+          $q.notify({ message: 'Contraseña incorrecta o error al cancelar', color: 'negative' })
+        }
+      } finally {
+        cancelando.value = false
       }
     }
 
