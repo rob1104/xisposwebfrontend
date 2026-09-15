@@ -692,25 +692,30 @@ watch(() => pagoActual.value.moneda, () => {
   }
 
   // Modos de color del Input según moneda
-  .mxn-mode :deep(.q-field__control) {
-    border-color: rgba(0, 188, 212, 0.3); // Cian apagado
+  .mxn-mode {
+    :deep(.q-field__control) {
+      border-color: rgba(0, 188, 212, 0.3); // Cian apagado
       &:hover, &.q-field--focused {
         border-color: #00bcd4; // Cian brillante al enfocar
         box-shadow: 0 0 15px rgba(0, 188, 212, 0.2);
         background: rgba(0, 188, 212, 0.05) !important;
       }
-      :deep(.q-field__prefix) { color: #00bcd4; font-weight: bold; font-size: 2rem; }
+      .q-field__prefix { color: #00bcd4; font-weight: bold; font-size: 2rem; }
+    }
+    :deep(input) { color: #00bcd4 !important; }
   }
 
-  .usd-mode :deep(.q-field__control) {
-    border-color: rgba(242, 192, 55, 0.4); // Dorado apagado
+  .usd-mode {
+    :deep(.q-field__control) {
+      border-color: rgba(242, 192, 55, 0.4); // Dorado apagado
       &:hover, &.q-field--focused {
         border-color: #f2c037; // Dorado brillante
         box-shadow: 0 0 15px rgba(242, 192, 55, 0.2);
         background: rgba(242, 192, 55, 0.05) !important;
       }
-      :deep(.q-field__prefix) { color: #f2c037; font-weight: bold; font-size: 2rem; }
-      :deep(input) { color: #f2c037 !important; } // Texto dorado también
+      .q-field__prefix { color: #f2c037; font-weight: bold; font-size: 2rem; }
+    }
+    :deep(input) { color: #f2c037 !important; } // Texto dorado también
   }
 
   // Utilidades
