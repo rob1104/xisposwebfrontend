@@ -12,6 +12,9 @@
           v-model="sucursalFiltro"
           :options="auth.sucursales"
           option-label="nombre"
+          option-value="id"
+          emit-value
+          map-options
           outlined dense bg-color="white"
           label="Filtrar por Sucursal"
           class="shadow-2 border-radius-10"
