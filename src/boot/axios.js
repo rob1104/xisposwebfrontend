@@ -5,7 +5,8 @@ import { useAuthStore } from 'src/stores/auth'
 
 // Definir la URL base según el entorno
 const apiURL = import.meta.env.PROD
-  ? "https://posdemo.xiserp.mx/backend/public"
+  //? "https://posdemo.xiserp.mx/backend/public"
+  ? "https://citypizza.xiserp.mx/be/public"
   : "http://localhost:8000"
 
 // Crear instancia de Axios
@@ -64,7 +65,7 @@ export default defineBoot(({ app, router }) => {
       // Error 401 o 421: Sesión expirada
       if (error.response?.status === 401 || error.response?.status === 421) {
         const isAuthRequest = originalRequest.url?.includes('/login') ||
-                            originalRequest.url?.includes('/logout')
+          originalRequest.url?.includes('/logout')
 
         if (!isAuthRequest) {
           const auth = useAuthStore()

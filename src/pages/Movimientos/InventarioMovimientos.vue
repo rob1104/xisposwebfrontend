@@ -101,6 +101,14 @@
           unelevated
           @click="abrirDialogo"
         />
+        <q-btn
+          color="secondary"
+          icon="checklist_rtl"
+          label="Movimiento Masivo"
+          unelevated
+          class="q-ml-sm"
+          @click="abrirDialogoMasivo"
+        />
       </template>
 
       <template v-slot:body-cell-fecha="props">
@@ -264,6 +272,118 @@
       </q-card>
     </q-dialog>
 
+    <q-dialog v-model="dialogoMasivo" persistent>
+      <q-card style="width: 800px; max-width: 90vw;">
+        <q-card-section class="bg-secondary text-white">
+          <div class="text-h6">Movimiento Masivo</div>
+        </q-card-section>
+
+        <q-card-section class="q-gutter-md">
+          <div class="row q-col-gutter-md">
+            <div class="col-12 col-md-6" v-if="auth.isAdmin">
+              <q-select
+                v-model="formMasivo.sucursal_id"
+                :options="sucursales"
+                option-label="nombre"
+                option-value="id"
+                emit-value
+                map-options
+                label="Sucursal *"
+                outlined
+              >
+                <template v-slot:prepend>
+                  <q-icon name="storefront" color="secondary" />
+                </template>
+              </q-select>
+            </div>
+            <div class="col-12 col-md-6">
+              <q-select
+                v-model="formMasivo.tipo"
+                :options="['ENTRADA', 'SALIDA', 'AJUSTE']"
+                label="Tipo de Movimiento *"
+                outlined
+              />
+            </div>
+          </div>
+          
+          <q-input
+            v-model="formMasivo.observaciones"
+            label="Observaciones Generales"
+            outlined
+            type="textarea"
+            rows="2"
+          />
+
+          <div class="q-mt-md text-subtitle2 text-bold text-grey-8">Agregar Productos</div>
+          
+          <q-select
+            v-model="productoSeleccionadoMasivo"
+            use-input
+            hide-selected
+            fill-input
+            input-debounce="300"
+            label="Buscar por nombre o código de barras..."
+            :options="opcionesProductos"
+            option-label="nombre"
+            @filter="filtrarProductos"
+            @update:model-value="alSeleccionarProductoMasivo"
+            outlined
+            class="q-mb-md bg-blue-grey-1"
+          >
+            <template v-slot:option="scope">
+              <q-item v-bind="scope.itemProps">
+                <q-item-section avatar>
+                  <q-icon name="inventory_2" color="secondary" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ scope.opt.nombre }}</q-item-label>
+                  <q-item-label caption>Código: {{ scope.opt.codigo_barras }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
+
+          <q-markup-table flat bordered class="q-mt-md shadow-2" v-if="productosMasivos.length > 0">
+            <thead class="bg-blue-grey-1">
+              <tr>
+                <th class="text-left">Producto</th>
+                <th class="text-center" style="width: 150px">Cantidad</th>
+                <th class="text-right" style="width: 80px">Quitar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(prod, idx) in productosMasivos" :key="prod.producto_id">
+                <td class="text-left">
+                  <div class="text-bold">{{ prod.nombre }}</div>
+                  <div class="text-caption">{{ prod.codigo_barras }}</div>
+                </td>
+                <td class="text-center">
+                  <q-input v-model.number="prod.cantidad" type="number" outlined dense min="0.01" step="0.01" />
+                </td>
+                <td class="text-right">
+                  <q-btn icon="delete" color="negative" flat round dense @click="quitarProductoMasivo(idx)" />
+                </td>
+              </tr>
+            </tbody>
+          </q-markup-table>
+          <div v-else class="text-center q-pa-md text-grey-6 border-radius-10" style="border: 1px dashed #ccc;">
+            No hay productos agregados.
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="q-pb-md q-px-md">
+          <q-btn flat label="Cancelar" color="grey" v-close-popup />
+          <q-btn
+            label="Guardar Todo"
+            color="secondary"
+            @click="guardarMovimientoMasivo"
+            :loading="loadingMasivo"
+            :disable="productosMasivos.length === 0"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     </q-page>
 </template>
 
@@ -285,6 +405,17 @@
   const opcionesProductos = ref([])
   const productoSeleccionado = ref(null)
   const sucursalFiltroId = ref(auth.sucursalSeleccionada)
+
+  // Variables para movimiento masivo
+  const dialogoMasivo = ref(false)
+  const loadingMasivo = ref(false)
+  const productoSeleccionadoMasivo = ref(null)
+  const productosMasivos = ref([])
+  const formMasivo = ref({
+    sucursal_id: auth.sucursalSeleccionada?.id || null,
+    tipo: 'ENTRADA',
+    observaciones: ''
+  })
 
   const form = ref({
     sucursal_id: null,
@@ -446,6 +577,73 @@
       stockActual.value = 0;
     }
   };
+
+  const abrirDialogoMasivo = () => {
+    formMasivo.value = {
+      sucursal_id: auth.sucursalSeleccionada?.id || null,
+      tipo: 'ENTRADA',
+      observaciones: ''
+    }
+    productosMasivos.value = []
+    productoSeleccionadoMasivo.value = null
+    dialogoMasivo.value = true
+  }
+
+  const alSeleccionarProductoMasivo = (producto) => {
+    if (!producto) return
+    
+    // Validar si ya está agregado
+    const existe = productosMasivos.value.find(p => p.producto_id === producto.id)
+    if (existe) {
+      $q.notify({ color: 'warning', message: 'El producto ya está en la lista' })
+    } else {
+      productosMasivos.value.push({
+        producto_id: producto.id,
+        nombre: producto.nombre,
+        codigo_barras: producto.codigo_barras,
+        cantidad: 1
+      })
+    }
+    
+    // Limpiar selector
+    setTimeout(() => {
+      productoSeleccionadoMasivo.value = null
+    }, 100)
+  }
+
+  const quitarProductoMasivo = (index) => {
+    productosMasivos.value.splice(index, 1)
+  }
+
+  const guardarMovimientoMasivo = async () => {
+    if (!formMasivo.value.sucursal_id) {
+      $q.notify({ color: 'negative', message: 'Debe seleccionar una sucursal' })
+      return
+    }
+
+    loadingMasivo.value = true
+    try {
+      const payload = {
+        sucursal_id: formMasivo.value.sucursal_id,
+        tipo: formMasivo.value.tipo,
+        observaciones: formMasivo.value.observaciones,
+        productos: productosMasivos.value.map(p => ({
+          producto_id: p.producto_id,
+          cantidad: Number(p.cantidad)
+        }))
+      }
+      
+      await api.post('/api/inventario/movimiento-masivo', payload)
+      $q.notify({ color: 'positive', message: 'Movimientos registrados exitosamente' })
+      dialogoMasivo.value = false
+      cargarMovimientos()
+    } catch (e) {
+      console.error(e)
+      $q.notify({ color: 'negative', message: 'Error al registrar movimientos' })
+    } finally {
+      loadingMasivo.value = false
+    }
+  }
 
   const guardarMovimiento = async () => {
     loading.value = true
