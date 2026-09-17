@@ -516,7 +516,7 @@
         // 3. Imprimir el ticket de comanda (físicamente) usando PrintService
         // Solo enviamos a cocina los items de carritoNuevos
         const itemsParaImprimir = carritoNuevos.value
-        await PrintService.imprimirComanda(
+        await PrintService.imprimirTicketCocina(
             props.mesa ? props.mesa.nombre : 'PARA LLEVAR',
             props.mesero?.name,
             ordenActualId.value,
