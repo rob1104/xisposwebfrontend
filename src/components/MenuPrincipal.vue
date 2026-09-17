@@ -198,6 +198,11 @@
         <q-item-section avatar><q-icon name="fingerprint" /></q-item-section>
         <q-item-section>Logs de Auditoría</q-item-section>
       </q-item>
+
+      <q-item v-if="auth.can('Respaldar base de datos')" clickable v-ripple to="/backups" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="backup" /></q-item-section>
+        <q-item-section>Respaldos de base de datos</q-item-section>
+      </q-item>
     </q-expansion-item>
 
   </q-list>
@@ -226,7 +231,7 @@
     inventarioExpanded.value = ['/productos', '/transferencias', '/recibir', '/movimientosinventario', 'auditoriahistorial'].some(p => path.includes(p))
     comprasExpanded.value = ['/compras', '/proveedores'].some(p => path.includes(p))
     seguridadExpanded.value = ['/sucursales', '/catalogos', '/configuracion', 'restaurante/admin'].some(p => path.includes(p))
-    accesoExpanded.value = ['/usuarios', '/roles', '/auditoria'].some(p => path.includes(p))
+    accesoExpanded.value = ['/usuarios', '/roles', '/auditoria', '/backups'].some(p => path.includes(p))
     reportesExpanded.value = ['/inventarioglobal', '/inventarioxsucursal', '/inventariohistorico', 'reportes/ventasdetalladas'].some(p => path.includes(p))
   }
 
