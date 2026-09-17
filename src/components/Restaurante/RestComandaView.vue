@@ -504,29 +504,39 @@
       try {
         // 1. Asegurar que existe la orden en BD
         if (!ordenActualId.value) {
-          $q.notify({ message: 'No hay orden activa', color: 'warning' })
-          enviando.value = false
-          return
+          const { data } = await api.post('/api/restaurante/abrir-orden', {
+            mesa_id: props.mesa?.id || null,
+            nombre_cliente: clienteNombre.value
+          })
+          ordenActualId.value = data.id
         }
 
-        // 2. Antes de enviar, forzamos un último guardado del borrador 
-        // por si hubo cambios de última hora (notas, etc)
-        await sincronizarBorrador()
+        // 2. Preparar payload para API
+        const itemsPayload = carritoNuevos.value.map(i => ({
+          id: i.id,
+          cantidad: i.cantidad,
+          precio: i.precio,
+          notas: i.notas,
+          tiempo: i.tiempo || null,
+          modificadores: i.modificadores || null
+        }))
 
-        // 3. Imprimir el ticket de comanda (físicamente) usando PrintService
-        // Solo enviamos a cocina los items de carritoNuevos
-        const itemsParaImprimir = carritoNuevos.value
+        // 3. Actualizar y marcar como enviado
+        await api.post(`/api/restaurante/orden/${ordenActualId.value}/actualizar`, { items: itemsPayload })
+        await api.post(`/api/restaurante/orden/${ordenActualId.value}/enviar-cocina`)
+
+        // 4. Imprimir el ticket de comanda
+        const itemsParaImprimir = [...carritoNuevos.value]
         await PrintService.imprimirTicketCocina(
-            props.mesa ? props.mesa.nombre : 'PARA LLEVAR',
+            props.mesa ? props.mesa.nombre : `LLEVAR - ${clienteNombre.value || ''}`,
             props.mesero?.name,
             ordenActualId.value,
             itemsParaImprimir
         )
-        // ----------------------------------
 
         $q.notify({ message: 'Enviado a cocina e impreso', color: 'positive', icon: 'check' })
 
-        // 4. Refrescar UI
+        // 5. Refrescar UI
         await cargarOrdenActual()
         carritoNuevos.value = [] // Limpiamos el carrito local
 
