@@ -136,16 +136,15 @@ const cargarRespaldos = async (silent = false) => {
 const crearRespaldo = () => {
   $q.dialog({
     title: 'Confirmar Respaldo',
-    message: '¿Estás seguro de que deseas iniciar un respaldo completo de la base de datos? Este proceso puede tardar unos minutos.',
+    message: '¿Estás seguro de que deseas iniciar un respaldo completo de la base de datos? Este proceso puede tardar unos minutos. Por favor no cierres esta pestaña.',
     cancel: true,
     persistent: true
   }).onOk(async () => {
     creando.value = true
     try {
       await api.post('/api/backups')
-      $q.notify({ message: 'El respaldo se ha iniciado en segundo plano.', color: 'positive', position: 'top' })
+      $q.notify({ message: 'El respaldo se ha completado con éxito.', color: 'positive', position: 'top' })
       await cargarRespaldos()
-      iniciarPolling()
     } catch (e) {
       if (e.response?.status === 422) {
         $q.notify({ message: e.response.data.message || 'Ya hay un respaldo en proceso.', color: 'warning' })
@@ -193,25 +192,6 @@ const eliminar = (row) => {
   })
 }
 
-const iniciarPolling = () => {
-  if (pollingInterval) return
-  pollingInterval = setInterval(() => {
-    const hayEnProceso = respaldos.value.some(r => r.status === 'running' || r.status === 'pending')
-    if (hayEnProceso) {
-      cargarRespaldos(true)
-    } else {
-      detenerPolling()
-    }
-  }, 3000)
-}
-
-const detenerPolling = () => {
-  if (pollingInterval) {
-    clearInterval(pollingInterval)
-    pollingInterval = null
-  }
-}
-
 const formatBytes = (bytes, decimals = 2) => {
   if (!+bytes) return '0 Bytes'
   const k = 1024
@@ -227,12 +207,6 @@ const formatFecha = (str) => {
 }
 
 onMounted(() => {
-  cargarRespaldos().then(() => {
-    iniciarPolling()
-  })
-})
-
-onUnmounted(() => {
-  detenerPolling()
+  cargarRespaldos()
 })
 </script>
