@@ -179,21 +179,33 @@
                 </q-item-section>
 
                 <q-item-section side>
-                  <div class="row items-center bg-dark-transparent rounded-borders q-pa-xs">
-                    <q-btn
-                      flat round dense
-                      icon="remove"
-                      color="grey-4"
-                      :size="$q.screen.gt.xs ? 'sm' : 'xs'"
-                      @click="restarCantidad(idx)"
-                    />
-                    <span class="q-mx-xs q-mx-sm-sm text-bold text-white text-caption text-md-body2">{{ item.cantidad }}</span>
-                    <q-btn
-                      flat round dense
-                      icon="add"
-                      color="amber"
-                      :size="$q.screen.gt.xs ? 'sm' : 'xs'"
-                      @click="sumarCantidad(idx)"
+                  <div class="column items-end">
+                    <div class="row items-center bg-dark-transparent rounded-borders q-pa-xs q-mb-xs">
+                      <q-btn
+                        flat round dense
+                        icon="remove"
+                        color="grey-4"
+                        :size="$q.screen.gt.xs ? 'sm' : 'xs'"
+                        @click="restarCantidad(idx)"
+                      />
+                      <span class="q-mx-xs q-mx-sm-sm text-bold text-white text-caption text-md-body2">{{ item.cantidad }}</span>
+                      <q-btn
+                        flat round dense
+                        icon="add"
+                        color="amber"
+                        :size="$q.screen.gt.xs ? 'sm' : 'xs'"
+                        @click="sumarCantidad(idx)"
+                      />
+                    </div>
+                    <q-checkbox 
+                      v-model="item.imprimir" 
+                      dense 
+                      dark 
+                      color="amber" 
+                      label="Imprimir" 
+                      size="xs" 
+                      class="text-caption"
+                      @update:model-value="sincronizarBorrador"
                     />
                   </div>
                 </q-item-section>
@@ -469,6 +481,7 @@
       cantidad: cantidad,
       notas: notaFinal,
       tiempo: tiempo,
+      imprimir: true,
       modificadores: opciones, // Guardar el JSON puro para la API
       uniqueId: Date.now() + Math.random()
     })
@@ -526,13 +539,15 @@
         await api.post(`/api/restaurante/orden/${ordenActualId.value}/enviar-cocina`)
 
         // 4. Imprimir el ticket de comanda
-        const itemsParaImprimir = [...carritoNuevos.value]
-        await PrintService.imprimirTicketCocina(
-            props.mesa ? props.mesa.nombre : `LLEVAR - ${clienteNombre.value || ''}`,
-            props.mesero?.name,
-            ordenActualId.value,
-            itemsParaImprimir
-        )
+        const itemsParaImprimir = carritoNuevos.value.filter(i => i.imprimir !== false)
+        if (itemsParaImprimir.length > 0) {
+            await PrintService.imprimirTicketCocina(
+                props.mesa ? props.mesa.nombre : `LLEVAR - ${clienteNombre.value || ''}`,
+                props.mesero?.name,
+                ordenActualId.value,
+                itemsParaImprimir
+            )
+        }
 
         $q.notify({ message: 'Enviado a cocina e impreso', color: 'positive', icon: 'check' })
 
@@ -631,6 +646,7 @@
                 cantidad: parseFloat(det.cantidad),
                 notas: det.notas || '',
                 tiempo: det.tiempo || null,
+                imprimir: true,
                 uniqueId: Date.now() + Math.random()
             })
         })
