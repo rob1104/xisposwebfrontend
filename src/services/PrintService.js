@@ -62,6 +62,8 @@ export const PrintService = {
           moneda: p.moneda || 'MXN',
           monto_original: p.monto_original || p.monto,
           tipo_cambio_usado: p.tc_aplicado || p.tipo_cambio_usado || 1,
+          efectivo_recibido: p.efectivo_recibido,
+          cambio_entregado: p.cambio_entregado,
           nota: p.moneda_original === 'USD' ? `(${p.monto_original} USD a ${p.tc_aplicado || p.tipo_cambio_usado || 1})` : ''
         })),
         productos: items.map(item => ({
@@ -125,7 +127,9 @@ export const PrintService = {
           tarjeta_ultimos_4: p.tarjeta_ultimos_4,
           referencia_pago: p.referencia_pago,
           monto_original: p.monto_original,
-          tipo_cambio_usado: p.tipo_cambio_usado
+          tipo_cambio_usado: p.tipo_cambio_usado,
+          efectivo_recibido: p.efectivo_recibido,
+          cambio_entregado: p.cambio_entregado
         })),
         productos: venta.detalles.map(d => ({
           cantidad: d.cantidad,
