@@ -64,6 +64,29 @@
           />
         </div>
 
+        <!-- TIEMPO DE PREPARACIÓN -->
+        <div v-if="permitirTiempo" class="q-mt-lg">
+          <div class="text-caption text-grey-5 q-mb-sm q-ml-xs">Tiempo de preparación en Cocina:</div>
+          <q-btn-toggle
+            v-model="tiempoLocal"
+            push
+            rounded
+            unelevated
+            toggle-color="amber"
+            toggle-text-color="black"
+            color="grey-9"
+            text-color="white"
+            class="full-width"
+            spread
+            :options="[
+              {label: 'Ninguno', value: 'Ninguno'},
+              {label: 'Entrada', value: 'Entrada'},
+              {label: 'Fuerte', value: 'Fuerte'},
+              {label: 'Postre', value: 'Postre'}
+            ]"
+          />
+        </div>
+
       </q-card-section>
 
       <q-card-actions align="right" class="q-pa-md bg-blue-grey-10">
@@ -75,14 +98,15 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
 
 const props = defineProps({
   modelValue: Boolean,
   producto: Object,
   permitirNotas: { type: Boolean, default: false },
-  permitirCantidad: { type: Boolean, default: false }
+  permitirCantidad: { type: Boolean, default: false },
+  permitirTiempo: { type: Boolean, default: false }
 })
 const emit = defineEmits(['update:modelValue', 'confirm'])
 const $q = useQuasar()
@@ -91,12 +115,14 @@ const isOpen = ref(false)
 const selecciones = ref({})
 const cantidadLocal = ref(1)
 const notasLocal = ref('')
+const tiempoLocal = ref('Ninguno')
 
 watch(() => props.modelValue, (val) => {
   isOpen.value = val
   if (val && props.producto) {
     cantidadLocal.value = 1
     notasLocal.value = ''
+    tiempoLocal.value = 'Ninguno'
     inicializarSelecciones()
   }
 })
@@ -172,7 +198,8 @@ const confirmarSeleccion = () => {
     producto: props.producto, 
     opciones: opcionesCompletas,
     cantidad: cantidadLocal.value,
-    notas: notasLocal.value
+    notas: notasLocal.value,
+    tiempo: tiempoLocal.value === 'Ninguno' ? null : tiempoLocal.value
   })
   isOpen.value = false
 }

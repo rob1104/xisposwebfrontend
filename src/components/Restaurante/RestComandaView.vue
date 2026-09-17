@@ -173,6 +173,9 @@
                   <q-item-label caption class="text-orange-3" v-if="item.notas">
                     <q-icon name="comment" size="xs" /> {{ item.notas }}
                   </q-item-label>
+                  <q-item-label caption class="text-info" v-if="item.tiempo">
+                    <q-icon name="schedule" size="xs" /> Tiempo: {{ item.tiempo }}
+                  </q-item-label>
                 </q-item-section>
 
                 <q-item-section side>
@@ -222,10 +225,13 @@
                :key="'sent-'+item.id"
                class="opacity-60 q-pa-xs q-pa-sm-sm"
              >
-               <q-item-section>
-                 <q-item-label class="text-white text-caption text-md-body2">{{ item.cantidad }} x {{ item.producto.nombre }}</q-item-label>
-                 <q-item-label caption class="text-grey-5" v-if="item.notas">Nota: {{ item.notas }}</q-item-label>
-               </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-white text-caption text-md-body2">{{ item.cantidad }} x {{ item.producto.nombre }}</q-item-label>
+                  <q-item-label caption class="text-grey-5" v-if="item.notas">Nota: {{ item.notas }}</q-item-label>
+                  <q-item-label caption class="text-info" v-if="item.tiempo">
+                    <q-icon name="schedule" size="xs" /> Tiempo: {{ item.tiempo }}
+                  </q-item-label>
+                </q-item-section>
                <q-item-section side>
                  <div class="text-grey-5 text-caption text-md-body2">$ {{ (item.precio * item.cantidad).toFixed(2) }}</div>
                </q-item-section>
@@ -282,6 +288,7 @@
         :producto="productoActual" 
         :permitirCantidad="true"
         :permitirNotas="true"
+        :permitirTiempo="true"
         @confirm="agregarAlCarrito" 
       />
 
@@ -424,6 +431,7 @@
     const opciones = payload.opciones || []
     const cantidad = payload.cantidad || 1
     const notasForm = payload.notas || ''
+    const tiempo = payload.tiempo || null
 
     if (!prod) return
 
@@ -460,6 +468,7 @@
       precio: precioBase,
       cantidad: cantidad,
       notas: notaFinal,
+      tiempo: tiempo,
       modificadores: opciones, // Guardar el JSON puro para la API
       uniqueId: Date.now() + Math.random()
     })
@@ -495,32 +504,20 @@
       try {
         // 1. Asegurar que existe la orden en BD
         if (!ordenActualId.value) {
-          const { data } = await api.post('/api/restaurante/abrir-orden', {
-            mesa_id: props.mesa?.id || null,
-            nombre_cliente: clienteNombre.value
-          })
-          ordenActualId.value = data.id
+          $q.notify({ message: 'No hay orden activa', color: 'warning' })
+          enviando.value = false
+          return
         }
 
-        // 2. Preparar payload para API (Backend Laravel)
-        const itemsPayload = carritoNuevos.value.map(i => ({
-          id: i.id,
-          cantidad: i.cantidad,
-          precio: i.precio,
-          notas: i.notas,
-          modificadores: i.modificadores || null
-        }))
+        // 2. Antes de enviar, forzamos un último guardado del borrador 
+        // por si hubo cambios de última hora (notas, etc)
+        await sincronizarBorrador()
 
-        // 3. Guardar en Base de Datos
-        await api.post(`/api/restaurante/orden/${ordenActualId.value}/actualizar`, { items: itemsPayload })
-        await api.post(`/api/restaurante/orden/${ordenActualId.value}/enviar-cocina`)
-
-        // --- IMPRESIÓN A COCINA (NUEVO) ---
-        // Usamos una copia de los items nuevos antes de limpiar la variable
-        const itemsParaImprimir = [...carritoNuevos.value]
-
-        await PrintService.imprimirTicketCocina(
-            props.mesa ? props.mesa.nombre : `LLEVAR - ${clienteNombre.value || ''}`,
+        // 3. Imprimir el ticket de comanda (físicamente) usando PrintService
+        // Solo enviamos a cocina los items de carritoNuevos
+        const itemsParaImprimir = carritoNuevos.value
+        await PrintService.imprimirComanda(
+            props.mesa ? props.mesa.nombre : 'PARA LLEVAR',
             props.mesero?.name,
             ordenActualId.value,
             itemsParaImprimir
@@ -535,7 +532,7 @@
 
       } catch (e) {
         console.error(e)
-        $q.notify({ message: 'Error procesando la orden', color: 'negative' })
+        $q.notify({ message: 'Error al enviar a cocina', color: 'negative' })
       } finally {
         enviando.value = false
       }
@@ -623,6 +620,7 @@
                 precio: parseFloat(det.precio),
                 cantidad: parseFloat(det.cantidad),
                 notas: det.notas || '',
+                tiempo: det.tiempo || null,
                 uniqueId: Date.now() + Math.random()
             })
         })
@@ -692,12 +690,13 @@
 
       try {
         const itemsPayload = carritoNuevos.value.map(i => ({
-            id: i.id,
-            cantidad: i.cantidad,
-            precio: i.precio,
-            notas: i.notas,
-            modificadores: i.modificadores || null
-        }))
+          id: i.id,
+          cantidad: i.cantidad,
+          precio: i.precio,
+          notas: i.notas,
+          tiempo: i.tiempo || null,
+          modificadores: i.modificadores || null
+      }))
 
         await api.post(`/api/restaurante/orden/${ordenActualId.value}/actualizar`, { items: itemsPayload })
 
