@@ -122,6 +122,11 @@
         <q-item-section>Ventas detalladas</q-item-section>
       </q-item>
 
+      <q-item dense v-if="auth.can('reportes.ventasdetalladas')" clickable v-ripple to="/reportes/ventasporproducto" active-class="custom-active-link" class="menu-item-sub">
+        <q-item-section avatar><q-icon name="inventory_2" /></q-item-section>
+        <q-item-section>Ventas por Producto</q-item-section>
+      </q-item>
+
     <q-item dense v-if="auth.can('reportes.global')" clickable v-ripple to="/inventarioglobal" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="public" /></q-item-section>
         <q-item-section>Inventario Global</q-item-section>
@@ -232,7 +237,7 @@
     comprasExpanded.value = ['/compras', '/proveedores'].some(p => path.includes(p))
     seguridadExpanded.value = ['/sucursales', '/catalogos', '/configuracion', 'restaurante/admin'].some(p => path.includes(p))
     accesoExpanded.value = ['/usuarios', '/roles', '/auditoria', '/backups'].some(p => path.includes(p))
-    reportesExpanded.value = ['/inventarioglobal', '/inventarioxsucursal', '/inventariohistorico', 'reportes/ventasdetalladas'].some(p => path.includes(p))
+    reportesExpanded.value = ['/inventarioglobal', '/inventarioxsucursal', '/inventariohistorico', 'reportes/ventasdetalladas', 'reportes/ventasporproducto'].some(p => path.includes(p))
   }
 
   watch(() => route.path, () => checkRoute())
