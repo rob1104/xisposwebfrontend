@@ -733,10 +733,10 @@
 
 
 
-    onMounted(async () => {
+      onMounted(async () => {
       const [resCat, resProd] = await Promise.all([
         api.get('/api/catalogos/categorias'),
-        api.get('/api/pos/buscar-filtro?q=%')
+        api.get('/api/pos/buscar-filtro?q=%&origen=restaurante')
       ])
       categorias.value = resCat.data.filter(c => c.en_restaurante)
       productos.value = resProd.data.map(p => {
