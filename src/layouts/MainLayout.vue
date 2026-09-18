@@ -106,7 +106,7 @@
           </div>
 
           <div class="text-h5 text-bold text-white ls-tighter">Xis<span style="color:orange;">PosWeb</span></div>
-          <div class="text-caption text-blue-grey-3 q-mt-xs">v1.0.8</div>
+          <div class="text-caption text-blue-grey-3 q-mt-xs">v1.0.9</div>
         </div>
 
         <div class="q-mb-md"></div>

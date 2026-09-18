@@ -157,6 +157,9 @@
 
             <div class="q-gutter-y-md">
               <div class="row justify-between items-center bg-blue-grey-10 q-pa-md rounded-borders">
+                <span class="text-grey-4">Fondo Inicial:</span>
+                <span class="text-h6 font-mono text-light-blue">${{ formatMoney(fondoInicial) }}</span>
+
                 <span class="text-grey-4">Ventas Efectivo:</span>
                 <span class="text-h6 font-mono text-light-green">${{ formatMoney(ventasEfectivo) }}</span>
 
@@ -287,6 +290,7 @@
   const tarjetaEsperado = ref(0)
   const tarjetaContado = ref(0)
   const efectivoEsperado = ref(0)
+  const fondoInicial = ref(0)
 
   //Movimientos de caja
   const movimientos = ref([])
@@ -360,13 +364,15 @@
       await new Promise(resolve => setTimeout(resolve, 2500))
 
       const { data } = await api.get(`/api/pos/balance-turno/${posStore.turno.id}`)
-
+      totales = data
+      
       ventasEfectivo.value = data.ventas_efectivo
       tarjetaEsperado.value = data.tarjeta_esperado
       movimientos.value = data.movimientos || []
       totalEntradas.value = data.total_entradas || 0
       totalRetiros.value = data.total_retiros || 0
-      efectivoEsperado.value = (ventasEfectivo.value + totalEntradas.value) - totalRetiros.value
+      fondoInicial.value = data.detalle?.fondo || 0
+      efectivoEsperado.value = (fondoInicial.value + ventasEfectivo.value + totalEntradas.value) - totalRetiros.value
       totalEsperado.value = efectivoEsperado.value + tarjetaEsperado.value
 
     } catch (e) {
