@@ -202,7 +202,7 @@
         sucursalIds.includes(opt.value)
       )
       const data = { ...props.editData, password: '', sucursales: sucursalesFormateadas, sucursal_activa_id: props.editData.sucursal_activa_id }
-      data.status = parseInt(data.status)
+      data.status = data.status ? 1 : 0
       Object.assign(form, data)
     } else {
       Object.assign(form, { name: '', email: '', role: null, status: 1, password: '', sucursales: [], sucursal_activa_id: null } )

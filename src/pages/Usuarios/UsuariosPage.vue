@@ -166,7 +166,7 @@
 
   // Estadísticas computadas
   const totalUsuarios = computed(() => rows.value.length)
-  const usuariosActivos = computed(() => rows.value.filter(u => u.status === 1).length)
+  const usuariosActivos = computed(() => rows.value.filter(u => !!u.status).length)
 
   const loadUsers = async () => {
     loading.value = true
