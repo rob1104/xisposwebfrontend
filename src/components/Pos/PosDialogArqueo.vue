@@ -348,7 +348,7 @@
     { label: 'Centavos',      valor: 0.50, cantidad: 0 }
   ])
 
-  const diferencia = computed(() => efectivoContado.value - totalEsperado.value)
+  const diferencia = computed(() => diferenciaTotal.value)
   const diferenciaEfectivo = computed(() => efectivoContado.value - efectivoEsperado.value)
   const diferenciaTarjeta = computed(() => tarjetaContado.value - tarjetaEsperado.value)
   const diferenciaTotal = computed(() => diferenciaEfectivo.value + diferenciaTarjeta.value)
@@ -365,12 +365,12 @@
 
       const { data } = await api.get(`/api/pos/balance-turno/${posStore.turno.id}`)
       
-      ventasEfectivo.value = data.ventas_efectivo
-      tarjetaEsperado.value = data.tarjeta_esperado
+      ventasEfectivo.value = parseFloat(data.ventas_efectivo) || 0
+      tarjetaEsperado.value = parseFloat(data.tarjeta_esperado) || 0
       movimientos.value = data.movimientos || []
-      totalEntradas.value = data.total_entradas || 0
-      totalRetiros.value = data.total_retiros || 0
-      fondoInicial.value = data.detalle?.fondo || 0
+      totalEntradas.value = parseFloat(data.total_entradas) || 0
+      totalRetiros.value = parseFloat(data.total_retiros) || 0
+      fondoInicial.value = parseFloat(data.detalle?.fondo) || 0
       efectivoEsperado.value = (fondoInicial.value + ventasEfectivo.value + totalEntradas.value) - totalRetiros.value
       totalEsperado.value = efectivoEsperado.value + tarjetaEsperado.value
 
