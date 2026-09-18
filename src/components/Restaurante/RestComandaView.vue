@@ -1,8 +1,8 @@
 <template>
   <div class="row fit full-height bg-dark-surface">
 
-    <!-- Panel de Productos (Izquierda en Desktop, Full en Mobile) -->
-    <div class="col-12 col-md-8 col-lg-8 column full-height relative-position border-right-dark">
+    <!-- Panel de Productos (Izquierda en Desktop/Tablet, Full en Mobile) -->
+    <div class="col-12 col-sm-7 col-md-8 col-lg-8 column full-height relative-position border-right-dark">
 
       <!-- Header con controles adaptables -->
       <div class="row items-center q-pa-sm q-pa-md-md bg-header shadow-1 header-container">
@@ -102,7 +102,7 @@
           <div
             v-for="prod in productosVisibles"
             :key="prod.id"
-            class="col-4 col-sm-3 col-md-3"
+            class="col-4 col-sm-4 col-md-3"
           >
             <q-card
               class="product-card column full-height cursor-pointer"
@@ -136,10 +136,10 @@
       </q-scroll-area>
     </div>
 
-    <!-- Panel de Ticket (Derecha en Desktop, Drawer en Mobile) -->
+    <!-- Panel de Ticket (Derecha en Desktop/Tablet, Drawer en Mobile) -->
     <div
-      class="col-12 col-md-4 col-lg-4 bg-ticket column shadow-left ticket-panel"
-      :class="{ 'mobile-ticket': $q.screen.lt.md }"
+      class="col-12 col-sm-5 col-md-4 col-lg-4 bg-ticket column shadow-left ticket-panel"
+      :class="{ 'mobile-ticket': $q.screen.lt.sm }"
     >
 
       <div class="q-pa-sm q-pa-md-md bg-dark-header text-white border-bottom-dark">
