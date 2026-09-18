@@ -1,12 +1,12 @@
 <template>
-  <div class="full-height q-pa-md overflow-auto">
+  <div class="full-height q-pa-sm q-md-pa-md overflow-auto">
 
-    <div class="row q-mb-lg justify-end">
+    <div class="row q-mb-md q-md-mb-lg justify-end">
       <q-btn
         push color="deep-orange" icon="takeout_dining"
         label="NUEVA ORDEN PARA LLEVAR"
-        class="q-py-sm q-px-lg text-bold"
-        size="lg"
+        class="q-py-xs q-md-py-sm q-px-md q-md-px-lg text-bold"
+        :size="$q.screen.lt.md ? 'md' : 'lg'"
         @click="$emit('para-llevar')"
       />
     </div>
@@ -15,11 +15,11 @@
       <q-spinner-orbit color="amber" size="4em" />
     </div>
 
-    <div v-else class="row q-col-gutter-lg">
+    <div v-else class="row q-col-gutter-sm q-md-col-gutter-lg">
       <div
         v-for="mesa in mesas"
         :key="mesa.id"
-        class="col-xs-6 col-sm-4 col-md-3 col-lg-2"
+        class="col-xs-4 col-sm-3 col-md-3 col-lg-2"
       >
         <q-card
           v-ripple
@@ -29,15 +29,17 @@
         >
           <q-icon
             :name="mesa.ocupada ? 'restaurant' : 'table_restaurant'"
-            size="3em"
-            class="q-mb-sm opacity-80"
+            :size="$q.screen.lt.md ? '2em' : '3em'"
+            class="q-mb-xs q-md-mb-sm opacity-80"
           />
-          <div class="text-h6 text-bold text-center leading-tight">{{ mesa.nombre }}</div>
-          <div class="text-caption text-uppercase q-mt-xs badge-status">
+          <div class="text-bold text-center leading-tight" :class="$q.screen.lt.md ? 'text-subtitle2' : 'text-h6'">
+            {{ mesa.nombre }}
+          </div>
+          <div class="text-caption text-uppercase q-mt-xs badge-status" :style="$q.screen.lt.md ? 'font-size: 9px; padding: 1px 5px;' : ''">
             {{ mesa.ocupada ? 'OCUPADA' : 'DISPONIBLE' }}
           </div>
 
-          <div v-if="mesa.ocupada" class="text-caption text-yellow q-mt-sm text-bold">
+          <div v-if="mesa.ocupada" class="text-yellow text-bold" :class="$q.screen.lt.md ? 'q-mt-xs text-caption' : 'q-mt-sm'">
             $ {{ mesa.total_actual || '0.00' }}
           </div>
         </q-card>
@@ -90,6 +92,12 @@
     color: white;
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     border: 1px solid rgba(255,255,255,0.1);
+  }
+  @media (max-width: 1023px) {
+    .mesa-card {
+      height: 110px;
+      border-radius: 12px;
+    }
   }
   .mesa-card:hover {
     transform: translateY(-5px);

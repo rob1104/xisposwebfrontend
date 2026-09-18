@@ -47,12 +47,12 @@
       <!-- Área de scroll con productos/categorías -->
       <q-scroll-area class="col q-pa-sm q-pa-md-md">
 
-        <!-- Vista de Categorías -->
+        <!-- Vista de Categoras -->
         <div v-if="!categoriaSeleccionada && !busqueda" class="row q-col-gutter-sm q-col-gutter-md-lg">
           <div
             v-for="cat in categorias"
             :key="cat.id"
-            class="col-6 col-sm-4 col-md-3"
+            class="col-4 col-sm-3 col-md-3"
           >
             <q-card
               v-ripple
@@ -65,27 +65,27 @@
                 class="fit"
                 style="transition: transform 0.3s;"
               >
-                <div class="absolute-full column flex-center bg-dimmed">
-                  <div class="text-subtitle1 text-md-h5 text-bold text-center text-white text-uppercase leading-tight text-shadow">
+                <div class="absolute-full column flex-center bg-dimmed q-pa-xs">
+                  <div class="text-caption text-md-subtitle1 text-bold text-center text-white text-uppercase leading-tight text-shadow" style="line-height: 1.1">
                     {{ cat.nombre }}
                   </div>
-                  <div class="text-caption text-amber q-mt-xs">{{ contarProductos(cat.id) }} productos</div>
+                  <div class="text-caption text-amber q-mt-xs" style="font-size: 9px">{{ contarProductos(cat.id) }} prods</div>
                 </div>
 
                 <template v-slot:error>
-                   <div class="absolute-full column flex-center bg-gradient-default">
-                      <q-icon :name="cat.icono || 'lunch_dining'" size="3em" color="white" class="opacity-80" />
-                      <div class="text-subtitle2 text-bold text-center text-white q-mt-sm">{{ cat.nombre }}</div>
+                   <div class="absolute-full column flex-center bg-gradient-default q-pa-xs">
+                      <q-icon :name="cat.icono || 'lunch_dining'" size="2em" color="white" class="opacity-80" />
+                      <div class="text-caption text-bold text-center text-white q-mt-xs" style="line-height: 1.1">{{ cat.nombre }}</div>
                    </div>
                 </template>
               </q-img>
 
-              <div v-else class="column flex-center fit bg-gradient-default">
-                <q-icon :name="cat.icono || 'lunch_dining'" :size="$q.screen.gt.xs ? '3.5em' : '2.5em'" color="white" class="q-mb-sm opacity-80" />
-                <div class="text-subtitle2 text-md-h6 text-bold text-center text-white text-uppercase leading-tight q-px-sm">
+              <div v-else class="column flex-center fit bg-gradient-default q-pa-xs">
+                <q-icon :name="cat.icono || 'lunch_dining'" :size="$q.screen.gt.xs ? '2.5em' : '1.8em'" color="white" class="q-mb-xs opacity-80" />
+                <div class="text-caption text-md-subtitle2 text-bold text-center text-white text-uppercase leading-tight q-px-xs" style="line-height: 1.1">
                   {{ cat.nombre }}
                 </div>
-                <div class="text-caption text-amber q-mt-xs">{{ contarProductos(cat.id) }} productos</div>
+                <div class="text-caption text-amber q-mt-xs" style="font-size: 9px">{{ contarProductos(cat.id) }} prods</div>
               </div>
             </q-card>
           </div>
@@ -96,13 +96,13 @@
 
           <div v-if="productosVisibles.length === 0" class="col-12 text-center text-grey q-mt-xl">
             <q-icon name="no_food" size="4em" />
-            <div class="text-h6">No hay productos aquí</div>
+            <div class="text-h6">No hay productos aqu</div>
           </div>
 
           <div
             v-for="prod in productosVisibles"
             :key="prod.id"
-            class="col-6 col-sm-4 col-md-3"
+            class="col-4 col-sm-3 col-md-3"
           >
             <q-card
               class="product-card column full-height cursor-pointer"
@@ -111,8 +111,8 @@
             >
               <q-img
                 :src="prod.imagen || 'placeholder_food.png'"
-                :ratio="4/3"
-                class="bg-grey-9"
+                :ratio="1"
+                class="bg-grey-9 col"
               >
                 <template v-slot:error>
                    <div class="absolute-full flex flex-center bg-grey-9 text-grey-8 column">
@@ -120,13 +120,13 @@
                    </div>
                 </template>
 
-                <div class="absolute-bottom-right text-caption text-md-subtitle1 text-bold bg-amber text-black q-px-sm product-price">
+                <div class="absolute-bottom-right text-bold bg-amber text-black q-px-xs product-price" :style="$q.screen.lt.md ? 'font-size: 10px' : 'font-size: 14px'">
                    $ {{ parseFloat(prod.precio).toFixed(2) }}
                 </div>
               </q-img>
 
-              <q-card-section class="q-pa-xs q-pa-sm-sm text-center col flex flex-center bg-card-body">
-                <div class="text-caption text-md-subtitle2 text-white text-uppercase leading-tight">
+              <q-card-section class="q-pa-xs text-center flex flex-center bg-card-body" :style="$q.screen.lt.md ? 'height: 35px' : 'height: 50px'">
+                <div class="text-white text-uppercase leading-tight" :style="$q.screen.lt.md ? 'font-size: 9px; line-height: 1.1' : 'font-size: 12px'">
                   {{ prod.nombre }}
                 </div>
               </q-card-section>
@@ -782,7 +782,7 @@
     min-height: 60px;
   }
 
-  @media (max-width: 599px) {
+  @media (max-width: 1023px) {
     .header-container {
       flex-wrap: wrap;
     }
@@ -813,7 +813,7 @@
     border: 1px solid rgba(255,255,255,0.05);
   }
 
-  @media (max-width: 599px) {
+  @media (max-width: 1023px) {
     .category-card {
       min-height: 100px;
       height: 110px;
@@ -832,7 +832,7 @@
     border: 1px solid rgba(255,255,255,0.05);
   }
 
-  @media (max-width: 599px) {
+  @media (max-width: 1023px) {
     .product-card {
       min-height: 140px;
       height: 150px;
