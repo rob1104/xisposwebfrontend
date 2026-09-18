@@ -96,13 +96,12 @@
     >
       <q-scroll-area class="fit">
         <div class="brand-section q-pa-lg text-center">
-          <div class="logo-wrapper q-mx-auto q-mb-md bg-white rounded-borders q-pa-sm shadow-2">
+          <div class="logo-wrapper q-mx-auto q-mb-md">
             <q-img
               :src="configStore.logoUrl || 'assets/no-logo.png'"
               alt="Logo"
               fit="contain"
               class="logo-img"
-              style="max-width: 65px;"
             />
           </div>
 
@@ -250,13 +249,13 @@
   }
 
   .logo-wrapper {
-    width: 80px;
-    height: 80px;
+    width: 120px;
+    height: 120px;
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Sombra más suave para el logo */
-    filter: drop-shadow(0 8px 12px rgba(0,0,0,0.06));
+    /* Sombra suave para que resalte sin contorno */
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
     transition: transform 0.3s ease;
   }
   .logo-wrapper:hover { transform: scale(1.05); }
