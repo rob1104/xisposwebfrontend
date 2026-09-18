@@ -364,7 +364,6 @@
       await new Promise(resolve => setTimeout(resolve, 2500))
 
       const { data } = await api.get(`/api/pos/balance-turno/${posStore.turno.id}`)
-      totales = data
       
       ventasEfectivo.value = data.ventas_efectivo
       tarjetaEsperado.value = data.tarjeta_esperado
