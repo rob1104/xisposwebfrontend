@@ -96,21 +96,56 @@
       :filter="filter"
     >
       <template v-slot:top>
-        <div class="row items-center full-width">
+        <div class="row items-center full-width q-gutter-sm flex-wrap">
           <div class="text-h5 text-blue-grey-9 text-bold flex items-center">
             <q-icon name="receipt_long" class="q-mr-sm" color="primary" />
             Historial de Ventas
           </div>
           <q-space />
+          
+          <!-- Filtro de Fecha -->
+          <q-select
+            v-model="filtroFecha"
+            :options="opcionesFiltroFecha"
+            dense outlined
+            class="bg-white q-mr-sm"
+            style="min-width: 150px"
+            emit-value map-options
+            @update:model-value="aplicarFiltroFecha"
+          />
+
+          <!-- Selector de Rango Personalizado -->
+          <q-input 
+            v-if="filtroFecha === 'rango'" 
+            v-model="rangoFechasTexto" 
+            dense outlined readonly
+            class="bg-white q-mr-sm"
+            style="width: 220px"
+            placeholder="Seleccionar rango"
+          >
+            <template v-slot:append>
+              <q-icon name="event" class="cursor-pointer">
+                <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                  <q-date v-model="fechaRango" range mask="YYYY-MM-DD" @update:model-value="aplicarFiltroPersonalizado">
+                    <div class="row items-center justify-end">
+                      <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                    </div>
+                  </q-date>
+                </q-popup-proxy>
+              </q-icon>
+            </template>
+          </q-input>
+
           <q-input
             v-model="filter"
             placeholder="Buscar folio o cliente..."
             outlined dense
             class="bg-white"
-            style="width: 350px"
+            style="width: 250px"
           >
             <template v-slot:append><q-icon name="search" /></template>
           </q-input>
+          
           <q-btn
             color="primary"
             icon="point_of_sale"
@@ -282,6 +317,34 @@
   const loading = ref(false)
   const filter = ref('')
 
+  const filtroFecha = ref('hoy')
+  const opcionesFiltroFecha = [
+    { label: 'Hoy', value: 'hoy' },
+    { label: 'Esta Semana', value: 'semana' },
+    { label: 'Este Mes', value: 'mes' },
+    { label: 'Rango Personalizado', value: 'rango' },
+    { label: 'Todo el historial', value: 'todo' }
+  ]
+  const fechaRango = ref(null)
+
+  const rangoFechasTexto = computed(() => {
+    if (!fechaRango.value) return ''
+    if (typeof fechaRango.value === 'string') return fechaRango.value
+    return `${fechaRango.value.from} a ${fechaRango.value.to}`
+  })
+
+  const aplicarFiltroFecha = () => {
+    if (filtroFecha.value !== 'rango') {
+      cargarVentas()
+    }
+  }
+
+  const aplicarFiltroPersonalizado = () => {
+    if (fechaRango.value) {
+      cargarVentas()
+    }
+  }
+
   const dialogoDetalle = ref(false)
   const ventaSeleccionada = ref({ detalles: [], pagos: [] })
 
@@ -386,7 +449,40 @@
   const cargarVentas = async () => {
     loading.value = true
     try {
-      const { data } = await api.get('/api/ventas')
+      let params = {}
+      const hoy = new Date()
+      
+      if (filtroFecha.value === 'hoy') {
+        const d = date.formatDate(hoy, 'YYYY-MM-DD')
+        params = { inicio: d, fin: d }
+      } else if (filtroFecha.value === 'semana') {
+        const tempDate = new Date(hoy)
+        const day = tempDate.getDay()
+        const diff = tempDate.getDate() - day + (day === 0 ? -6 : 1) // adjust when day is sunday
+        const inicio = new Date(tempDate.setDate(diff))
+        const fin = new Date(tempDate.setDate(inicio.getDate() + 6))
+        params = { 
+          inicio: date.formatDate(inicio, 'YYYY-MM-DD'), 
+          fin: date.formatDate(fin, 'YYYY-MM-DD') 
+        }
+      } else if (filtroFecha.value === 'mes') {
+        const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
+        const fin = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0)
+        params = { 
+          inicio: date.formatDate(inicio, 'YYYY-MM-DD'), 
+          fin: date.formatDate(fin, 'YYYY-MM-DD') 
+        }
+      } else if (filtroFecha.value === 'rango') {
+        if (fechaRango.value) {
+          if (typeof fechaRango.value === 'string') {
+             params = { inicio: fechaRango.value, fin: fechaRango.value }
+          } else {
+             params = { inicio: fechaRango.value.from, fin: fechaRango.value.to }
+          }
+        }
+      }
+
+      const { data } = await api.get('/api/ventas', { params })
       ventas.value = data
     } catch (e) {
       $q.notify({ color: 'negative', message: 'Error al cargar historial' })
