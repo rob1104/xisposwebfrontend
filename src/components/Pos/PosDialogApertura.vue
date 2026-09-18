@@ -90,7 +90,7 @@
           unelevated
           :loading="cargando"
           @click="abrirCaja"
-          :disable="!form.fondo_apertura || !supervisorSeleccionado || !form.supervisor_password"
+          :disable="form.fondo_apertura === null || form.fondo_apertura === '' || form.fondo_apertura < 0 || !supervisorSeleccionado || !form.supervisor_password"
         />
       </q-card-actions>
     </q-card>
