@@ -80,7 +80,7 @@
 </template>
 
 <script setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, onMounted } from 'vue'
   import { useAuthStore } from 'src/stores/auth'
   import { date, useQuasar } from 'quasar'
   import { api } from 'src/boot/axios'
@@ -88,7 +88,6 @@
   import RestMapaMesas from 'components/Restaurante/RestMapaMesas.vue'
   import RestComandaView from 'components/Restaurante/RestComandaView.vue'
   import RestMeseroDialog from 'components/Restaurante/RestMeseroDialog.vue'
-
 
   const authStore = useAuthStore()
   const $q = useQuasar()
@@ -100,10 +99,20 @@
   const mesaSeleccionada = ref(null) // Objeto mesa
   const ordenActivaId = ref(null) // ID de la orden (null si es nueva)
   const meseroActivo = ref(null)
+  const hayMeseros = ref(true)
 
   // Computed
   const sucursalNombre = computed(() => authStore.sucursalSeleccionada?.nombre || 'Sucursal Principal')
   const fechaActual = computed(() => date.formatDate(Date.now(), 'DD MMMM YYYY'))
+
+  onMounted(async () => {
+    try {
+      const { data } = await api.get('/api/restaurante/meseros')
+      hayMeseros.value = data.length > 0
+    } catch (e) {
+      console.error(e)
+    }
+  })
 
   // Lógica
   const alSeleccionarMesa = async (mesa) => {
@@ -115,9 +124,13 @@
       // Si está ocupada, cargamos la orden existente directa
       abrirComandaExistente(mesa.id)
     } else {
-      // Si está libre, pedimos mesero
-      meseroActivo.value = authStore.user // Por defecto el usuario logueado
-      showMeseroDialog.value = true
+      // Si está libre
+      if (!hayMeseros.value) {
+        iniciarOrden(authStore.user)
+      } else {
+        meseroActivo.value = authStore.user // Por defecto el usuario logueado
+        showMeseroDialog.value = true
+      }
     }
   }
 
