@@ -32,8 +32,10 @@
             v-model="auth.sucursalSeleccionada"
             :options="sucursales"
             option-label="nombre"
+            option-value="id"
             dense borderless
             options-dense
+            hide-selected
             color="white"
             class="branch-select"
             @update:model-value="cambiarSucursal"
@@ -106,7 +108,7 @@
           </div>
 
           <div class="text-h5 text-bold text-white ls-tighter">Xis<span style="color:orange;">PosWeb</span></div>
-          <div class="text-caption text-blue-grey-3 q-mt-xs">v1.0.10</div>
+          <div class="text-caption text-blue-grey-3 q-mt-xs">v1.0.11</div>
         </div>
 
         <div class="q-mb-md"></div>
@@ -135,10 +137,12 @@
             v-model="branchToSelect"
             :options="auth.can('sucursales.ver') && sucursales.length ? sucursales : auth.sucursales"
             option-label="nombre"
+            option-value="id"
             label="Sucursal"
             filled
             autofocus
             options-dense
+            hide-selected
           >
             <template v-slot:prepend>
               <q-icon name="storefront" />
@@ -207,6 +211,7 @@
   }
 
   const cambiarSucursal = (nuevaSucursal) => {
+    if (!nuevaSucursal) return
     $q.loading.show({ message: `Cambiando a ${nuevaSucursal.nombre}...` })
     auth.setSucursal(nuevaSucursal)
     setTimeout(() => {
