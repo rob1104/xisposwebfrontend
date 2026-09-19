@@ -106,12 +106,13 @@
   const fechaActual = computed(() => date.formatDate(Date.now(), 'DD MMMM YYYY'))
 
   // Lógica
-  const alSeleccionarMesa = (mesa) => {
+  const alSeleccionarMesa = async (mesa) => {
     mesaSeleccionada.value = mesa
-
-    if (mesa.ocupada) {
+    if (mesa.is_para_llevar) {
+      ordenActivaId.value = mesa.orden_id
+      vistaActual.value = 'comanda'
+    } else if (mesa.ocupada) {
       // Si está ocupada, cargamos la orden existente directa
-      // (Asumimos que el componente mapa nos pasa el ID de orden si existe, o lo buscamos)
       abrirComandaExistente(mesa.id)
     } else {
       // Si está libre, pedimos mesero
