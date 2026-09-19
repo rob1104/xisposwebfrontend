@@ -10,7 +10,7 @@
         <q-select
           v-if="auth.roles[0] !== 'Cajero'"
           v-model="sucursalFiltro"
-          :options="auth.sucursales"
+          :options="sucursalesLista"
           option-label="nombre"
           option-value="id"
           emit-value
@@ -133,6 +133,11 @@
   const apexchart = VueApexCharts
   const loading = ref(true)
   const sucursalFiltro = ref(auth.sucursalSeleccionada?.id)
+  const sucursalesLista = ref(
+    auth.sucursales?.length 
+      ? auth.sucursales 
+      : (auth.sucursalSeleccionada ? [auth.sucursalSeleccionada] : [])
+  )
 
   // Refs para datos reales
   const kpis = ref([])
@@ -177,6 +182,11 @@
   const fetchDashboardData = async () => {
     loading.value = true
     try {
+      if (auth.can('sucursales.ver') && sucursalesLista.value.length === 0) {
+        const res = await api.get('/api/sucursales')
+        sucursalesLista.value = res.data
+      }
+
       const { data } = await api.get('/api/dashboard/summary', {
         params: { sucursal_id: sucursalFiltro.value }
       })
