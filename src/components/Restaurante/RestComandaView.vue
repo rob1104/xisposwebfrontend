@@ -592,10 +592,8 @@
 
         await PrintService.imprimirCuenta(
             orden,
-            props.mesa ? props.mesa.nombre : 'PARA LLEVAR',
+            props.mesa ? props.mesa.nombre : (clienteNombre.value ? `LLEVAR: ${clienteNombre.value}` : 'PARA LLEVAR'),
             props.mesero?.name
-            // Nota: El PrintService ya toma orden.codigo, pero asegúrate
-            // que tu ordenActualizada traiga el campo 'codigo' desde Laravel.
         )
 
         $q.notify({ message: 'Estado de cuenta impreso', color: 'positive', icon: 'receipt' })
@@ -630,6 +628,8 @@
 
       try {
         const { data } = await api.get(`/api/restaurante/orden/${ordenActualId.value}`)
+
+        if (data.nombre_cliente) clienteNombre.value = data.nombre_cliente
 
         carritoEnviados.value = []
         carritoNuevos.value = []
@@ -753,7 +753,18 @@
       if (props.ordenId) await cargarOrdenActual()
       else if (!props.mesa) {
         $q.dialog({ title: 'Cliente', message: 'Nombre (Para Llevar):', prompt: { model: '', type: 'text' } })
-          .onOk(data => clienteNombre.value = data)
+          .onOk(async (data) => {
+            clienteNombre.value = data
+            try {
+              const res = await api.post('/api/restaurante/abrir-orden', {
+                mesa_id: null,
+                nombre_cliente: clienteNombre.value
+              })
+              ordenActualId.value = res.data.id
+            } catch (e) {
+              $q.notify({ message: 'Error al iniciar orden para llevar', color: 'negative' })
+            }
+          })
           .onCancel(() => emit('finalizar'))
       }
     })

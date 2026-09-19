@@ -130,8 +130,15 @@
     meseroActivo.value = usuarioMesero
     showMeseroDialog.value = false
     if (mesaSeleccionada.value) {
-        await abrirComandaExistente(mesaSeleccionada.value.id)
+        if (mesaSeleccionada.value.is_para_llevar) {
+            ordenActivaId.value = mesaSeleccionada.value.orden_id
+            vistaActual.value = 'comanda'
+        } else {
+            await abrirComandaExistente(mesaSeleccionada.value.id)
+        }
     } else {
+        // Para llevar (Nueva)
+        ordenActivaId.value = null
         vistaActual.value = 'comanda'
     }
   }

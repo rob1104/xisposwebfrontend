@@ -24,11 +24,11 @@
         <q-card
           v-ripple
           class="mesa-card column flex-center cursor-pointer transition-generic"
-          :class="mesa.ocupada ? 'bg-ocupada' : 'bg-libre'"
+          :class="mesa.is_para_llevar ? 'bg-orange-8' : (mesa.ocupada ? 'bg-ocupada' : 'bg-libre')"
           @click="$emit('seleccionar', mesa)"
         >
           <q-icon
-            :name="mesa.ocupada ? 'restaurant' : 'table_restaurant'"
+            :name="mesa.is_para_llevar ? 'takeout_dining' : (mesa.ocupada ? 'restaurant' : 'table_restaurant')"
             :size="$q.screen.lt.md ? '2em' : '3em'"
             class="q-mb-xs q-md-mb-sm opacity-80"
           />
@@ -36,7 +36,7 @@
             {{ mesa.nombre }}
           </div>
           <div class="text-caption text-uppercase q-mt-xs badge-status" :style="$q.screen.lt.md ? 'font-size: 9px; padding: 1px 5px;' : ''">
-            {{ mesa.ocupada ? 'OCUPADA' : 'DISPONIBLE' }}
+            {{ mesa.is_para_llevar ? 'EN PROCESO' : (mesa.ocupada ? 'OCUPADA' : 'DISPONIBLE') }}
           </div>
 
           <div v-if="mesa.ocupada" class="text-yellow text-bold" :class="$q.screen.lt.md ? 'q-mt-xs text-caption' : 'q-mt-sm'">
