@@ -75,7 +75,7 @@
         <q-space />
 
         <q-select
-          v-if="auth.roles[0] === 'Administrador'"
+          v-if="auth.roles?.[0] === 'Administrador'"
           v-model="sucursalFiltroId"
           :options="sucursales"
           option-label="nombre"

@@ -19,7 +19,7 @@
 
     <q-card flat class="q-pa-lg q-mb-xl shadow-2 border-radius-20 bg-white">
       <div class="row q-col-gutter-lg items-center">
-        <div class="col-12 col-md-4" v-if="auth.roles[0] === 'Administrador'">
+        <div class="col-12 col-md-4" v-if="auth.roles?.[0] === 'Administrador'">
           <div class="text-caption text-bold text-primary q-mb-xs text-uppercase">Sede de Consulta</div>
           <q-select
             v-model="sucursalId"

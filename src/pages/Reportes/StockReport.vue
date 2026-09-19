@@ -129,7 +129,7 @@ const sucursalSeleccionada = computed({
   }
 })
 
-const esAdmin = computed(() => auth.roles[0] === 'Administrador')
+const esAdmin = computed(() => auth.roles?.[0] === 'Administrador')
 
 const formatCant = (val) => Number(val) // Smart Decimals
 

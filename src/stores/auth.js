@@ -4,7 +4,7 @@ import { api } from 'src/boot/axios'
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: JSON.parse(localStorage.getItem('user')) || null,
-    roles: localStorage.getItem('roles') || null,
+    roles: JSON.parse(localStorage.getItem('roles')) || [],
     token: localStorage.getItem('token') || null,
     sucursales: [],
     sucursalSeleccionada: null,

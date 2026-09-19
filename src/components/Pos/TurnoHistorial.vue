@@ -167,7 +167,7 @@
 
       const params = {}
 
-      if(auth.roles[0] === 'Cajero') {
+      if(auth.roles?.[0] === 'Cajero') {
         params.user_id = auth.user.id
       }
       else {

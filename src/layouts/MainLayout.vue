@@ -58,7 +58,7 @@
 
             <div class="column items-start q-ml-sm gt-xs">
               <div class="text-subtitle2 text-bold lh-1 text-white">{{ auth.user?.name }}</div>
-              <div class="text-caption text-white" style="font-size: 10px; opacity: 0.8">{{ auth.roles[0] }}</div>
+              <div class="text-caption text-white" style="font-size: 10px; opacity: 0.8">{{ auth.roles?.[0] }}</div>
             </div>
             <q-icon name="keyboard_arrow_down" size="xs" color="white" class="q-ml-xs" />
           </div>

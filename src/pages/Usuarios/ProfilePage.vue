@@ -10,7 +10,7 @@
         <div class="text-h4 text-bold text-blue-grey-10 ls-1">{{ auth.user?.name }}</div>
         <div class="text-subtitle1 text-grey-7">{{ auth.user?.email }}</div>
         <q-chip color="blue-grey-10" text-color="white" icon="verified_user" class="q-mt-sm">
-          {{ auth.roles[0] || 'Usuario' }}
+          {{ auth.roles?.[0] || 'Usuario' }}
         </q-chip>
       </div>
     </div>

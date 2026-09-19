@@ -89,7 +89,7 @@
         </div>
 
         <div class="row q-col-gutter-lg q-mb-sm">
-         <div class="col-12 col-md-4" v-if="auth.roles[0] === 'Administrador'">
+         <div class="col-12 col-md-4" v-if="auth.roles?.[0] === 'Administrador'">
           <q-select
             v-model="compra.sucursale_id"
             :options="auth.sucursales"
