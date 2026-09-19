@@ -35,7 +35,6 @@
             option-value="id"
             dense borderless
             options-dense
-            hide-selected
             color="white"
             class="branch-select"
             @update:model-value="cambiarSucursal"
@@ -108,7 +107,7 @@
           </div>
 
           <div class="text-h5 text-bold text-white ls-tighter">Xis<span style="color:orange;">PosWeb</span></div>
-          <div class="text-caption text-blue-grey-3 q-mt-xs">v1.0.11</div>
+          <div class="text-caption text-blue-grey-3 q-mt-xs">v1.0.12</div>
         </div>
 
         <div class="q-mb-md"></div>
@@ -142,7 +141,6 @@
             filled
             autofocus
             options-dense
-            hide-selected
           >
             <template v-slot:prepend>
               <q-icon name="storefront" />
