@@ -260,7 +260,7 @@
     }
   }
 
-  const tempPartida = ref({ producto_id: null, nombre: '', cantidad: 1, costo_unitario: 0 })
+  const tempPartida = ref({ producto_id: null, nombre: '', cantidad: 1, costo_unitario: 0, impuesto_porcentaje: 0 })
 
   const columnasPartidas = [
     { name: 'nombre', label: 'Producto / Descripción', field: 'nombre', align: 'left', classes: 'text-bold' },
@@ -272,7 +272,7 @@
 
   const totales = computed(() => {
     const subtotal = compra.value.detalles.reduce((sum, item) => sum + (item.cantidad * item.costo_unitario), 0)
-    const iva = subtotal * 0.16
+    const iva = compra.value.detalles.reduce((sum, item) => sum + (item.cantidad * item.costo_unitario * (item.impuesto_porcentaje || 0)), 0)
     return { subtotal, iva, total: subtotal + iva }
   })
 
@@ -300,7 +300,14 @@
 
   const prepararPartida = (val) => {
     if (!val) return
-    tempPartida.value = { producto_id: val.id, nombre: val.nombre, cantidad: 1, costo_unitario: val.ultimo_costo || 0 }
+    const impPorcentaje = val.impuestos ? val.impuestos.reduce((acc, imp) => acc + parseFloat(imp.porcentaje), 0) / 100 : 0
+    tempPartida.value = { 
+      producto_id: val.id, 
+      nombre: val.nombre, 
+      cantidad: 1, 
+      costo_unitario: val.ultimo_costo || 0,
+      impuesto_porcentaje: impPorcentaje
+    }
   }
 
   const agregarAlDetalle = () => {
@@ -310,7 +317,7 @@
     }
     compra.value.detalles.push({ ...tempPartida.value })
     busquedaProducto.value = null
-    tempPartida.value = { producto_id: null, nombre: '', cantidad: 1, costo_unitario: 0 }
+    tempPartida.value = { producto_id: null, nombre: '', cantidad: 1, costo_unitario: 0, impuesto_porcentaje: 0 }
   }
 
   const eliminarPartida = (row) => {

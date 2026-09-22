@@ -2,7 +2,7 @@
   "name": "xisposfrontend",
   "version": "0.0.1",
   "description": "Frontend para el sistema Web XisPOS Punto de venta",
-  "productName": "XisPOS 3.0 (FrontEnd)",
+  "productName": "XisPOS Web 3.0",
   "author": "Robbie Escamilla (Computadora Xis) <rescamillamtz@gmail.com>",
   "type": "module",
   "private": true,
