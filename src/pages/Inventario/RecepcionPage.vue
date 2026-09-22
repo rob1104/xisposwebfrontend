@@ -28,11 +28,21 @@
           </q-card-section>
 
           <q-card-section class="q-pa-lg">
-            <div class="row items-center q-mb-md">
-              <q-icon name="location_on" color="primary" size="sm" class="q-mr-sm" />
-              <div>
-                <div class="text-caption text-grey-7">Origen del Traspaso</div>
-                <div class="text-bold text-subtitle1">{{ t.sucursal_origen?.nombre }}</div>
+            <div class="row justify-between q-mb-md">
+              <div class="row items-center">
+                <q-icon name="location_on" color="primary" size="sm" class="q-mr-sm" />
+                <div>
+                  <div class="text-caption text-grey-7">Origen del Traspaso</div>
+                  <div class="text-bold text-subtitle1">{{ t.sucursal_origen?.nombre }}</div>
+                </div>
+              </div>
+              
+              <div class="row items-center text-right">
+                <div class="q-mr-sm">
+                  <div class="text-caption text-grey-7">Sucursal Destino</div>
+                  <div class="text-bold text-subtitle1">{{ t.sucursal_destino?.nombre }}</div>
+                </div>
+                <q-icon name="storefront" color="orange-8" size="sm" />
               </div>
             </div>
 
