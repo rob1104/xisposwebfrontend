@@ -20,47 +20,58 @@
 
       <div v-for="t in pendientes" :key="t.id" class="col-12 col-md-6 col-lg-4">
         <q-card class="transfer-card shadow-10 border-radius-20 overflow-hidden">
-          <q-card-section class="bg-indigo-7 text-white q-pa-md">
-            <div class="row justify-between items-center">
-              <div class="text-h6">Folio #{{ t.id }}</div>
-              <q-badge color="orange-4" text-color="black" class="text-bold">EN TRÁNSITO</q-badge>
+          <q-card-section class="bg-indigo-7 text-white q-pa-md row items-center justify-between">
+            <div class="row items-center">
+              <q-icon name="local_shipping" size="md" class="q-mr-sm" />
+              <div>
+                <div class="text-bold" style="font-size: 1.1rem;">Traspaso #{{ t.id }}</div>
+                <div class="text-caption" style="opacity: 0.8">{{ formatDate(t.fecha_envio) }}</div>
+              </div>
             </div>
+            <q-badge color="orange-4" text-color="black" class="text-bold q-px-sm q-py-xs border-radius-10">EN TRÁNSITO</q-badge>
           </q-card-section>
 
-          <q-card-section class="q-pa-lg">
-            <div class="row justify-between q-mb-md">
-              <div class="row items-center">
-                <q-icon name="location_on" color="primary" size="sm" class="q-mr-sm" />
-                <div>
-                  <div class="text-caption text-grey-7">Origen del Traspaso</div>
-                  <div class="text-bold text-subtitle1">{{ t.sucursal_origen?.nombre }}</div>
-                </div>
+          <q-card-section class="q-pa-md">
+            <div class="row items-center justify-center q-my-sm">
+              <!-- Origen -->
+              <div class="col text-center">
+                <q-icon name="outbox" color="grey-6" size="sm" class="q-mb-xs" />
+                <div class="text-caption text-uppercase text-grey-6 text-bold">Origen</div>
+                <div class="text-bold text-blue-grey-9 text-subtitle2 ellipsis">{{ t.sucursal_origen?.nombre }}</div>
+              </div>
+
+              <!-- Flecha -->
+              <div class="col-auto text-center q-px-sm">
+                <q-icon name="arrow_forward" color="indigo-4" size="md" />
               </div>
               
-              <div class="row items-center text-right">
-                <div class="q-mr-sm">
-                  <div class="text-caption text-grey-7">Sucursal Destino</div>
-                  <div class="text-bold text-subtitle1">{{ t.sucursal_destino?.nombre }}</div>
-                </div>
-                <q-icon name="storefront" color="orange-8" size="sm" />
+              <!-- Destino -->
+              <div class="col text-center">
+                <q-icon name="move_to_inbox" color="orange-8" size="sm" class="q-mb-xs" />
+                <div class="text-caption text-uppercase text-orange-9 text-bold">Destino</div>
+                <div class="text-bold text-orange-9 text-subtitle2 ellipsis">{{ t.sucursal_destino?.nombre }}</div>
               </div>
             </div>
 
-            <q-separator q-my-md />
+            <q-separator class="q-my-md" />
 
-            <div class="row justify-between q-mt-sm">
-              <div class="column">
-                <span class="text-caption text-grey-7">Enviado por</span>
-                <span class="text-weight-medium text-blue-grey-8">{{ t.user_envia?.name }}</span>
+            <div class="row items-center bg-grey-1 q-pa-sm border-radius-10">
+              <q-avatar size="32px" color="indigo-1" text-color="indigo-7" class="q-mr-sm">
+                {{ t.user_envia?.name ? t.user_envia.name.charAt(0).toUpperCase() : '?' }}
+              </q-avatar>
+              <div>
+                <div class="text-caption text-grey-6 lh-1">Enviado por</div>
+                <div class="text-bold text-blue-grey-8 text-body2 lh-1">{{ t.user_envia?.name }}</div>
               </div>
-              <div class="column items-end">
-                <span class="text-caption text-grey-7">Fecha de Envío</span>
-                <span class="text-weight-medium text-blue-grey-8">{{ formatDate(t.fecha_envio) }}</span>
+              <q-space />
+              <div class="text-right">
+                <div class="text-caption text-grey-6 lh-1">Artículos</div>
+                <div class="text-bold text-indigo-7 text-body2 lh-1">{{ t.detalles?.length || 0 }}</div>
               </div>
             </div>
           </q-card-section>
 
-          <q-card-actions class="q-pa-md bg-grey-1">
+          <q-card-actions class="q-pa-md q-pt-none">
             <q-btn
               label="Verificar Productos"
               color="indigo-7"
