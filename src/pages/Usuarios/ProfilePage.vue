@@ -3,7 +3,7 @@
     <div class="row q-col-gutter-lg items-center q-mb-xl">
       <div class="col-12 col-md-auto">
         <q-avatar size="120px" class="bg-primary text-white shadow-10 border-white-4">
-          {{ auth.user?.name?.charAt(0).toUpperCase() }}
+          {{ auth.user?.name ? auth.user.name.charAt(0).toUpperCase() : '' }}
         </q-avatar>
       </div>
       <div class="col-12 col-md">

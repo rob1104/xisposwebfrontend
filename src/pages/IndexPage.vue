@@ -8,7 +8,7 @@
       <q-space />
       <div class="col-12 col-md-3">
         <q-select
-          v-if="auth.roles?.[0] !== 'Cajero'"
+          v-if="auth.roles?.[0] !== 'Cajero' && sucursalesLista.length > 1"
           v-model="sucursalFiltro"
           :options="sucursalesLista"
           option-label="nombre"
@@ -182,9 +182,11 @@
   const fetchDashboardData = async () => {
     loading.value = true
     try {
-      if (auth.can('sucursales.ver') && sucursalesLista.value.length === 0) {
+      if (auth.isAdmin) {
         const res = await api.get('/api/sucursales')
         sucursalesLista.value = res.data
+      } else {
+        sucursalesLista.value = auth.sucursales || []
       }
 
       const { data } = await api.get('/api/dashboard/summary', {

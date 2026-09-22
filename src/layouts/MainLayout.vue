@@ -27,7 +27,7 @@
           </div>
         </q-toolbar-title>
 
-        <div v-if="auth.can('sucursales.ver')" class="row items-center q-gutter-sm q-mr-lg gt-xs">
+        <div v-if="sucursales.length > 1" class="row items-center q-gutter-sm q-mr-lg gt-xs">
           <q-select
             v-model="auth.sucursalSeleccionada"
             :options="sucursales"
@@ -48,12 +48,12 @@
           </q-select>
         </div>
 
-        <q-separator vertical inset class="q-mx-md bg-white" style="opacity: 0.3" v-if="auth.can('sucursales.ver')" />
+        <q-separator vertical inset class="q-mx-md bg-white" style="opacity: 0.3" v-if="sucursales.length > 1" />
 
         <q-btn flat no-caps class="q-pl-sm q-pr-xs rounded-borders hover-effect text-white">
           <div class="row items-center no-wrap">
             <q-avatar size="36px" class="bg-white text-primary shadow-2 text-bold">
-              {{ auth.user?.name?.charAt(0).toUpperCase() }}
+              {{ auth.user?.name ? auth.user.name.charAt(0).toUpperCase() : '' }}
             </q-avatar>
 
             <div class="column items-start q-ml-sm gt-xs">
@@ -107,7 +107,7 @@
           </div>
 
           <div class="text-h5 text-bold text-white ls-tighter">Xis<span style="color:orange;">PosWeb</span></div>
-          <div class="text-caption text-blue-grey-3 q-mt-xs">v1.0.12</div>
+          <div class="text-caption text-blue-grey-3 q-mt-xs">v1.0.13</div>
         </div>
 
         <div class="q-mb-md"></div>
@@ -134,7 +134,7 @@
         <q-card-section class="q-pt-md">
           <q-select
             v-model="branchToSelect"
-            :options="auth.can('sucursales.ver') && sucursales.length ? sucursales : auth.sucursales"
+            :options="sucursales"
             option-label="nombre"
             option-value="id"
             label="Sucursal"
@@ -200,11 +200,13 @@
   })
 
   const cargarSucursales = async () => {
-    if (auth.can('sucursales.ver')) {
+    if (auth.isAdmin) {
       try {
         const { data } = await api.get('/api/sucursales')
         sucursales.value = data
       } catch (e) { console.error(e) }
+    } else {
+      sucursales.value = auth.sucursales || []
     }
   }
 

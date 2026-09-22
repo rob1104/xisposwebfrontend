@@ -40,7 +40,7 @@
           <q-td :props="props">
             <div class="row items-center">
               <q-avatar size="32px" color="cyan-1 text-cyan-9" class="text-bold q-mr-sm">
-                {{ props.row.user?.name.charAt(0).toUpperCase() }}
+                {{ props.row.user ? props.row.user.name.charAt(0).toUpperCase() : '?' }}
               </q-avatar>
               <div class="text-bold text-blue-grey-9">{{ props.row.user?.name }}</div>
             </div>
