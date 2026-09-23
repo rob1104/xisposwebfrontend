@@ -71,15 +71,26 @@
             </div>
           </q-card-section>
 
-          <q-card-actions class="q-pa-md q-pt-none">
-            <q-btn
-              label="Verificar Productos"
-              color="indigo-7"
-              unelevated
-              class="full-width text-bold border-radius-10"
-              icon="fact_check"
-              @click="openRecepcion(t)"
-            />
+          <q-card-actions class="q-pa-md q-pt-none row q-col-gutter-sm">
+            <div class="col-8">
+              <q-btn
+                label="Verificar"
+                color="indigo-7"
+                unelevated
+                class="full-width text-bold border-radius-10"
+                icon="fact_check"
+                @click="openRecepcion(t)"
+              />
+            </div>
+            <div class="col-4">
+              <q-btn
+                label="Cancelar"
+                color="red-8"
+                outline
+                class="full-width text-bold border-radius-10"
+                @click="confirmarCancelacion(t)"
+              />
+            </div>
           </q-card-actions>
         </q-card>
       </div>
@@ -242,6 +253,32 @@
       cantidad_recibida: parseFloat(d.cantidad_enviada)
     }))
     dialog.value = true
+  }
+
+  const confirmarCancelacion = (transfer) => {
+    $q.dialog({
+      title: 'Confirmar Cancelación',
+      message: `¿Estás seguro de cancelar el traspaso #${transfer.id}? La mercancía será devuelta al inventario de la sucursal de origen.`,
+      cancel: true,
+      persistent: true,
+      color: 'red-8'
+    }).onOk(async () => {
+      try {
+        $q.loading.show()
+        const res = await api.post(`/api/transferencias/cancelar/${transfer.id}`)
+        $q.notify({ color: 'positive', message: 'Traspaso cancelado y stock devuelto al origen', icon: 'check' })
+        
+        if (res.data.id) {
+          descargarPDF(res.data.id)
+        }
+
+        loadPendientes()
+      } catch (e) {
+        $q.notify({ color: 'negative', message: e.response?.data?.message || 'Error al cancelar el traspaso' })
+      } finally {
+        $q.loading.hide()
+      }
+    })
   }
 
   const confirmRecepcion = async () => {
