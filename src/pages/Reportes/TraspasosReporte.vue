@@ -83,9 +83,10 @@
             <q-td>
               <div class="text-bold">{{ props.row.sucursal_destino?.nombre || 'N/A' }}</div>
               <div class="text-caption text-grey-6" v-if="props.row.estatus === 'Recibido'">Recibido por: {{ props.row.user_recibe?.name || 'N/A' }}</div>
+              <div class="text-caption text-red-6" v-else-if="props.row.estatus === 'Cancelado'">Cancelado por: {{ props.row.user_recibe?.name || 'N/A' }}</div>
             </q-td>
             <q-td class="text-center">
-              <q-badge :color="props.row.estatus === 'Recibido' ? 'positive' : 'orange-8'" class="text-bold q-px-sm">
+              <q-badge :color="props.row.estatus === 'Recibido' ? 'positive' : (props.row.estatus === 'Cancelado' ? 'red-8' : 'orange-8')" class="text-bold q-px-sm">
                 {{ props.row.estatus }}
               </q-badge>
             </q-td>
@@ -220,7 +221,7 @@
       Sucursal_Destino: r.sucursal_destino?.nombre || '',
       Estatus: r.estatus,
       Fecha_Recepcion: formatDateTime(r.fecha_recepcion),
-      Usuario_Recibe: r.user_recibe?.name || '',
+      Usuario_Involucrado: r.user_recibe?.name || '',
       Productos: r.detalles?.map(d => `${d.producto?.nombre || 'Desconocido'} - ${Number(d.cantidad_enviada)} uds`).join('\n') || '',
       Total_Articulos_Enviados: Number(calcularArticulos(r.detalles))
     }))
