@@ -25,7 +25,7 @@
             <div class="text-caption text-bold text-grey-7 q-mb-xs">Fecha de Fin</div>
             <q-input outlined dense v-model="filtros.fin" type="date" color="primary" class="bg-grey-1" />
           </div>
-          <div class="col-12 col-md-3" v-if="auth.isAdmin">
+          <div class="col-12 col-md-3">
             <div class="text-caption text-bold text-grey-7 q-mb-xs">Sucursal Involucrada</div>
             <q-select outlined dense v-model="filtros.sucursal" :options="sucursales" option-label="nombre" option-value="id" class="bg-grey-1" clearable placeholder="Todas las Sucursales" />
           </div>
@@ -260,7 +260,11 @@
 
   onMounted(() => {
     cargarReporte()
-    if (auth.isAdmin) api.get('/api/sucursales').then(r => sucursales.value = r.data)
+    if (auth.isAdmin) {
+      api.get('/api/sucursales').then(r => sucursales.value = r.data)
+    } else {
+      sucursales.value = auth.sucursales
+    }
   })
 </script>
 
