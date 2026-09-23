@@ -147,11 +147,11 @@
       border: 'border-primary-left'
     },
     {
-      label: 'Total Artículos',
-      value: Number(kpisRaw.value?.total_articulos || 0).toFixed(2),
-      color: 'text-purple',
-      icon: 'inventory_2',
-      border: 'border-purple-left'
+      label: 'Cancelados',
+      value: kpisRaw.value?.cancelados || 0,
+      color: 'text-red-8',
+      icon: 'cancel',
+      border: 'border-red-left'
     },
     {
       label: 'Pendientes',

@@ -80,7 +80,7 @@
 
       <q-item dense v-if="auth.can('inventario.transferir')" clickable v-ripple to="/transferencias" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="local_shipping" /></q-item-section>
-        <q-item-section>Transferencias</q-item-section>
+        <q-item-section>Transferir Mercancia</q-item-section>
       </q-item>
 
       <q-item dense v-if="auth.can('inventario.recibir')" clickable v-ripple to="/recibir" active-class="custom-active-link" class="menu-item-sub">
@@ -136,7 +136,7 @@
         <q-item-section avatar><q-icon name="location_on" /></q-item-section>
         <q-item-section>Inventario por Sucursal</q-item-section>
       </q-item>
-      
+
       <q-item dense v-if="auth.can('reportes.traspasos')" clickable v-ripple to="/reportes/traspasos" active-class="custom-active-link" class="menu-item-sub">
         <q-item-section avatar><q-icon name="sync_alt" /></q-item-section>
         <q-item-section>Reporte de Traspasos</q-item-section>
@@ -253,7 +253,7 @@
   .menu-list {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
-  
+
   .menu-header {
     text-transform: uppercase;
     font-weight: 700;
@@ -272,23 +272,23 @@
     color: #cbd5e1; /* Slate 300 */
     font-weight: 500;
     transition: all 0.2s ease;
-    
+
     &:hover {
       background: rgba(255, 255, 255, 0.05);
       color: white;
     }
-    
+
     :deep(.q-item__section--avatar) {
       min-width: 40px;
       padding-right: 12px;
     }
 
     .q-icon {
-      font-size: 1.3rem; 
+      font-size: 1.3rem;
       color: #94a3b8; /* Slate 400 */
       transition: color 0.2s ease;
     }
-    
+
     &:hover .q-icon {
       color: white;
     }
@@ -305,13 +305,13 @@
     color: #94a3b8; /* Slate 400 */
     border-left: 2px solid transparent;
     transition: all 0.2s ease;
-    
+
     &:hover {
       background: rgba(255, 255, 255, 0.05);
       color: white;
       border-left-color: rgba(255, 255, 255, 0.2);
     }
-    
+
     :deep(.q-item__section--avatar) {
       min-width: 36px;
       padding-right: 10px;
@@ -327,12 +327,12 @@
     background: rgba(255, 255, 255, 0.1) !important;
     color: white !important;
     font-weight: 600 !important;
-    
+
     &.menu-item-sub {
       border-left: 2px solid $primary !important;
       background: linear-gradient(90deg, rgba($primary, 0.15) 0%, rgba(255,255,255,0.05) 100%) !important;
     }
-    
+
     &.menu-item {
       /* Top level items active state */
       border-left: 3px solid $primary;
@@ -352,7 +352,7 @@
     color: #cbd5e1;
     transition: all 0.2s ease;
     padding-left: 16px;
-    
+
     &:hover {
       background: rgba(255, 255, 255, 0.05);
       color: white;
@@ -362,13 +362,13 @@
       min-width: 40px;
       padding-right: 12px;
     }
-    
+
     .q-icon {
       font-size: 1.3rem;
       color: #94a3b8;
     }
   }
-  
+
   :deep(.q-expansion-item--expanded > .q-expansion-item__container > .menu-expansion-header) {
     color: white;
     font-weight: 600;
