@@ -285,12 +285,18 @@
     loading.value = true
     try {
       // El backend espera 'id' y 'cantidad' por producto
-      await api.post('/api/transferencias/enviar', transfer)
+      const res = await api.post('/api/transferencias/enviar', transfer)
       $q.notify({
         color: 'positive',
         message: 'Operación exitosa: Salida registrada en inventario',
         icon: 'local_shipping'
       })
+      
+      // Descargar PDF automáticamente
+      if (res.data.id) {
+        descargarPDF(res.data.id);
+      }
+
       resetForm()
     } catch (e) {
       $q.notify({
@@ -299,6 +305,23 @@
       })
     } finally {
       loading.value = false
+    }
+  }
+
+  const descargarPDF = async (id) => {
+    try {
+      $q.notify({ message: 'Generando comprobante PDF...', color: 'info' })
+      const response = await api.get(`/api/transferencias/${id}/pdf`, { responseType: 'blob' })
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `Comprobante_Traspaso_${id}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      $q.notify({ color: 'negative', message: 'Error al descargar el PDF' })
     }
   }
 

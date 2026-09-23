@@ -253,15 +253,37 @@
     saving.value = true
     try {
       // LLamamos al backend que registrará la ENTRADA POR TRASPASO en el KARDEX
-      await api.post(`/api/transferencias/recibir/${selectedTransfer.value.id}`, {
+      const res = await api.post(`/api/transferencias/recibir/${selectedTransfer.value.id}`, {
         productos: receptionList.value
       })
       $q.notify({ color: 'positive', message: 'Inventario actualizado: Stock ingresado correctamente', icon: 'check' })
+      
+      if (res.data.id) {
+        descargarPDF(res.data.id)
+      }
+
       dialog.value = false
       loadPendientes()
     } catch (e) {
       $q.notify({ color: 'negative', message: 'Fallo en la actualización de inventario' })
     } finally { saving.value = false }
+  }
+
+  const descargarPDF = async (id) => {
+    try {
+      $q.notify({ message: 'Generando comprobante PDF...', color: 'info' })
+      const response = await api.get(`/api/transferencias/${id}/pdf`, { responseType: 'blob' })
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `Comprobante_Recepción_${id}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      $q.notify({ color: 'negative', message: 'Error al descargar el PDF' })
+    }
   }
 
   const formatNumber = (val) => Number(val) // Smart Decimals
