@@ -143,9 +143,9 @@
     {
       label: 'Total Traspasos',
       value: kpisRaw.value?.total_traspasos || 0,
-      color: 'text-primary',
+      color: 'text-blue-8',
       icon: 'local_shipping',
-      border: 'border-primary-left'
+      border: 'border-blue-left'
     },
     {
       label: 'Cancelados',
@@ -276,6 +276,7 @@
   }
   .kpi-card { border-radius: 12px; background: white; }
   .border-primary-left { border-left: 5px solid var(--q-primary); }
+  .border-blue-left { border-left: 5px solid #1565c0; }
   .border-red-left { border-left: 5px solid #d32f2f; }
   .border-green-left { border-left: 5px solid #2e7d32; }
   .border-purple-left { border-left: 5px solid #8b5cf6; }
