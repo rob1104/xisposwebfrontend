@@ -89,8 +89,18 @@
                 {{ props.row.estatus }}
               </q-badge>
             </q-td>
-            <q-td class="text-center text-bold text-grey-9">
-              {{ calcularArticulos(props.row.detalles) }}
+            <q-td>
+              <div v-for="det in props.row.detalles" :key="det.id" class="q-mb-xs" style="font-size: 11px;">
+                <span class="text-bold">{{ det.producto?.nombre || 'Desconocido' }}</span>
+                <span class="text-grey-7"> - {{ Number(det.cantidad_enviada).toFixed(2) }} uds</span>
+                <span v-if="props.row.estatus === 'Recibido' && det.cantidad_enviada != det.cantidad_recibida" class="text-red text-bold"> (Dif: {{ Number(det.cantidad_enviada - det.cantidad_recibida).toFixed(2) }})</span>
+              </div>
+              <div class="text-caption text-bold text-primary q-mt-xs" style="border-top: 1px solid #e2e8f0; padding-top: 2px;">Total: {{ calcularArticulos(props.row.detalles) }} uds</div>
+            </q-td>
+            <q-td class="text-right">
+              <q-btn flat round dense color="primary" icon="print" @click="descargarPDFIndividual(props.row.id)">
+                <q-tooltip>Reimprimir Comprobante</q-tooltip>
+              </q-btn>
             </q-td>
           </q-tr>
         </template>
@@ -164,7 +174,8 @@
     { name: 'origen', label: 'ORIGEN', align: 'left' },
     { name: 'destino', label: 'DESTINO', align: 'left' },
     { name: 'estatus', label: 'ESTATUS', align: 'center' },
-    { name: 'articulos', label: 'ARTÍCULOS TRANSFERIDOS', align: 'center' }
+    { name: 'articulos', label: 'ARTÍCULOS TRANSFERIDOS', align: 'left' },
+    { name: 'acciones', label: '', align: 'right' }
   ]
 
   const cargarReporte = async () => {
@@ -181,6 +192,25 @@
     } finally { cargando.value = false }
   }
 
+  const descargarPDFIndividual = async (id) => {
+    try {
+      $q.loading.show({ message: 'Generando comprobante...' })
+      const response = await api.get(`/api/transferencias/${id}/pdf`, { responseType: 'blob' })
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `Comprobante_Traspaso_${id}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      $q.notify({ color: 'negative', message: 'Error al descargar el PDF' })
+    } finally {
+      $q.loading.hide()
+    }
+  }
+
   const exportarExcel = () => {
     const dataExport = reporte.value.map(r => ({
       Folio: r.id,
@@ -191,7 +221,8 @@
       Estatus: r.estatus,
       Fecha_Recepcion: formatDateTime(r.fecha_recepcion),
       Usuario_Recibe: r.user_recibe?.name || '',
-      Articulos_Enviados: Number(calcularArticulos(r.detalles))
+      Productos: r.detalles?.map(d => `${d.producto?.nombre || 'Desconocido'} - ${Number(d.cantidad_enviada)} uds`).join('\n') || '',
+      Total_Articulos_Enviados: Number(calcularArticulos(r.detalles))
     }))
     
     const ws = XLSX.utils.json_to_sheet(dataExport)
