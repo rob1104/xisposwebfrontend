@@ -343,7 +343,7 @@
   const filterProducts = async (val, update, abort) => {
     if (val.length < 2) return abort()
     try {
-      const res = await api.get(`/api/productos/search?query=${val}`)
+      const res = await api.get(`/api/productos/search?q=${val}`)
       update(() => {
         productOptions.value = res.data.map(p => ({
           label: p.nombre, value: p.id, codigo: p.codigo_barras
