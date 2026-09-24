@@ -528,10 +528,12 @@
       }
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Error crítico al finalizar la venta'
+      const esErrorStock = errorMsg.toLowerCase().includes('stock insuficiente')
+
       $q.notify({
-        color: 'negative',
+        color: esErrorStock ? 'warning' : 'negative',
         message: errorMsg,
-        icon: 'report_problem',
+        icon: esErrorStock ? 'warning' : 'report_problem',
         position: 'center'
       })
     }
