@@ -113,7 +113,6 @@
                   </q-input>
                 </div>
               </div>
-              </div>
             </div>
 
             <q-separator class="q-my-xl" />
