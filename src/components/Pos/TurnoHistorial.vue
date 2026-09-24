@@ -171,8 +171,9 @@
         params.user_id = auth.user.id
       }
       else {
-        if(props.sucursalId) {
-          params.sucursal_id = props.sucursalId
+        const sid = props.sucursalId || auth.sucursalSeleccionada?.id;
+        if(sid) {
+          params.sucursal_id = sid;
         }
       }
 
@@ -185,9 +186,8 @@
     }
   }
 
-  watch(() => props.sucursalId, () =>{
-    cargarTurnos()
-  })
+  watch(() => props.sucursalId, () => { cargarTurnos() })
+    watch(() => auth.sucursalSeleccionada, () => { cargarTurnos() }, { deep: true })
 
   const imprimirReporte = async (id) => {
     $q.loading.show({ message: 'Generando Reporte PDF...' })
