@@ -74,7 +74,7 @@
           <q-tooltip class="bg-amber-10 text-bold">MÓDULO RESTAURANTE</q-tooltip>
         </q-btn>
 
-        <q-btn unelevated round color="negative" icon="power_settings_new" @click="$emit('close-turn')" class="shadow-5">
+        <q-btn unelevated round color="negative" icon="power_settings_new" @click="$emit('close-turn')" class="shadow-5 q-ml-xl">
           <q-tooltip class="bg-black text-bold">CERRAR TURNO (CORTE X)</q-tooltip>
         </q-btn>
       </div>
