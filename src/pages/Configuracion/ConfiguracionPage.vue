@@ -80,34 +80,39 @@
 
             <div class="row q-col-gutter-xl">
               <div class="col-12">
-                <div class="text-subtitle1 text-bold q-mb-md">Servidores de Impresión (XisPOS Bridge)</div>
+                <div class="text-subtitle1 text-bold q-mb-md">Servidores de Impresin (XisPOS Bridge) por Sucursal</div>
                 <div class="text-caption text-grey-7 q-mb-md">
-                  Rutas donde el sistema enviará los comandos de impresión. 
-                  Si dejas esto en blanco o como "http://127.0.0.1:5000", se imprimirá en la computadora actual. 
+                  Rutas donde el sistema enviar los comandos de impresin para cada sucursal. 
+                  Si dejas esto en blanco o como "http://127.0.0.1:5000", se imprimir en la computadora actual. 
                   Si usas tablets, pon la IP local de la caja (Ej: http://192.168.1.10:5000).
                 </div>
               </div>
-              <div class="col-12 col-md-6">
-                <q-input
-                  v-model="form.impresora_general_url"
-                  label="URL Servidor General (Tickets) *"
-                  outlined
-                  stack-label
-                  placeholder="Ej: http://127.0.0.1:5000"
-                >
-                  <template v-slot:prepend><q-icon name="receipt_long" /></template>
-                </q-input>
+              
+              <div v-for="sucursal in sucursales" :key="sucursal.id" class="col-12 row q-col-gutter-md q-pb-md" style="border-bottom: 1px dashed #ccc;">
+                <div class="col-12 text-subtitle2 text-primary">{{ sucursal.nombre }}</div>
+                <div class="col-12 col-md-6">
+                  <q-input
+                    v-model="sucursal.impresora_general_url"
+                    label="URL Servidor General (Tickets) *"
+                    outlined
+                    stack-label
+                    placeholder="Ej: http://127.0.0.1:5000"
+                  >
+                    <template v-slot:prepend><q-icon name="receipt_long" /></template>
+                  </q-input>
+                </div>
+                <div class="col-12 col-md-6">
+                  <q-input
+                    v-model="sucursal.impresora_cocina_url"
+                    label="URL Servidor Cocina (Comandas) *"
+                    outlined
+                    stack-label
+                    placeholder="Ej: http://127.0.0.1:5001"
+                  >
+                    <template v-slot:prepend><q-icon name="restaurant_menu" /></template>
+                  </q-input>
+                </div>
               </div>
-              <div class="col-12 col-md-6">
-                <q-input
-                  v-model="form.impresora_cocina_url"
-                  label="URL Servidor Cocina (Comandas) *"
-                  outlined
-                  stack-label
-                  placeholder="Ej: http://192.168.1.100:5000"
-                >
-                  <template v-slot:prepend><q-icon name="restaurant_menu" /></template>
-                </q-input>
               </div>
             </div>
 
@@ -173,6 +178,21 @@
     }
   }
 
+  const sucursales = ref([])
+
+  const cargarSucursales = async () => {
+    try {
+      const { data } = await api.get('/api/sucursales')
+      data.forEach(s => {
+        if (!s.impresora_general_url) s.impresora_general_url = 'http://127.0.0.1:5000'
+        if (!s.impresora_cocina_url) s.impresora_cocina_url = 'http://127.0.0.1:5001'
+      })
+      sucursales.value = data
+    } catch (error) {
+      console.error('Error cargando sucursales', error)
+    }
+  }
+
   const form = reactive({
     nombre_tienda: '',
     logo_file: null,
@@ -201,13 +221,16 @@
     try {
       const formData = new FormData()
       formData.append('nombre_tienda', form.nombre_tienda)
-      formData.append('impresora_general_url', form.impresora_general_url)
-      formData.append('impresora_cocina_url', form.impresora_cocina_url)
+      
       if (form.logo_file) formData.append('logo', form.logo_file)
 
       await api.post('/api/config/update', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
+
+      if (sucursales.value.length > 0) {
+        await api.post('/api/sucursales/impresoras', { sucursales: sucursales.value })
+      }
 
       // Actualizar el store global de inmediato
       await configStore.loadConfig()
@@ -225,6 +248,7 @@
       if (configStore.nombreTienda === 'Cargando...') {
         await configStore.fetchConfig()
       }
+      await cargarSucursales()
     })
   }
 

@@ -18,7 +18,8 @@ export const PrintService = {
       }
 
       // Enviamos la petición al puente de Python (Flask)
-      const baseUrl = configStore.impresoraGeneralUrl || 'http://localhost:5000'
+      const authStore = useAuthStore();
+      const baseUrl = authStore.sucursalSeleccionada?.impresora_general_url || configStore.impresoraGeneralUrl || 'http://127.0.0.1:5000'
       const response = await axios.post(`${baseUrl}/printtest`, datosPrueba)
 
       return response.data
@@ -76,7 +77,8 @@ export const PrintService = {
         qr_data: qrData
       }
 
-      const baseUrl = configStore.impresoraGeneralUrl || 'http://localhost:5000'
+      const authStore = useAuthStore();
+      const baseUrl = authStore.sucursalSeleccionada?.impresora_general_url || configStore.impresoraGeneralUrl || 'http://127.0.0.1:5000'
       await axios.post(`${baseUrl}/print`, payload)
     } catch (error) {
       console.error("Error de impresión profesional:", error)
@@ -141,7 +143,8 @@ export const PrintService = {
       }
 
       // 3. Enviar al script de Python
-      const baseUrl = configStore.impresoraGeneralUrl || 'http://localhost:5000'
+      const authStore = useAuthStore();
+      const baseUrl = authStore.sucursalSeleccionada?.impresora_general_url || configStore.impresoraGeneralUrl || 'http://127.0.0.1:5000'
       await axios.post(`${baseUrl}/print`, payload)
       return true
     } catch (error) {
@@ -164,7 +167,8 @@ export const PrintService = {
       };
 
       // Enviamos a la ruta específica creada en el print_bridge.pyw
-      const baseUrl = configStore.impresoraGeneralUrl || 'http://localhost:5000'
+      const authStore = useAuthStore();
+      const baseUrl = authStore.sucursalSeleccionada?.impresora_general_url || configStore.impresoraGeneralUrl || 'http://127.0.0.1:5000'
       await axios.post(`${baseUrl}/print-movement`, payload);
       return true;
     } catch (error) {
@@ -200,7 +204,8 @@ export const PrintService = {
         productos: productosMap
       }
 
-      const baseUrl = configStore.impresoraGeneralUrl || 'http://localhost:5000'
+      const authStore = useAuthStore();
+      const baseUrl = authStore.sucursalSeleccionada?.impresora_general_url || configStore.impresoraGeneralUrl || 'http://127.0.0.1:5000'
       await axios.post(`${baseUrl}/print-precuenta`, payload)
       return true
     } catch (error) {
@@ -226,7 +231,8 @@ export const PrintService = {
       }
 
       // Enviamos al nuevo endpoint de Python
-      const baseUrl = configStore.impresoraCocinaUrl || 'http://localhost:5000'
+      const authStore = useAuthStore();
+      const baseUrl = authStore.sucursalSeleccionada?.impresora_cocina_url || configStore.impresoraCocinaUrl || 'http://127.0.0.1:5001'
       await axios.post(`${baseUrl}/print-cocina`, payload)
       return true
     } catch (error) {
@@ -247,7 +253,8 @@ export const PrintService = {
         logo_url: configStore.logoUrl
       }
       
-      const baseUrl = configStore.impresoraGeneralUrl || 'http://localhost:5000'
+      const authStore = useAuthStore();
+      const baseUrl = authStore.sucursalSeleccionada?.impresora_general_url || configStore.impresoraGeneralUrl || 'http://127.0.0.1:5000'
       await axios.post(`${baseUrl}/print-corte`, payload)
       return true
     }
