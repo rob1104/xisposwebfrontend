@@ -30,6 +30,15 @@
         <q-btn
           flat
           round
+          icon="point_of_sale"
+          color="green-4"
+          @click="router.push('/pos')"
+        >
+          <q-tooltip>Ir al POS</q-tooltip>
+        </q-btn>
+        <q-btn
+          flat
+          round
           icon="apps"
           color="white"
           @click="router.push('/dashboard')"
