@@ -152,6 +152,7 @@
 
   const columns = [
     { name: 'user', label: 'CAJERO / RESPONSABLE', field: row => row.user?.name, align: 'left', sortable: true },
+      { name: 'sucursal', label: 'SUCURSAL', field: row => row.sucursal?.nombre || '---', align: 'left', sortable: true },
     { name: 'apertura', label: 'FECHA APERTURA', field: 'created_at', align: 'left', sortable: true },
     { name: 'cierre', label: 'FECHA CIERRE', field: 'cerrado_at', align: 'left', sortable: true },
     { name: 'fondo', label: 'FONDO INICIAL', field: 'saldo_inicial', align: 'right', format: v => `$ ${v}` },
