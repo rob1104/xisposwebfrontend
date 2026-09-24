@@ -117,7 +117,7 @@
                               color="primary"
                               class="perm-checkbox text-caption"
                             >
-                              <span class="text-grey-9 text-caption">{{ perm.name.split('.')[1].replace('_', ' ') }}</span>
+                              <span class="text-grey-9 text-caption">{{ (perm.name.split('.')[1] || perm.name).replace('_', ' ') }}</span>
                             </q-checkbox>
                           </div>
                         </div>

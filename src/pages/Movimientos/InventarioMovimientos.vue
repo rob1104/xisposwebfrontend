@@ -250,6 +250,9 @@
               outlined
             />
           </div>
+          <div class="q-mt-xs" v-if="productoEncontrado?.merma > 0 && form.tipo === 'ENTRADA'">
+            <q-checkbox v-model="form.aplicar_merma" color="primary" dense :label="`Aplicar descuento de merma esperada (${productoEncontrado.merma}%)`" />
+          </div>
 
           <q-input
             v-model="form.observaciones"
@@ -423,7 +426,8 @@
     producto_id: null,
     tipo: 'ENTRADA',
     cantidad: 0,
-    observaciones: ''
+    observaciones: '',
+    aplicar_merma: false
   })
 
   // KPIs Computados (Calculados localmente para velocidad)
@@ -491,7 +495,8 @@
       producto_id: null,
       tipo: 'ENTRADA',
       cantidad: 0,
-      observaciones: ''
+      observaciones: '',
+      aplicar_merma: false
     }
   }
 
@@ -511,7 +516,8 @@
       producto_id: null,
       tipo: 'ENTRADA',
       cantidad: 0,
-      observaciones: ''
+      observaciones: '',
+      aplicar_merma: false
     }
 
     // 3. Activamos el diálogo de Quasar
@@ -648,7 +654,14 @@
   const guardarMovimiento = async () => {
     loading.value = true
     try {
-      await api.post('/api/inventario/movimiento', form.value)
+      let payload = { ...form.value }
+      if (payload.aplicar_merma && productoEncontrado.value?.merma > 0 && payload.tipo === 'ENTRADA') {
+        const factor = 1 - (productoEncontrado.value.merma / 100)
+        payload.cantidad = Number((payload.cantidad * factor).toFixed(6))
+        payload.observaciones = (payload.observaciones || '') + ` (Se aplicó ${productoEncontrado.value.merma}% de merma)`
+      }
+
+      await api.post('/api/inventario/movimiento', payload)
       $q.notify({ color: 'positive', message: 'Movimiento registrado' })
       dialogo.value = false
       cargarMovimientos()

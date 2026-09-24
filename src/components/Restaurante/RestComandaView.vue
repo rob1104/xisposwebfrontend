@@ -590,18 +590,23 @@
 
         orden.codigo = folioVisual
 
-        await PrintService.imprimirCuenta(
-            orden,
-            props.mesa ? props.mesa.nombre : (clienteNombre.value ? `LLEVAR: ${clienteNombre.value}` : 'PARA LLEVAR'),
-            props.mesero?.name
-        )
+        try {
+          await PrintService.imprimirCuenta(
+              orden,
+              props.mesa ? props.mesa.nombre : (clienteNombre.value ? `LLEVAR: ${clienteNombre.value}` : 'PARA LLEVAR'),
+              props.mesero?.name
+          )
+          $q.notify({ message: 'Estado de cuenta impreso', color: 'positive', icon: 'receipt' })
+        } catch (printError) {
+          console.error(printError)
+          $q.notify({ message: 'Error en impresora, cerrando cuenta de todos modos...', color: 'warning', icon: 'warning' })
+        }
 
-        $q.notify({ message: 'Estado de cuenta impreso', color: 'positive', icon: 'receipt' })
         await cerrarCuentaReal()
 
       } catch (e) {
         console.error(e)
-        $q.notify({ message: 'Error al imprimir cuenta', color: 'negative' })
+        $q.notify({ message: 'Error al procesar la orden', color: 'negative' })
       } finally {
         $q.loading.hide()
       }

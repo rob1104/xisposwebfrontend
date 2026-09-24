@@ -128,7 +128,7 @@
     try {
       const { data } = await api.get('/api/users')
       listaSupervisores.value = data.filter(usuario =>
-        usuario.role === 'Administrador' || usuario.role === 'Gerente'
+        usuario.permissions && usuario.permissions.some(p => p.name === 'turnos.autorizar')
       )
     } catch (e) {
       console.error("Error cargando usuarios")

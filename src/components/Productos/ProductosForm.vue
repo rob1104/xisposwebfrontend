@@ -28,7 +28,7 @@
       <q-separator />
 
       <q-form @submit="handleSubmit">
-        <q-tab-panels v-model="tab" animated class="bg-grey-1">
+        <q-tab-panels v-model="tab" animated class="bg-grey-1 scroll" style="max-height: 60vh;">
           <q-tab-panel name="general" class="q-pa-lg">
             <div class="row q-col-gutter-sm">
               <div class="col-12 text-subtitle2 text-bold text-grey-8 row items-center">
@@ -123,6 +123,12 @@
               </div>
               <div class="col-12 col-md-4">
                 <q-select v-bind="inputProps" v-model="form.tipo_producto" :options="['Inventariable', 'Compuesto', 'Servicio']" label="Naturaleza del Producto" bg-color="blue-1" />
+              </div>
+              <div class="col-12 col-md-4" v-if="form.tipo_producto === 'Inventariable'">
+                <q-input v-bind="inputProps" v-model.number="form.merma" label="Merma Esperada (%)" type="number" step="0.01" min="0" max="100">
+                  <template v-slot:append><q-icon name="percent" size="xs" /></template>
+                  <template v-slot:hint>Porcentaje estimado de pérdida</template>
+                </q-input>
               </div>
 
               <div class="row items-center q-col-gutter-md">
@@ -364,6 +370,7 @@
     clave_unidad: '',
     objeto_imp: '02',
     ultimo_costo_compra: 0,
+    merma: 0,
     precios: [{ nombre_lista: 'PRECIO PUBLICO', precio: 0, utilidad_porcentaje: 0 }],
     componentes: [],
     impuestos: [],
@@ -519,6 +526,7 @@
       formData.append('clave_prod_serv', form.clave_prod_serv)
       formData.append('clave_unidad', form.clave_unidad)
       formData.append('objeto_imp', form.objeto_imp)
+      formData.append('merma', form.merma || 0)
 
       // 3. Archivo de Imagen (Solo si hay uno nuevo seleccionado)
       if (archivoImagen.value) {
@@ -577,6 +585,7 @@
                     clave_unidad: '',
                     objeto_imp: '02',
                     ultimo_costo_compra: 0,
+                    merma: 0,
                     precios: [{ nombre_lista: 'PRECIO PUBLICO', precio: 0, utilidad_porcentaje: 0 }],
                     componentes: [],
                     impuestos: [],

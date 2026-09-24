@@ -260,7 +260,7 @@
     }
   }
 
-  const tempPartida = ref({ producto_id: null, nombre: '', cantidad: 1, costo_unitario: 0, impuesto_porcentaje: 0 })
+  const tempPartida = ref({ producto_id: null, nombre: '', cantidad: 1, costo_unitario: 0, impuesto_porcentaje: 0, merma_porcentaje: 0 })
 
   const columnasPartidas = [
     { name: 'nombre', label: 'Producto / Descripción', field: 'nombre', align: 'left', classes: 'text-bold' },
@@ -306,7 +306,8 @@
       nombre: val.nombre, 
       cantidad: 1, 
       costo_unitario: val.ultimo_costo || 0,
-      impuesto_porcentaje: impPorcentaje
+      impuesto_porcentaje: impPorcentaje,
+      merma_porcentaje: parseFloat(val.merma) || 0
     }
   }
 
@@ -315,9 +316,47 @@
       $q.notify({ message: 'El producto ya está en la lista', color: 'orange', position: 'bottom' })
       return
     }
+
+    if (tempPartida.value.merma_porcentaje > 0) {
+      $q.dialog({
+        title: 'Aplicar Merma Esperada',
+        message: `Este producto tiene una merma esperada registrada del <b>${tempPartida.value.merma_porcentaje}%</b>.<br><br>Si aplicas la merma, la cantidad que ingresará al inventario se reducirá y el costo unitario se ajustará proporcionalmente para mantener el importe total intacto.<br><br>¿Deseas aplicar el cálculo de merma ahora?`,
+        html: true,
+        cancel: { label: 'No, usar cantidad original', flat: true, color: 'grey-7' },
+        ok: { label: 'Sí, aplicar merma', color: 'primary' },
+        persistent: true
+      }).onOk(() => {
+        aplicarPartidaConMerma()
+      }).onCancel(() => {
+        insertarPartidaFinal()
+      })
+    } else {
+      insertarPartidaFinal()
+    }
+  }
+
+  const aplicarPartidaConMerma = () => {
+    const p = tempPartida.value
+    const importeTotal = p.cantidad * p.costo_unitario
+    const mermaFactor = 1 - (p.merma_porcentaje / 100)
+    
+    // Si la merma es 100% no deberia pasar, pero por precaucion:
+    if (mermaFactor <= 0) {
+      $q.notify({ message: 'El porcentaje de merma es inválido (>= 100%).', color: 'negative' })
+      insertarPartidaFinal()
+      return
+    }
+
+    p.cantidad = Number((p.cantidad * mermaFactor).toFixed(6))
+    p.costo_unitario = Number((importeTotal / p.cantidad).toFixed(6))
+    
+    insertarPartidaFinal()
+  }
+
+  const insertarPartidaFinal = () => {
     compra.value.detalles.push({ ...tempPartida.value })
     busquedaProducto.value = null
-    tempPartida.value = { producto_id: null, nombre: '', cantidad: 1, costo_unitario: 0, impuesto_porcentaje: 0 }
+    tempPartida.value = { producto_id: null, nombre: '', cantidad: 1, costo_unitario: 0, impuesto_porcentaje: 0, merma_porcentaje: 0 }
   }
 
   const eliminarPartida = (row) => {
