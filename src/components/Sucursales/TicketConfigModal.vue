@@ -54,6 +54,29 @@
               <div class="text-subtitle1 text-bold q-ml-sm text-blue-grey-9">Pie de Página</div>
             </div>
 
+            <div v-for="(linea, index) in config.footer_lines" :key="'f'+index" class="row q-mb-sm items-center q-gutter-x-sm">
+              <q-input
+                v-model="config.footer_lines[index]"
+                outlined
+                dense
+                class="col"
+                bg-color="white"
+                color="primary"
+                placeholder="Ej: Políticas de devolución..."
+              />
+              <q-btn icon="delete_outline" color="negative" flat round @click="config.footer_lines.splice(index, 1)" />
+            </div>
+
+            <q-btn
+              label="Nueva Línea Inferior"
+              icon="add"
+              outline
+              color="primary"
+              class="full-width q-mt-sm border-dashed"
+              @click="config.footer_lines.push('')"
+            />
+          </div>
+
           <div class="config-card">
             <div class="row items-center q-mb-md">
               <q-avatar icon="print" color="cyan-1" text-color="cyan-9" size="md" />
@@ -89,29 +112,6 @@
             </div>
           </div>
 
-
-            <div v-for="(linea, index) in config.footer_lines" :key="'f'+index" class="row q-mb-sm items-center q-gutter-x-sm">
-              <q-input
-                v-model="config.footer_lines[index]"
-                outlined
-                dense
-                class="col"
-                bg-color="white"
-                color="primary"
-                placeholder="Ej: Políticas de devolución..."
-              />
-              <q-btn icon="delete_outline" color="negative" flat round @click="config.footer_lines.splice(index, 1)" />
-            </div>
-
-            <q-btn
-              label="Nueva Línea Inferior"
-              icon="add"
-              outline
-              color="primary"
-              class="full-width q-mt-sm border-dashed"
-              @click="config.footer_lines.push('')"
-            />
-          </div>
         </div>
 
         <div class="col-12 col-md-6 flex flex-center bg-grey-3 rounded-borders relative-position overflow-hidden">
