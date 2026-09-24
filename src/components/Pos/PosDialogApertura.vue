@@ -100,12 +100,14 @@
 <script setup>
   import { ref, computed, onMounted } from 'vue'
   import { usePosStore } from 'src/stores/pos'
+  import { useAuthStore } from 'src/stores/auth'
   import { useQuasar } from 'quasar'
   import { api } from 'src/boot/axios'
 
   const props = defineProps(['modelValue'])
   const emit = defineEmits(['update:modelValue'])
   const posStore = usePosStore()
+  const authStore = useAuthStore()
   const $q = useQuasar()
 
   const form = ref({
@@ -127,9 +129,21 @@
   const cargarSupervisores = async () => {
     try {
       const { data } = await api.get('/api/users')
-      listaSupervisores.value = data.filter(usuario =>
-        usuario.permissions && usuario.permissions.some(p => p.name === 'turnos.autorizar')
-      )
+      const activeSucursalId = authStore.sucursalSeleccionada?.id
+
+      listaSupervisores.value = data.filter(usuario => {
+        // 1. Debe tener el permiso de turnos.autorizar
+        const hasPerm = usuario.permissions && usuario.permissions.some(p => p.name === 'turnos.autorizar')
+        if (!hasPerm) return false;
+
+        // 2. Si es Administrador, tiene acceso global
+        if (usuario.role === 'Administrador') return true;
+
+        // 3. Validar si está asignado a la sucursal actual
+        if (!activeSucursalId) return true; // Si no hay sucursal activa, no restringimos
+
+        return usuario.sucursales && usuario.sucursales.some(s => s.id === activeSucursalId);
+      })
     } catch (e) {
       console.error("Error cargando usuarios")
     }
