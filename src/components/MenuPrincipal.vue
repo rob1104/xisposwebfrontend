@@ -29,6 +29,7 @@
     </q-item>
 
     <q-expansion-item dense
+      v-if="hasVentasAccess"
       v-model="ventasExpanded"
       icon="receipt_long"
       label="Ventas y Clientes"
@@ -59,6 +60,7 @@
     <q-item-label header class="menu-header">Logística</q-item-label>
 
     <q-expansion-item dense
+      v-if="hasInventarioAccess"
       v-model="inventarioExpanded"
       icon="inventory"
       label="Almacén y Stock"
@@ -90,6 +92,7 @@
     </q-expansion-item>
 
     <q-expansion-item dense
+      v-if="hasComprasAccess"
       v-model="comprasExpanded"
       icon="shopping_cart"
       label="Compras"
@@ -111,7 +114,8 @@
 <q-item-label header class="menu-header">Analisis y Datos</q-item-label>
 
   <q-expansion-item dense
-    v-model="reportesExpanded"
+      v-if="hasReportesAccess"
+      v-model="reportesExpanded"
     icon="assessment"
     label="Reportes"
     header-class="menu-expansion-header"
@@ -158,9 +162,10 @@
 
     <q-separator class="q-my-md opacity-20" />
 
-    <q-item-label header class="menu-header">Administración</q-item-label>
+    <q-item-label v-if="hasAdministracionAccess" header class="menu-header">Administración</q-item-label>
 
     <q-expansion-item dense
+      v-if="hasConfiguracionAccess"
       v-model="seguridadExpanded"
       icon="settings_suggest"
       label="Configuración"
@@ -189,6 +194,7 @@
     </q-expansion-item>
 
     <q-expansion-item dense
+      v-if="hasSeguridadAccess"
       v-model="accesoExpanded"
       icon="shield"
       label="Seguridad"
@@ -219,12 +225,22 @@
 </template>
 
 <script setup>
-  import { ref, watch, onMounted } from 'vue'
+  import { ref, computed, watch, onMounted } from 'vue'
   import { useRoute } from 'vue-router'
   import { useAuthStore } from 'stores/auth'
 
   const auth = useAuthStore()
   const route = useRoute()
+
+  const hasVentasAccess = computed(() => auth.can('clientes.ver') || auth.can('ventas.ver'))
+  const hasInventarioAccess = computed(() => auth.can('productos.ver') || auth.can('inventario.movimientos') || auth.can('inventario.verconteofisico') || auth.can('inventario.transferir') || auth.can('inventario.recibir'))
+  const hasComprasAccess = computed(() => auth.can('compras.ver') || auth.can('proveedores.ver'))
+  const hasReportesAccess = computed(() => auth.can('reportes.ventasdetalladas') || auth.can('reportes.global') || auth.can('reportes.sucursal') || auth.can('reportes.traspasos') || auth.can('reportes.inventariohistorico'))
+  
+  const hasConfiguracionAccess = computed(() => auth.can('sucursales.ver') || auth.can('conceptos.ver') || auth.can('configuracion.editar') || auth.can('restaurante.config'))
+  const hasSeguridadAccess = computed(() => auth.can('usuarios.ver') || auth.can('roles.ver') || auth.can('configuracion.logs') || auth.can('Respaldar base de datos'))
+  const hasAdministracionAccess = computed(() => hasConfiguracionAccess.value || hasSeguridadAccess.value)
+
 
   // Estados de expansión
   const ventasExpanded = ref(false)
