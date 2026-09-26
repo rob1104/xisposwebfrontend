@@ -144,9 +144,39 @@
   }
 
   const abrirParaLlevar = () => {
-    mesaSeleccionada.value = null // Null indica "Para Llevar"
-    meseroActivo.value = authStore.user
-    iniciarOrden(authStore.user) // Saltamos dialogo o lo mostramos si quieres cambiar mesero
+    $q.dialog({
+      title: 'Nueva Orden',
+      message: 'Nombre del cliente (Para Llevar):',
+      prompt: {
+        model: '',
+        type: 'text'
+      },
+      cancel: true,
+      persistent: true
+    }).onOk(async (nombre) => {
+      $q.loading.show({ message: 'Creando orden...' })
+      try {
+        const payload = {
+          mesa_id: null,
+          nombre_cliente: nombre || 'Sin Nombre'
+        }
+        const { data } = await api.post('/api/restaurante/abrir-orden', payload)
+        
+        mesaSeleccionada.value = {
+          is_para_llevar: true,
+          orden_id: data.id,
+          nombre: `Llevar: ${data.nombre_cliente || 'Sin Nombre'}`
+        }
+        meseroActivo.value = authStore.user
+        
+        ordenActivaId.value = data.id
+        vistaActual.value = 'comanda'
+      } catch (e) {
+        $q.notify({ message: 'Error al iniciar orden para llevar', color: 'negative' })
+      } finally {
+        $q.loading.hide()
+      }
+    })
   }
 
   const iniciarOrden = async(usuarioMesero) => {

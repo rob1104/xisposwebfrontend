@@ -278,6 +278,7 @@
   import { usePosStore } from 'src/stores/pos'
   import { useQuasar } from 'quasar'
   import { api } from 'boot/axios'
+  import { PrintService } from 'src/services/PrintService'
 
   const props = defineProps(['modelValue'])
   const emit = defineEmits(['update:modelValue', 'closed'])
@@ -435,6 +436,23 @@
            $q.notify({ type: 'warning', message: 'Corte guardado, pero falló la impresión' })
         }
         // ===================================
+
+        // === DESCARGAR PDF DEL CORTE DE TURNO ===
+        $q.notify({ message: 'Descargando PDF del turno...', color: 'info', icon: 'picture_as_pdf' })
+        try {
+          const response = await api.get(`/api/turnos/pdf/${posStore.turno.id}`, { responseType: 'blob' })
+          const url = window.URL.createObjectURL(new Blob([response.data]))
+          const link = document.createElement('a')
+          link.href = url
+          link.setAttribute('download', `Cierre_Caja_${posStore.turno.id}.pdf`)
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          window.URL.revokeObjectURL(url)
+        } catch (pdfErr) {
+          $q.notify({ type: 'warning', message: 'Error al descargar el PDF del turno' })
+        }
+        // =========================================
 
         posStore.turno = null
         internalValue.value = false
